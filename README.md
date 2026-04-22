@@ -6,10 +6,13 @@ See [PLAN.md](./PLAN.md) for the full product & business plan.
 ## Pipeline
 
 ```
-collector  →  rewriter  →  imagegen  →  publisher
- (Korean)     (Claude →     (1080×1350    (IG Graph
-              Thai JSON)     PNG slides)    API)
+discover  →  theme pick  →  gather  →  synthesize  →  render  →  publish
+(hashtag +   (cadence-     (rank by    (Claude:       (PIL       (IG Graph
+ seed accts)  aware rota.)  keyword)    theme + N      carousel)   API)
+                                        sources → TH)
 ```
+
+See [CONTENT_STRATEGY.md](./CONTENT_STRATEGY.md) for the content approach.
 
 ## Layout
 
@@ -45,10 +48,12 @@ Download from https://fonts.google.com/noto/specimen/Noto+Sans+Thai.
 Each stage independently:
 
 ```bash
-python -m collector.instagram_collector
-python -m rewriter.thai_rewriter
-python scripts/daily_run.py --limit 2            # dry-run full pipeline
-python scripts/daily_run.py --limit 2 --publish  # actual IG publish (needs hosted images)
+python -m collector.instagram_collector   # pull from seed accounts
+python -m collector.discovery             # pull from Korean saju hashtags
+python -m rewriter.synthesizer            # pick theme + synthesize Thai post
+python scripts/daily_run.py               # full dry-run pipeline
+python scripts/daily_run.py --skip-discovery    # reuse existing collected posts
+python scripts/daily_run.py --publish     # actual IG publish (needs hosted images)
 ```
 
 ## Status

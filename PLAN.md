@@ -290,12 +290,20 @@
 
 ### Phase 0 — 콘텐츠 시장 검증 (Week 1~2)
 - [x] **Step 0** — 기획안 확정
-- [ ] **Step 1** — 인스타 핸들 가용성 확인 + 비즈니스 계정 세팅
-- [ ] **Step 2** — 한국 사주 피드 수집기 (Python + instaloader/RSS)
-- [ ] **Step 3** — 태국어 재작성 엔진 (Claude API + 프롬프트 템플릿)
-- [ ] **Step 4** — 이미지 템플릿 (node-canvas/Canva API) + 슬라이드 생성
-- [ ] **Step 5** — 인스타 Graph API 발행 파이프라인
-- [ ] **Step 6** — 14일간 일 2회 자동 발행, 반응 데이터 수집
+- [x] **Step 1a** — `@duangsaju` 핸들 확정 및 계정 개설
+- [ ] **Step 1b** — IG 비즈 전환 + FB 페이지 연결 (진행 중)
+- [x] **Step 2** — 다중소스 수집기 스캐폴드 (instaloader — 시드 계정 + 해시태그 디스커버리)
+- [x] **Step 3** — 합성 엔진 스캐폴드 (테마 라이브러리 + Claude 다중소스 합성)
+- [x] **Step 4** — 이미지 렌더러 스캐폴드 (PIL, 1080×1350, 파스텔 팔레트 3종)
+- [ ] **Step 5** — Meta Developer 앱 + IG Graph API 토큰
+- [ ] **Step 6** — 이미지 호스팅 (R2/Supabase/GitHub raw) 연결
+- [ ] **Step 7** — 실제 계정 + 토큰 주입 후 end-to-end 드라이런
+- [ ] **Step 8** — 14일간 일 1~2회 자동 발행, 반응 데이터 수집
+
+> **콘텐츠 접근법 변경 (2026-04-22)**: 1:1 번역 → **테마 기반 다중소스 합성**.
+> 자세한 내용: [CONTENT_STRATEGY.md](./CONTENT_STRATEGY.md)
+> 타겟 소스: Tier-A(한국어 계정/해시태그) + Tier-B(영어권 사주 크리에이터:
+> @ahnestkitchen, @jewelsjpj, @tingssam, @jiyongskorean).
 
 ### 🚦 게이트: 검증 결과 리뷰
 - ✅ 팔로워 300+ / DM 5+ → Phase 1 진입

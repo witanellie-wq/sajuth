@@ -18,7 +18,7 @@ from imagegen.templates import (
     SLIDE_W,
     SUBHEADING_SIZE,
 )
-from rewriter.thai_rewriter import ThaiRewrite
+from rewriter.synthesizer import ThaiPost
 
 
 def _font(name: str, size: int) -> ImageFont.FreeTypeFont:
@@ -83,18 +83,19 @@ def render_body(heading: str, body: str, palette: str = DEFAULT_PALETTE) -> Imag
     return img
 
 
-def render_rewrite(rw: ThaiRewrite, palette: str = DEFAULT_PALETTE) -> list[Path]:
-    out_dir = IMAGES_DIR / f"{rw.source_account}__{rw.source_post_id}"
+def render_post(post: ThaiPost, palette: str = DEFAULT_PALETTE) -> list[Path]:
+    from datetime import date
+    out_dir = IMAGES_DIR / f"{date.today().isoformat()}__{post.theme_id}"
     out_dir.mkdir(parents=True, exist_ok=True)
 
     paths: list[Path] = []
 
-    hook = render_hook(rw.hook_title, palette)
+    hook = render_hook(post.hook_title, palette)
     p = out_dir / "01_hook.png"
     hook.save(p)
     paths.append(p)
 
-    for i, slide in enumerate(rw.slides, start=2):
+    for i, slide in enumerate(post.slides, start=2):
         img = render_body(slide.heading, slide.body, palette)
         p = out_dir / f"{i:02d}_slide.png"
         img.save(p)

@@ -20,15 +20,14 @@ from pathlib import Path
 import requests
 
 from config import IG_ACCESS_TOKEN, IG_USER_ID, PUBLISHED_DIR
-from rewriter.thai_rewriter import ThaiRewrite
+from rewriter.synthesizer import ThaiPost
 
 GRAPH_BASE = "https://graph.facebook.com/v20.0"
 
 
 @dataclass
 class PublishResult:
-    source_post_id: str
-    source_account: str
+    theme_id: str
     ig_media_id: str
     published_at: str
     permalink: str = ""
@@ -83,14 +82,14 @@ def _publish_container(container_id: str) -> str:
 
 
 def publish_carousel(
-    rw: ThaiRewrite,
+    post: ThaiPost,
     image_urls: list[str],
 ) -> PublishResult:
     """Publish rendered slides as a carousel. image_urls must be publicly accessible."""
     if not IG_ACCESS_TOKEN or not IG_USER_ID:
         raise RuntimeError("IG_ACCESS_TOKEN / IG_USER_ID not set")
 
-    full_caption = f"{rw.caption}\n\n{rw.cta}\n\n" + " ".join(rw.hashtags)
+    full_caption = f"{post.caption}\n\n{post.cta}\n\n" + " ".join(post.hashtags)
 
     children = [_create_child_container(url) for url in image_urls]
     for c in children:
@@ -101,16 +100,15 @@ def publish_carousel(
     media_id = _publish_container(carousel)
 
     result = PublishResult(
-        source_post_id=rw.source_post_id,
-        source_account=rw.source_account,
+        theme_id=post.theme_id,
         ig_media_id=media_id,
         published_at=datetime.utcnow().isoformat(),
     )
-    _record(result)
+    _record(result, post.filename)
     return result
 
 
-def _record(r: PublishResult) -> Path:
-    path = PUBLISHED_DIR / f"{r.source_account}__{r.source_post_id}.json"
+def _record(r: PublishResult, filename: str) -> Path:
+    path = PUBLISHED_DIR / filename
     path.write_text(json.dumps(asdict(r), ensure_ascii=False, indent=2))
     return path
