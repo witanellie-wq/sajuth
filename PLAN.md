@@ -305,6 +305,10 @@
 > 타겟 소스: Tier-A(한국어 계정/해시태그) + Tier-B(영어권 사주 크리에이터:
 > @ahnestkitchen, @jewelsjpj, @tingssam, @jiyongskorean).
 
+> **운영 모델 변경 (2026-04-22)**: 풀 오토 슬라이드 생성 → **주간 큐레이션 + Canva 수동 디자인**.
+> 3개 한국 계정(@the.saju, @saju_guide_, @saju_sophist)의 인기 게시물을 벤치마크 소스로 사용.
+> 운영 문서: [WORKFLOW.md](./WORKFLOW.md), [TARGET_ACCOUNTS.md](./TARGET_ACCOUNTS.md), [content_calendar/](./content_calendar/).
+
 ### 🚦 게이트: 검증 결과 리뷰
 - ✅ 팔로워 300+ / DM 5+ → Phase 1 진입
 - ❌ 미달 → 타겟/톤/시간대 재조정 후 2주 연장
