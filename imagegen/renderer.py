@@ -1,9 +1,27 @@
 """PIL-based slide renderer. Produces 1080x1350 PNGs for IG carousel."""
 from __future__ import annotations
 
+import re
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFont
+
+# Glyphs the Thai font can't render get stripped so they don't become tofu boxes.
+_UNSUPPORTED_RANGES = re.compile(
+    "["
+    "一-鿿"   # CJK Unified Ideographs (hanzi)
+    "가-힯"   # Hangul syllables
+    "぀-ゟ"   # Hiragana
+    "゠-ヿ"   # Katakana
+    "\U0001f300-\U0001faff"  # Emoji + pictographs
+    "☀-➿"   # Misc symbols / dingbats
+    "]"
+)
+
+
+def sanitize(text: str) -> str:
+    out = _UNSUPPORTED_RANGES.sub("", text)
+    return re.sub(r"\s+", " ", out).strip()
 
 from config import ASSETS_DIR, IMAGES_DIR
 from imagegen.templates import (
@@ -51,7 +69,7 @@ def render_hook(title: str, palette: str = DEFAULT_PALETTE) -> Image.Image:
     draw = ImageDraw.Draw(img)
     font = _font(HEADING_FONT, HEADING_SIZE + 12)
     max_w = SLIDE_W - 2 * PADDING
-    lines = _wrap(draw, title, font, max_w)
+    lines = _wrap(draw, sanitize(title), font, max_w)
     total_h = len(lines) * (font.size + 20)
     y = (SLIDE_H - total_h) // 2
     for line in lines:
@@ -71,12 +89,12 @@ def render_body(heading: str, body: str, palette: str = DEFAULT_PALETTE) -> Imag
     max_w = SLIDE_W - 2 * PADDING
 
     y = PADDING * 2
-    for line in _wrap(draw, heading, h_font, max_w):
+    for line in _wrap(draw, sanitize(heading), h_font, max_w):
         draw.text((PADDING, y), line, fill=colors["accent"], font=h_font)
         y += h_font.size + 12
 
     y += 40
-    for line in _wrap(draw, body, b_font, max_w):
+    for line in _wrap(draw, sanitize(body), b_font, max_w):
         draw.text((PADDING, y), line, fill=colors["text"], font=b_font)
         y += b_font.size + 16
 
