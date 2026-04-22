@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+
+# Env / secrets
+.env
+.env.local
+*.session
+instaloader_session*
+
+# Data (collected content, generated images)
+data/posts/*
+data/rewrites/*
+data/images/*
+data/published/*
+!data/**/.gitkeep
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Logs
+*.log
+logs/
