@@ -67,6 +67,42 @@ STRINGS = {
         "en": "Educational tool. For paid readings you will receive a full astro-seek interpretation.",
         "th": "เครื่องมือเพื่อการศึกษา สำหรับการอ่านดวงแบบชำระเงิน คุณจะได้รับการตีความ astro-seek แบบเต็มรูปแบบ",
     },
+
+    # ── Paid readings ─────────────────────────────────────────────────────
+    "paid.header": {
+        "en": "Unlock a Personalised Deep Reading",
+        "th": "ปลดล็อกการอ่านเชิงลึกเฉพาะคุณ",
+    },
+    "paid.subtitle": {
+        "en": "The free chart above is the raw blueprint. Pick a depth and Claude writes a reading from YOUR chart in seconds.",
+        "th": "ดวงด้านบนคือโครงสร้างดิบ เลือกระดับความลึกแล้ว Claude จะเขียนการอ่านจากดวงของคุณในไม่กี่วินาที",
+    },
+    "paid.price_suffix": {"en": "฿", "th": "฿"},
+    "paid.cta": {"en": "Unlock", "th": "ปลดล็อก"},
+    "paid.disabled": {
+        "en": "Paid readings are not configured on this deployment yet. Check back soon.",
+        "th": "การอ่านแบบชำระเงินยังไม่พร้อมใช้งาน กรุณากลับมาตรวจสอบเร็ว ๆ นี้",
+    },
+    "paid.unpaid": {
+        "en": "This checkout hasn't been paid yet. If you just finished, wait a moment and refresh.",
+        "th": "การชำระเงินยังไม่สำเร็จ หากเพิ่งชำระเสร็จ รอสักครู่แล้วรีเฟรชหน้า",
+    },
+    "paid.verifying": {
+        "en": "Verifying your payment…",
+        "th": "กำลังตรวจสอบการชำระเงินของคุณ…",
+    },
+    "paid.generating": {
+        "en": "Writing your reading — this takes about 20 seconds.",
+        "th": "กำลังเขียนการอ่านของคุณ — ใช้เวลาประมาณ 20 วินาที",
+    },
+    "paid.reading_header": {
+        "en": "Your Personal Reading",
+        "th": "การอ่านส่วนตัวของคุณ",
+    },
+    "paid.thanks": {
+        "en": "Thank you. Save this page or screenshot to keep your reading.",
+        "th": "ขอบคุณ บันทึกหน้านี้หรือจับภาพหน้าจอเพื่อเก็บการอ่านของคุณ",
+    },
 }
 
 

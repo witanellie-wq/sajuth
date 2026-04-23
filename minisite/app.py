@@ -26,6 +26,15 @@ from saju.tables import (
     stem as stem_info,
     ten_god as ten_god_info,
 )
+from reading.llm import stream_reading
+from reading.payment import (
+    ChartRef,
+    payment_link_for_tier,
+    readings_configured,
+    verify_payment,
+)
+from reading.prompts import TIERS, TIER_ORDER
+from reading.summary import format_chart_for_llm
 
 st.set_page_config(page_title="Saju Thai", page_icon="☯", layout="centered")
 
@@ -100,73 +109,104 @@ with top_col_l:
     st.caption(t("app.subtitle", lang))
 
 
-# ── Input form ─────────────────────────────────────────────────────────────
-st.header(t("form.header", lang))
+# ── Stripe return — detect ?paid=1&tier=...&session_id=... and bypass form ─
+qp = st.query_params
+paid_tier_q = (qp.get("tier") or "").lower()
+paid_session_id_q = qp.get("session_id") or ""
+paid_flag_q = qp.get("paid") == "1"
 
-# Country + City are placed outside of st.form so that changing the country
-# immediately refilters the city list. Widgets inside a form only emit values
-# on submit, which would leave the city dropdown stale.
-c5, c6 = st.columns(2)
-with c5:
-    countries = countries_for_lang(lang)
-    country_keys = [k for k, _ in countries]
-    country_labels = dict(countries)
-    country_code = st.selectbox(
-        t("form.country", lang),
-        options=country_keys,
-        format_func=lambda k: country_labels[k],
-        index=country_keys.index("TH"),
-        key=f"country_code_{lang}",
-    )
-with c6:
-    cities = cities_for_country(country_code, lang)
-    if not cities:
-        st.warning("No cities listed for this country yet.")
+paid_context = None
+if paid_flag_q and paid_session_id_q and paid_tier_q in TIERS:
+    with st.spinner(t("paid.verifying", lang)):
+        info = verify_payment(paid_session_id_q)
+    if info is None:
+        st.error(t("paid.unpaid", lang))
         st.stop()
-    city_keys = [k for k, _ in cities]
-    city_labels = dict(cities)
-    city_key = st.selectbox(
-        t("form.city", lang),
-        options=city_keys,
-        format_func=lambda k: city_labels[k],
-        key=f"city_key_{country_code}_{lang}",
-    )
+    _ref_str = info.get("client_reference_id") or ""
+    _chart_ref = ChartRef.decode(_ref_str)
+    if _chart_ref is None:
+        st.error("Missing birth profile in payment session. Please re-enter.")
+        st.stop()
+    paid_context = {"tier": paid_tier_q, "chart_ref": _chart_ref}
 
-with st.form("saju_form"):
-    c1, c2 = st.columns([2, 1])
-    with c1:
-        name = st.text_input(t("form.name", lang), max_chars=40)
-    with c2:
-        gender_label = st.radio(
-            t("form.gender", lang),
-            options=["female", "male"],
-            format_func=lambda g: t(f"form.gender.{g}", lang),
-            horizontal=True,
+
+# ── Input form (skipped when arriving from a successful payment) ───────────
+if paid_context is not None:
+    _ref = paid_context["chart_ref"]
+    name = _ref.name
+    gender_label = _ref.gender
+    birth_date = _ref.birth_date
+    birth_time = _ref.birth_time
+    country_code = _ref.country_code
+    city_key = _ref.city_key
+    submitted = True
+else:
+    st.header(t("form.header", lang))
+
+    # Country + City are placed outside of st.form so that changing the country
+    # immediately refilters the city list. Widgets inside a form only emit values
+    # on submit, which would leave the city dropdown stale.
+    c5, c6 = st.columns(2)
+    with c5:
+        countries = countries_for_lang(lang)
+        country_keys = [k for k, _ in countries]
+        country_labels = dict(countries)
+        country_code = st.selectbox(
+            t("form.country", lang),
+            options=country_keys,
+            format_func=lambda k: country_labels[k],
+            index=country_keys.index("TH"),
+            key=f"country_code_{lang}",
+        )
+    with c6:
+        cities = cities_for_country(country_code, lang)
+        if not cities:
+            st.warning("No cities listed for this country yet.")
+            st.stop()
+        city_keys = [k for k, _ in cities]
+        city_labels = dict(cities)
+        city_key = st.selectbox(
+            t("form.city", lang),
+            options=city_keys,
+            format_func=lambda k: city_labels[k],
+            key=f"city_key_{country_code}_{lang}",
         )
 
-    c3, c4 = st.columns(2)
-    with c3:
-        birth_date = st.date_input(
-            t("form.date", lang),
-            value=date(1990, 1, 1),
-            min_value=date(1900, 1, 1),
-            max_value=date.today(),
-        )
-    with c4:
-        unknown_time = st.checkbox(t("form.time.unknown", lang), value=False)
-        birth_time = st.time_input(
-            t("form.time", lang),
-            value=time(12, 0),
-            disabled=unknown_time,
-            step=60,
-        )
-        if unknown_time:
-            birth_time = time(12, 0)
+    with st.form("saju_form"):
+        c1, c2 = st.columns([2, 1])
+        with c1:
+            name = st.text_input(t("form.name", lang), max_chars=40)
+        with c2:
+            gender_label = st.radio(
+                t("form.gender", lang),
+                options=["female", "male"],
+                format_func=lambda g: t(f"form.gender.{g}", lang),
+                horizontal=True,
+            )
 
-    submitted = st.form_submit_button(t("form.submit", lang), type="primary")
+        c3, c4 = st.columns(2)
+        with c3:
+            birth_date = st.date_input(
+                t("form.date", lang),
+                value=date(1990, 1, 1),
+                min_value=date(1900, 1, 1),
+                max_value=date.today(),
+            )
+        with c4:
+            unknown_time = st.checkbox(t("form.time.unknown", lang), value=False)
+            birth_time = st.time_input(
+                t("form.time", lang),
+                value=time(12, 0),
+                disabled=unknown_time,
+                step=60,
+            )
+            if unknown_time:
+                birth_time = time(12, 0)
 
-if not submitted:
-    st.stop()
+        submitted = st.form_submit_button(t("form.submit", lang), type="primary")
+
+    if not submitted:
+        st.stop()
 
 
 # ── Compute ────────────────────────────────────────────────────────────────
@@ -474,6 +514,75 @@ if result.wolun:
         result.wolun,
         top_label_fn=lambda e: (f"{e.label} {month_label}", ""),
     )
+
+
+# ── Paid readings ──────────────────────────────────────────────────────────
+st.markdown("---")
+
+_city = get_city(city_key)
+_country_label = dict(countries_for_lang(lang)).get(country_code, country_code)
+_city_label = _city["th_name"] if lang == "th" else _city["en_name"]
+
+_chart_summary = format_chart_for_llm(
+    result=result,
+    name=name,
+    gender=gender_label,
+    birth_date_iso=birth_date.isoformat(),
+    birth_time_iso=birth_time.strftime("%H:%M"),
+    city_label=_city_label,
+    country_label=_country_label,
+    lang=lang,
+)
+
+if paid_context is not None:
+    # User just paid — stream the reading inline.
+    st.subheader(t("paid.reading_header", lang))
+    _tier_spec = TIERS[paid_context["tier"]]
+    _tier_label = _tier_spec["label_th"] if lang == "th" else _tier_spec["label_en"]
+    st.caption(f"{_tier_label} · {_tier_spec['price_thb']}{t('paid.price_suffix', lang)}")
+    with st.spinner(t("paid.generating", lang)):
+        st.write_stream(stream_reading(
+            tier=paid_context["tier"],
+            chart_summary=_chart_summary,
+        ))
+    st.success(t("paid.thanks", lang))
+
+else:
+    # User hasn't paid — show tier CTAs beneath the free chart.
+    st.subheader(t("paid.header", lang))
+    st.caption(t("paid.subtitle", lang))
+
+    if not readings_configured():
+        st.info(t("paid.disabled", lang))
+    else:
+        _chart_ref = ChartRef(
+            birth_date=birth_date,
+            birth_time=birth_time,
+            gender=gender_label,
+            country_code=country_code,
+            city_key=city_key,
+            name=name or "",
+        )
+        tier_cols = st.columns(len(TIER_ORDER))
+        for col, tier_key in zip(tier_cols, TIER_ORDER):
+            spec = TIERS[tier_key]
+            label = spec["label_th"] if lang == "th" else spec["label_en"]
+            tag   = spec["tagline_th"] if lang == "th" else spec["tagline_en"]
+            price = f"{spec['price_thb']}{t('paid.price_suffix', lang)}"
+            cta   = f"{t('paid.cta', lang)} · {price}"
+            link  = payment_link_for_tier(tier_key, _chart_ref)
+            with col:
+                st.markdown(
+                    f"<div style='border:1px solid #eee; border-radius:10px; "
+                    f"padding:14px; min-height:150px'>"
+                    f"<div style='font-weight:700; font-size:1.05em'>{label}</div>"
+                    f"<div style='color:#888; font-size:0.82em; margin-top:6px'>{tag}</div>"
+                    f"<div style='margin-top:10px; font-size:1.2em; color:#c23'>{price}</div>"
+                    f"</div>",
+                    unsafe_allow_html=True,
+                )
+                if link:
+                    st.link_button(cta, link, use_container_width=True)
 
 
 # ── Footer ─────────────────────────────────────────────────────────────────
