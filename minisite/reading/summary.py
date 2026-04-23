@@ -141,6 +141,7 @@ def format_chart_for_llm(
     lang_line = {
         "en": "Respond in fluent English.",
         "th": "Respond in fluent Thai (ภาษาไทย).",
+        "ko": "Respond in fluent Korean (한국어).",
     }.get(lang, "Respond in fluent English.")
 
     instr = (

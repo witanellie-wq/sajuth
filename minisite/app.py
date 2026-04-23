@@ -21,11 +21,17 @@ from saju.nobles import NOBLE_META
 from saju.tables import (
     ELEMENTS,
     branch as branch_info,
+    branch_label,
     day_master_narrative,
     life_stage as life_stage_info,
     stem as stem_info,
     ten_god as ten_god_info,
 )
+
+
+def _pick(meta: dict, lang: str, *, fallback_key: str = "en") -> str:
+    """Return meta[lang] falling back to English, then the raw value."""
+    return meta.get(lang) or meta.get(fallback_key) or ""
 from reading.llm import stream_reading
 from reading.payment import (
     ChartRef,
@@ -34,7 +40,7 @@ from reading.payment import (
     readings_configured,
     verify_payment,
 )
-from reading.prompts import TIERS, TIER_ORDER
+from reading.prompts import TIERS, TIER_ORDER, tier_label, tier_tagline
 from reading.summary import format_chart_for_llm
 
 st.set_page_config(page_title="Saju Thai", page_icon="☯", layout="centered")
@@ -93,14 +99,19 @@ if "lang" not in st.session_state:
     st.session_state["lang"] = "th"
 
 # Render language picker first, then read updated state.
+LANG_LABELS = {
+    "th": "ไทย (Thai)",
+    "en": "English",
+    "ko": "한국어 (Korean)",
+}
+
 top_col_l, top_col_r = st.columns([4, 1])
 with top_col_r:
     st.selectbox(
         t("lang.label", st.session_state["lang"]),
-        options=["th", "en"],
-        format_func=lambda x: "ไทย" if x == "th" else "English",
+        options=["th", "en", "ko"],
+        format_func=lambda x: LANG_LABELS[x],
         key="lang",
-        label_visibility="collapsed",
     )
 
 lang = st.session_state["lang"]
@@ -229,7 +240,8 @@ POSITION_KEYS = ["hour", "day", "month", "year"]
 st.markdown("---")
 st.subheader(t("result.profile", lang))
 
-city_label = city["th_name"] if lang == "th" else city["en_name"]
+_city_name_key = {"th": "th_name", "ko": "ko_name"}.get(lang, "en_name")
+city_label = city[_city_name_key]
 prof_l, prof_r = st.columns(2)
 with prof_l:
     if name:
@@ -238,7 +250,7 @@ with prof_l:
         f"**{t('result.local', lang)}:** {local_dt.strftime('%Y-%m-%d %H:%M')}  \n*{city_label}*"
     )
     leap_tag = " (leap)" if result.lunar_is_leap else ""
-    lunar_label = "Lunar" if lang == "en" else "จันทรคติ"
+    lunar_label = t("result.lunar_tag", lang)
     st.markdown(
         f"**{t('result.lunar', lang)}:** "
         f"{result.lunar_year}-{result.lunar_month:02d}-{result.lunar_day:02d}{leap_tag} "
@@ -260,7 +272,7 @@ with prof_r:
 # Day master with narrative
 dm = stem_info(result.day_master)
 dm_el = ELEMENTS[dm["element"]]
-dm_el_label = dm_el["th"] if lang == "th" else dm_el["en"]
+dm_el_label = _pick(dm_el, lang)
 narr = day_master_narrative(result.day_master, lang)
 st.markdown(
     f"<div style='background:linear-gradient(135deg,{dm_el['color']}22,{dm_el['color']}08); "
@@ -298,7 +310,7 @@ _pillar_columns(_hdr)
 # Ten-god of stem
 def _tg_stem(p, _i):
     tg = ten_god_info(p.ten_god_stem)
-    label = tg["th"] if lang == "th" else tg["en"]
+    label = _pick(tg, lang)
     st.markdown(
         f"<div class='saju-cell'><div class='saju-tiny'>{label}</div>"
         f"<div class='saju-tiny' style='opacity:0.45'>{p.ten_god_stem}</div></div>",
@@ -322,11 +334,12 @@ _pillar_columns(_stem)
 def _branch(p, _i):
     b = branch_info(p.branch)
     color = ELEMENTS[b["element"]]["color"]
+    animal = branch_label(p.branch, lang)
     st.markdown(
         f"<div class='saju-cell' style='background:{color}22; border:2px solid {color}'>"
         f"<div class='saju-big' style='color:{color}'>{p.branch}</div>"
         f"<div class='saju-mid'>{b['ko']} · {b['roman']}</div>"
-        f"<div class='saju-tiny'>{b['en']}</div></div>",
+        f"<div class='saju-tiny'>{animal}</div></div>",
         unsafe_allow_html=True)
 _pillar_columns(_branch)
 
@@ -335,7 +348,7 @@ def _tg_br(p, _i):
     parts = []
     for tg_zhi in p.ten_god_branches:
         tg = ten_god_info(tg_zhi)
-        label = tg["th"] if lang == "th" else tg["en"]
+        label = _pick(tg, lang)
         parts.append(f"<span class='saju-tiny'>{label}</span>")
     st.markdown("<div class='saju-cell'>" + " · ".join(parts) + "</div>",
                 unsafe_allow_html=True)
@@ -355,7 +368,7 @@ _pillar_columns(_hide)
 # 12 life stages
 def _12s(p, _i):
     ls = life_stage_info(p.life_stage)
-    label = ls["th"] if lang == "th" else ls["en"]
+    label = _pick(ls, lang)
     st.markdown(
         f"<div class='saju-cell'><div class='saju-tiny'>{t('pillars.life_stage', lang)}</div>"
         f"<div><b>{p.life_stage}</b> · {label}</div></div>",
@@ -381,7 +394,7 @@ def _render_noble_chips(keys: list[str]) -> str:
     chips = []
     for k in keys:
         meta = NOBLE_META[k]
-        loc = meta["th"] if lang == "th" else meta["en"]
+        loc = _pick(meta, lang)
         ko = meta["ko"]
         cls = "saju-noble danger" if k in DANGER_KEYS else "saju-noble"
         chips.append(f"<span class='{cls}' title='{ko}'>{loc}</span>")
@@ -462,9 +475,9 @@ def render_cycle_strip(entries, top_label_fn, max_cols: int = 12):
             tg_s = ten_god_info(e.ten_god_stem)
             tg_b = ten_god_info(e.ten_god_branch_primary)
             ls = life_stage_info(e.life_stage)
-            tg_s_loc = tg_s["th"] if lang == "th" else tg_s["en"]
-            tg_b_loc = tg_b["th"] if lang == "th" else tg_b["en"]
-            ls_loc   = ls["th"]   if lang == "th" else ls["en"]
+            tg_s_loc = _pick(tg_s, lang)
+            tg_b_loc = _pick(tg_b, lang)
+            ls_loc   = _pick(ls, lang)
             top, sub = top_label_fn(e)
             st.markdown(
                 f"<div class='cy-wrap'>"
@@ -486,8 +499,8 @@ def render_cycle_strip(entries, top_label_fn, max_cols: int = 12):
                 unsafe_allow_html=True,
             )
 
-age_label  = "Age" if lang == "en" else "อายุ"
-year_label = "Year" if lang == "en" else "ปี"
+age_label   = t("daewoon.age", lang)
+month_label = t("wolun.month", lang)
 
 render_cycle_strip(
     result.daewoon,
@@ -510,7 +523,6 @@ if result.wolun:
     st.markdown("---")
     st.subheader(t("wolun.header", lang))
     st.caption(t("wolun.sub", lang).format(year=result.sewoon_year))
-    month_label = "Month" if lang == "en" else "เดือน"
     render_cycle_strip(
         result.wolun,
         top_label_fn=lambda e: (f"{e.label} {month_label}", ""),
@@ -522,7 +534,7 @@ st.markdown("---")
 
 _city = get_city(city_key)
 _country_label = dict(countries_for_lang(lang)).get(country_code, country_code)
-_city_label = _city["th_name"] if lang == "th" else _city["en_name"]
+_city_label = _city[_city_name_key]
 
 _chart_summary = format_chart_for_llm(
     result=result,
@@ -539,7 +551,7 @@ if paid_context is not None:
     # User just paid — stream the reading inline.
     st.subheader(t("paid.reading_header", lang))
     _tier_spec = TIERS[paid_context["tier"]]
-    _tier_label = _tier_spec["label_th"] if lang == "th" else _tier_spec["label_en"]
+    _tier_label = tier_label(paid_context["tier"], lang)
     st.caption(f"{_tier_label} · {_tier_spec['price_thb']}{t('paid.price_suffix', lang)}")
     with st.spinner(t("paid.generating", lang)):
         st.write_stream(stream_reading(
@@ -570,8 +582,8 @@ else:
         tier_cols = st.columns(len(TIER_ORDER))
         for col, tier_key in zip(tier_cols, TIER_ORDER):
             spec = TIERS[tier_key]
-            label = spec["label_th"] if lang == "th" else spec["label_en"]
-            tag   = spec["tagline_th"] if lang == "th" else spec["tagline_en"]
+            label = tier_label(tier_key, lang)
+            tag   = tier_tagline(tier_key, lang)
             price = f"{spec['price_thb']}{t('paid.price_suffix', lang)}"
             cta   = f"{t('paid.cta', lang)} · {price}"
             link  = payment_link_for_tier(tier_key, _chart_ref) if _live else None

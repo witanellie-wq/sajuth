@@ -158,39 +158,111 @@ CITY_DB = [
 
 
 # Country list, ordered with Thailand first then by audience priority.
+# (code, th_name, en_name, ko_name)
 COUNTRIES = [
-    ("TH", "ไทย",            "Thailand"),
-    ("KR", "เกาหลีใต้",       "South Korea"),
-    ("VN", "เวียดนาม",        "Vietnam"),
-    ("KH", "กัมพูชา",         "Cambodia"),
-    ("LA", "ลาว",             "Laos"),
-    ("MM", "เมียนมา",         "Myanmar"),
-    ("MY", "มาเลเซีย",        "Malaysia"),
-    ("SG", "สิงคโปร์",        "Singapore"),
-    ("ID", "อินโดนีเซีย",     "Indonesia"),
-    ("PH", "ฟิลิปปินส์",      "Philippines"),
-    ("TW", "ไต้หวัน",         "Taiwan"),
-    ("HK", "ฮ่องกง",          "Hong Kong"),
-    ("MO", "มาเก๊า",          "Macau"),
-    ("CN", "จีน",             "China"),
-    ("JP", "ญี่ปุ่น",          "Japan"),
-    ("IN", "อินเดีย",         "India"),
-    ("GB", "สหราชอาณาจักร",   "United Kingdom"),
-    ("FR", "ฝรั่งเศส",        "France"),
-    ("US", "สหรัฐอเมริกา",    "United States"),
-    ("CA", "แคนาดา",          "Canada"),
-    ("AU", "ออสเตรเลีย",      "Australia"),
+    ("TH", "ไทย",            "Thailand",       "태국"),
+    ("KR", "เกาหลีใต้",       "South Korea",    "대한민국"),
+    ("VN", "เวียดนาม",        "Vietnam",        "베트남"),
+    ("KH", "กัมพูชา",         "Cambodia",       "캄보디아"),
+    ("LA", "ลาว",             "Laos",           "라오스"),
+    ("MM", "เมียนมา",         "Myanmar",        "미얀마"),
+    ("MY", "มาเลเซีย",        "Malaysia",       "말레이시아"),
+    ("SG", "สิงคโปร์",        "Singapore",      "싱가포르"),
+    ("ID", "อินโดนีเซีย",     "Indonesia",      "인도네시아"),
+    ("PH", "ฟิลิปปินส์",      "Philippines",    "필리핀"),
+    ("TW", "ไต้หวัน",         "Taiwan",         "대만"),
+    ("HK", "ฮ่องกง",          "Hong Kong",      "홍콩"),
+    ("MO", "มาเก๊า",          "Macau",          "마카오"),
+    ("CN", "จีน",             "China",          "중국"),
+    ("JP", "ญี่ปุ่น",          "Japan",          "일본"),
+    ("IN", "อินเดีย",         "India",          "인도"),
+    ("GB", "สหราชอาณาจักร",   "United Kingdom", "영국"),
+    ("FR", "ฝรั่งเศส",        "France",         "프랑스"),
+    ("US", "สหรัฐอเมริกา",    "United States",  "미국"),
+    ("CA", "แคนาดา",          "Canada",         "캐나다"),
+    ("AU", "ออสเตรเลีย",      "Australia",      "호주"),
 ]
 
 
+# Korean city names. Cities not in this dict fall back to the English name.
+# We keep these as an overlay dict so the main CITY_DB tuple shape stays simple.
+CITY_KO_NAMES = {
+    # Thailand
+    "bangkok": "방콕", "nonthaburi": "논타부리", "samutprakan": "사뭇쁘라깐",
+    "samutsakhon": "사뭇사콘", "pathumthani": "빠툼타니", "nakhonpathom": "나콘빠톰",
+    "ayutthaya": "아유타야", "chonburi": "촌부리", "pattaya": "파타야",
+    "rayong": "라용", "chanthaburi": "짠타부리", "trat": "뜨랏",
+    "kanchanaburi": "깐짜나부리", "ratchaburi": "랏차부리", "petchaburi": "펫차부리",
+    "huahin": "후아힌", "chiangmai": "치앙마이", "chiangrai": "치앙라이",
+    "lampang": "람빵", "lamphun": "람푼", "phrae": "프래",
+    "nan": "난", "phayao": "파야오", "maehongson": "매홍손",
+    "phitsanulok": "핏사눌록", "sukhothai": "수코타이", "tak": "딱",
+    "nakhonsawan": "나콘사완", "uthai": "우타이타니", "udonthani": "우돈타니",
+    "nongkhai": "농카이", "loei": "러이", "sakonnakhon": "사콘나콘",
+    "nakhonphanom": "나콘파놈", "mukdahan": "묵다한", "khonkaen": "콘깬",
+    "kalasin": "까라신", "mahasarakham": "마하사라캄", "roiet": "러이엣",
+    "yasothon": "야소톤", "amnatcharoen": "암낫짜런", "ubon": "우본라차타니",
+    "sisaket": "시사껫", "surin": "수린", "buriram": "부리람",
+    "korat": "나콘라차시마", "chaiyaphum": "차이야품", "phuket": "푸켓",
+    "krabi": "끄라비", "phangnga": "팡응아", "ranong": "라농",
+    "chumphon": "춤폰", "suratthani": "수랏타니", "nakhonsithammarat": "나콘시탐마랏",
+    "trang": "뜨랑", "phatthalung": "팟탈룽", "songkhla": "송클라",
+    "hatyai": "핫야이", "yala": "얄라", "pattani": "빠따니",
+    "narathiwat": "나라티왓", "satun": "사뚠",
+
+    # South Korea
+    "seoul": "서울", "busan": "부산", "daegu": "대구",
+    "incheon": "인천", "gwangju": "광주", "daejeon": "대전",
+    "ulsan": "울산", "sejong": "세종", "suwon": "수원",
+    "seongnam": "성남", "goyang": "고양", "bucheon": "부천",
+    "ansan": "안산", "anyang": "안양", "pyeongtaek": "평택",
+    "yongin": "용인", "hwaseong": "화성", "namyangju": "남양주",
+    "changwon": "창원", "jinju": "진주", "gimhae": "김해",
+    "tongyeong": "통영", "pohang": "포항", "gyeongju": "경주",
+    "andong": "안동", "gumi": "구미", "sangju": "상주",
+    "mokpo": "목포", "yeosu": "여수", "suncheon": "순천",
+    "gwangyang": "광양", "jeonju": "전주", "gunsan": "군산",
+    "iksan": "익산", "cheonan": "천안", "asan": "아산",
+    "cheongju": "청주", "chungju": "충주", "wonju": "원주",
+    "chuncheon": "춘천", "gangneung": "강릉", "sokcho": "속초",
+    "jeju": "제주", "seogwipo": "서귀포",
+
+    # ASEAN & Asia
+    "hanoi": "하노이", "hochiminh": "호치민", "danang": "다낭",
+    "phnompenh": "프놈펜", "siemreap": "시엠립",
+    "vientiane": "비엔티안", "luangprabang": "루앙프라방",
+    "yangon": "양곤", "mandalay": "만달레이",
+    "kualalumpur": "쿠알라룸푸르", "penang": "페낭",
+    "singapore": "싱가포르",
+    "jakarta": "자카르타", "bali": "발리 (덴파사르)",
+    "manila": "마닐라", "cebu": "세부",
+    "taipei": "타이베이", "hongkong": "홍콩", "macau": "마카오",
+    "tokyo": "도쿄", "osaka": "오사카",
+    "beijing": "베이징", "shanghai": "상하이",
+    "delhi": "델리",
+
+    # Global hubs
+    "london": "런던", "paris": "파리",
+    "newyork": "뉴욕", "losangeles": "로스앤젤레스",
+    "toronto": "토론토", "sydney": "시드니", "melbourne": "멜버른",
+}
+
+
+def _country_label_idx(lang: str) -> int:
+    return {"th": 1, "en": 2, "ko": 3}.get(lang, 2)
+
+
 def countries_for_lang(lang: str) -> list[tuple[str, str]]:
-    idx = 1 if lang == "th" else 2
+    idx = _country_label_idx(lang)
     return [(c[0], c[idx]) for c in COUNTRIES]
 
 
 def cities_for_country(country_code: str, lang: str) -> list[tuple[str, str]]:
+    rows = [c for c in CITY_DB if c[1] == country_code]
+    if lang == "ko":
+        return [(c[0], CITY_KO_NAMES.get(c[0], c[3])) for c in rows]
     label_idx = 2 if lang == "th" else 3
-    return [(c[0], c[label_idx]) for c in CITY_DB if c[1] == country_code]
+    return [(c[0], c[label_idx]) for c in rows]
 
 
 def get_city(key: str):
@@ -201,6 +273,7 @@ def get_city(key: str):
                 "country": c[1],
                 "th_name": c[2],
                 "en_name": c[3],
+                "ko_name": CITY_KO_NAMES.get(c[0], c[3]),
                 "lat": c[4],
                 "lon": c[5],
                 "tz_offset": c[6],

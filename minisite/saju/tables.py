@@ -21,20 +21,32 @@ STEMS = {
 }
 
 # Earthly branches (地支)
+# `ko` holds the hangul reading; `ko_animal` is the zodiac animal used when
+# rendering in Korean UI (e.g. "쥐" instead of "Rat").
 BRANCHES = {
-    "子": {"ko": "자", "roman": "Ja",    "en": "Rat",     "element": "water", "polarity": "yang"},
-    "丑": {"ko": "축", "roman": "Chuk",  "en": "Ox",      "element": "earth", "polarity": "yin"},
-    "寅": {"ko": "인", "roman": "In",    "en": "Tiger",   "element": "wood",  "polarity": "yang"},
-    "卯": {"ko": "묘", "roman": "Myo",   "en": "Rabbit",  "element": "wood",  "polarity": "yin"},
-    "辰": {"ko": "진", "roman": "Jin",   "en": "Dragon",  "element": "earth", "polarity": "yang"},
-    "巳": {"ko": "사", "roman": "Sa",    "en": "Snake",   "element": "fire",  "polarity": "yin"},
-    "午": {"ko": "오", "roman": "O",     "en": "Horse",   "element": "fire",  "polarity": "yang"},
-    "未": {"ko": "미", "roman": "Mi",    "en": "Goat",    "element": "earth", "polarity": "yin"},
-    "申": {"ko": "신", "roman": "Sin",   "en": "Monkey",  "element": "metal", "polarity": "yang"},
-    "酉": {"ko": "유", "roman": "Yu",    "en": "Rooster", "element": "metal", "polarity": "yin"},
-    "戌": {"ko": "술", "roman": "Sul",   "en": "Dog",     "element": "earth", "polarity": "yang"},
-    "亥": {"ko": "해", "roman": "Hae",   "en": "Pig",     "element": "water", "polarity": "yin"},
+    "子": {"ko": "자", "ko_animal": "쥐",   "roman": "Ja",    "en": "Rat",     "th": "หนู",      "element": "water", "polarity": "yang"},
+    "丑": {"ko": "축", "ko_animal": "소",   "roman": "Chuk",  "en": "Ox",      "th": "วัว",      "element": "earth", "polarity": "yin"},
+    "寅": {"ko": "인", "ko_animal": "호랑이","roman": "In",    "en": "Tiger",   "th": "เสือ",     "element": "wood",  "polarity": "yang"},
+    "卯": {"ko": "묘", "ko_animal": "토끼", "roman": "Myo",   "en": "Rabbit",  "th": "กระต่าย",  "element": "wood",  "polarity": "yin"},
+    "辰": {"ko": "진", "ko_animal": "용",   "roman": "Jin",   "en": "Dragon",  "th": "มังกร",    "element": "earth", "polarity": "yang"},
+    "巳": {"ko": "사", "ko_animal": "뱀",   "roman": "Sa",    "en": "Snake",   "th": "งู",       "element": "fire",  "polarity": "yin"},
+    "午": {"ko": "오", "ko_animal": "말",   "roman": "O",     "en": "Horse",   "th": "ม้า",      "element": "fire",  "polarity": "yang"},
+    "未": {"ko": "미", "ko_animal": "양",   "roman": "Mi",    "en": "Goat",    "th": "แพะ",      "element": "earth", "polarity": "yin"},
+    "申": {"ko": "신", "ko_animal": "원숭이","roman": "Sin",   "en": "Monkey",  "th": "ลิง",      "element": "metal", "polarity": "yang"},
+    "酉": {"ko": "유", "ko_animal": "닭",   "roman": "Yu",    "en": "Rooster", "th": "ไก่",      "element": "metal", "polarity": "yin"},
+    "戌": {"ko": "술", "ko_animal": "개",   "roman": "Sul",   "en": "Dog",     "th": "สุนัข",    "element": "earth", "polarity": "yang"},
+    "亥": {"ko": "해", "ko_animal": "돼지", "roman": "Hae",   "en": "Pig",     "th": "หมู",      "element": "water", "polarity": "yin"},
 }
+
+
+def branch_label(ch: str, lang: str) -> str:
+    """Return the localised zodiac-animal label for a branch char."""
+    b = BRANCHES[ch]
+    if lang == "ko":
+        return b["ko_animal"]
+    if lang == "th":
+        return b["th"]
+    return b["en"]
 
 # Ten Gods (十神) — user-facing labels favor the branding-style translations
 # ("Creator", "Performer" ...) over the literal classical names ("Eating God",
@@ -86,61 +98,61 @@ ELEMENTS = {
 # day master, so they are deliberately friendly and image-led.
 DAY_MASTER_NARRATIVE = {
     "甲": {
-        "image_en": "Towering Tree", "image_th": "ต้นไม้ใหญ่ตั้งตรง",
+        "image_en": "Towering Tree", "image_th": "ต้นไม้ใหญ่ตั้งตรง", "image_ko": "우뚝 솟은 큰 나무",
         "ko": "큰 나무처럼 곧고 굳센 기운을 타고났습니다.",
         "en": "You carry the steady, upright energy of a tall tree reaching for the sky.",
         "th": "คุณมีพลังของต้นไม้ใหญ่ที่ตั้งตรงและมั่นคง พุ่งสู่ท้องฟ้า",
     },
     "乙": {
-        "image_en": "Wildflower & Vine", "image_th": "ดอกไม้ป่าและเถาวัลย์",
+        "image_en": "Wildflower & Vine", "image_th": "ดอกไม้ป่าและเถาวัลย์", "image_ko": "들꽃과 덩굴",
         "ko": "들꽃과 덩굴처럼 부드럽고 끈질긴 기운을 가졌습니다.",
         "en": "You move like grass and wildflowers — soft to the touch, but quietly unstoppable.",
         "th": "คุณเคลื่อนไหวเหมือนหญ้าและดอกไม้ป่า อ่อนโยนแต่หยุดไม่ได้",
     },
     "丙": {
-        "image_en": "Bright Sun", "image_th": "ดวงอาทิตย์เจิดจ้า",
+        "image_en": "Bright Sun", "image_th": "ดวงอาทิตย์เจิดจ้า", "image_ko": "한낮의 태양",
         "ko": "한낮의 태양처럼 밝고 뜨거운 기운을 타고났습니다.",
         "en": "You shine like the midday sun — warm, generous, and impossible to ignore.",
         "th": "คุณส่องสว่างเหมือนดวงอาทิตย์เที่ยงวัน อบอุ่น ใจกว้าง และมองข้ามไม่ได้",
     },
     "丁": {
-        "image_en": "Candle Flame", "image_th": "เปลวเทียน",
+        "image_en": "Candle Flame", "image_th": "เปลวเทียน", "image_ko": "촛불과 등불",
         "ko": "촛불과 등불처럼 따뜻하고 섬세한 기운을 가졌습니다.",
         "en": "You glow like a candle flame — gentle, precise, and quietly illuminating.",
         "th": "คุณส่องประกายเหมือนเปลวเทียน อ่อนโยน ละเอียด และสว่างไสวอย่างเงียบงัน",
     },
     "戊": {
-        "image_en": "Great Mountain", "image_th": "ภูเขาใหญ่",
+        "image_en": "Great Mountain", "image_th": "ภูเขาใหญ่", "image_ko": "우뚝한 큰 산",
         "ko": "큰 산처럼 묵직하고 너그러운 기운을 타고났습니다.",
         "en": "You stand like a great mountain — grounded, generous, sheltering those around you.",
         "th": "คุณตั้งมั่นเหมือนภูเขาใหญ่ หนักแน่น ใจกว้าง คอยปกป้องคนรอบข้าง",
     },
     "己": {
-        "image_en": "Fertile Field", "image_th": "ทุ่งนาอุดมสมบูรณ์",
+        "image_en": "Fertile Field", "image_th": "ทุ่งนาอุดมสมบูรณ์", "image_ko": "비옥한 들판",
         "ko": "비옥한 들판처럼 부드럽고 품이 넓은 기운을 가졌습니다.",
         "en": "You nurture like fertile soil — quietly making everything around you grow.",
         "th": "คุณบำรุงเหมือนผืนดินอุดมสมบูรณ์ ทำให้ทุกสิ่งรอบตัวเติบโตอย่างเงียบงัน",
     },
     "庚": {
-        "image_en": "Forged Steel", "image_th": "เหล็กกล้าหลอม",
+        "image_en": "Forged Steel", "image_th": "เหล็กกล้าหลอม", "image_ko": "단련된 강철",
         "ko": "단단한 강철처럼 강인하고 결단력 있는 기운을 타고났습니다.",
         "en": "You move with the cut and resolve of forged steel — decisive, sharp, never half-hearted.",
         "th": "คุณเคลื่อนไหวด้วยความเด็ดขาดของเหล็กกล้าหลอม คมชัด ไม่ลังเล",
     },
     "辛": {
-        "image_en": "Polished Jewel", "image_th": "อัญมณีเจียระไน",
+        "image_en": "Polished Jewel", "image_th": "อัญมณีเจียระไน", "image_ko": "빛나는 보석",
         "ko": "빛나는 보석과 같이 섬세하고 자존심 강한 기운을 가졌습니다.",
         "en": "You sparkle like a polished gem — refined, particular, and quietly proud.",
         "th": "คุณเปล่งประกายเหมือนอัญมณีเจียระไน ประณีต พิถีพิถัน และภาคภูมิเงียบ ๆ",
     },
     "壬": {
-        "image_en": "Vast Ocean", "image_th": "มหาสมุทรกว้างใหญ่",
+        "image_en": "Vast Ocean", "image_th": "มหาสมุทรกว้างใหญ่", "image_ko": "드넓은 큰 바다",
         "ko": "큰 바다처럼 넓고 깊은 흐름의 기운을 타고났습니다.",
         "en": "You flow like a vast ocean — wide-minded, deep, carrying everything in motion.",
         "th": "คุณไหลเหมือนมหาสมุทรกว้างใหญ่ ใจเปิดกว้าง ลึก พาทุกสิ่งเคลื่อนไหว",
     },
     "癸": {
-        "image_en": "Morning Dew", "image_th": "หยาดน้ำค้างยามเช้า",
+        "image_en": "Morning Dew", "image_th": "หยาดน้ำค้างยามเช้า", "image_ko": "새벽 이슬",
         "ko": "이슬과 가랑비처럼 맑고 영민한 기운을 가졌습니다.",
         "en": "You arrive like morning dew — clear, perceptive, refreshing the world without forcing it.",
         "th": "คุณปรากฏเหมือนหยาดน้ำค้างยามเช้า ใส กระจ่าง ทำให้โลกสดชื่นโดยไม่บังคับ",
@@ -151,7 +163,7 @@ DAY_MASTER_NARRATIVE = {
 def day_master_narrative(stem_char: str, lang: str) -> dict:
     """Return image label + sentence for a stem in the requested language."""
     n = DAY_MASTER_NARRATIVE[stem_char]
-    image = n["image_th"] if lang == "th" else n["image_en"]
+    image = n.get(f"image_{lang}") or n["image_en"]
     text  = n.get(lang) or n["en"]
     return {"image": image, "text": text}
 

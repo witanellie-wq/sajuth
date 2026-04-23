@@ -113,8 +113,10 @@ TIERS = {
         "price_thb": 79,
         "label_en": "Core Reading",
         "label_th": "การอ่านแบบหลัก",
+        "label_ko": "핵심 리딩",
         "tagline_en": "Who you are at the core + 3 actions.",
         "tagline_th": "ตัวตนหลักของคุณ + 3 การกระทำสำคัญ",
+        "tagline_ko": "나의 본질 + 3가지 실천 조언",
         "system_prompt": CORE_PROMPT,
         "max_tokens": 1400,
     },
@@ -122,8 +124,10 @@ TIERS = {
         "price_thb": 129,
         "label_en": "Yearly Flow",
         "label_th": "ดวงรายปี",
+        "label_ko": "연간 흐름",
         "tagline_en": "This year's timing, risk, and money flow.",
         "tagline_th": "จังหวะ ความเสี่ยง และการเงินของปีนี้",
+        "tagline_ko": "올해의 타이밍 · 리스크 · 재물 흐름",
         "system_prompt": YEARLY_PROMPT,
         "max_tokens": 1800,
     },
@@ -131,8 +135,10 @@ TIERS = {
         "price_thb": 199,
         "label_en": "Full Report",
         "label_th": "รายงานเต็มรูปแบบ",
+        "label_ko": "전체 리포트",
         "tagline_en": "A premium, structured analysis of your whole chart.",
         "tagline_th": "การวิเคราะห์เต็มรูปแบบของดวงทั้งหมดของคุณ",
+        "tagline_ko": "사주 전반에 대한 프리미엄 구조 해석",
         "system_prompt": FULL_PROMPT,
         "max_tokens": 3000,
     },
@@ -140,3 +146,13 @@ TIERS = {
 
 
 TIER_ORDER = ["core", "yearly", "full"]
+
+
+def tier_label(tier_key: str, lang: str) -> str:
+    spec = TIERS[tier_key]
+    return spec.get(f"label_{lang}") or spec["label_en"]
+
+
+def tier_tagline(tier_key: str, lang: str) -> str:
+    spec = TIERS[tier_key]
+    return spec.get(f"tagline_{lang}") or spec["tagline_en"]
