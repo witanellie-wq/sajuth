@@ -1,14 +1,11 @@
 """Curated city database for birth-place input.
 
 Each entry carries the longitude used for true-solar-time correction and the
-time zone's UTC offset. This is deliberately a hand-picked list focused on
-Thailand (primary audience) plus Korea, major ASEAN capitals and a few global
-cities — dropdown-friendly and large enough that most users find themselves.
+time zone's UTC offset. The list is hand-picked to cover Thailand densely
+(primary audience) plus Korea, the rest of ASEAN, and a few global hubs.
 
-Longitudes are rounded to two decimals; the 4-minute-per-degree rule makes
-finer precision cosmetic. Time-zone offsets assume standard year-round policy
-(no DST) which is true for all entries except the historical Korea cases
-covered separately in the UI.
+The UI presents Country first, then City, mirroring how astro-seek and most
+chart sites collect birth-place data.
 """
 
 # (key, country_code, thai_name, en_name, latitude, longitude, tz_offset_hours)
@@ -17,61 +14,154 @@ CITY_DB = [
     ("bangkok",          "TH", "กรุงเทพฯ",          "Bangkok",          13.75, 100.50, 7.0),
     ("nonthaburi",       "TH", "นนทบุรี",            "Nonthaburi",       13.86, 100.52, 7.0),
     ("samutprakan",      "TH", "สมุทรปราการ",        "Samut Prakan",     13.60, 100.60, 7.0),
+    ("samutsakhon",      "TH", "สมุทรสาคร",          "Samut Sakhon",     13.55, 100.27, 7.0),
+    ("pathumthani",      "TH", "ปทุมธานี",          "Pathum Thani",     14.02, 100.53, 7.0),
+    ("nakhonpathom",     "TH", "นครปฐม",            "Nakhon Pathom",    13.81, 100.06, 7.0),
+    ("ayutthaya",        "TH", "พระนครศรีอยุธยา",   "Ayutthaya",        14.36, 100.58, 7.0),
+    ("chonburi",         "TH", "ชลบุรี",            "Chonburi",         13.36, 100.98, 7.0),
+    ("pattaya",          "TH", "พัทยา",              "Pattaya",          12.93, 100.88, 7.0),
+    ("rayong",           "TH", "ระยอง",              "Rayong",           12.68, 101.28, 7.0),
+    ("chanthaburi",      "TH", "จันทบุรี",          "Chanthaburi",      12.61, 102.10, 7.0),
+    ("trat",             "TH", "ตราด",              "Trat",             12.24, 102.51, 7.0),
+    ("kanchanaburi",     "TH", "กาญจนบุรี",         "Kanchanaburi",     14.02,  99.53, 7.0),
+    ("ratchaburi",       "TH", "ราชบุรี",           "Ratchaburi",       13.54,  99.82, 7.0),
+    ("petchaburi",       "TH", "เพชรบุรี",          "Phetchaburi",      13.11,  99.94, 7.0),
+    ("huahin",           "TH", "หัวหิน",             "Hua Hin",          12.57,  99.96, 7.0),
     ("chiangmai",        "TH", "เชียงใหม่",         "Chiang Mai",       18.79,  98.99, 7.0),
     ("chiangrai",        "TH", "เชียงราย",          "Chiang Rai",       19.91,  99.84, 7.0),
-    ("phuket",           "TH", "ภูเก็ต",             "Phuket",            7.89,  98.40, 7.0),
-    ("pattaya",          "TH", "พัทยา",              "Pattaya",          12.93, 100.88, 7.0),
-    ("hatyai",           "TH", "หาดใหญ่",           "Hat Yai",           7.01, 100.47, 7.0),
-    ("songkhla",         "TH", "สงขลา",             "Songkhla",          7.19, 100.60, 7.0),
-    ("udonthani",        "TH", "อุดรธานี",          "Udon Thani",       17.41, 102.79, 7.0),
-    ("khonkaen",         "TH", "ขอนแก่น",           "Khon Kaen",        16.44, 102.83, 7.0),
-    ("korat",            "TH", "นครราชสีมา",        "Nakhon Ratchasima",14.97, 102.08, 7.0),
-    ("ubon",             "TH", "อุบลราชธานี",       "Ubon Ratchathani", 15.23, 104.86, 7.0),
+    ("lampang",          "TH", "ลำปาง",              "Lampang",          18.29,  99.49, 7.0),
+    ("lamphun",          "TH", "ลำพูน",              "Lamphun",          18.58,  99.01, 7.0),
+    ("phrae",            "TH", "แพร่",              "Phrae",            18.14, 100.14, 7.0),
+    ("nan",              "TH", "น่าน",              "Nan",              18.78, 100.78, 7.0),
+    ("phayao",           "TH", "พะเยา",              "Phayao",           19.17, 99.90,  7.0),
+    ("maehongson",       "TH", "แม่ฮ่องสอน",         "Mae Hong Son",     19.30,  97.97, 7.0),
+    ("phitsanulok",      "TH", "พิษณุโลก",          "Phitsanulok",      16.82, 100.27, 7.0),
+    ("sukhothai",        "TH", "สุโขทัย",           "Sukhothai",        17.01,  99.82, 7.0),
+    ("tak",              "TH", "ตาก",               "Tak",              16.87,  99.13, 7.0),
     ("nakhonsawan",      "TH", "นครสวรรค์",         "Nakhon Sawan",     15.70, 100.14, 7.0),
-    ("ayutthaya",        "TH", "พระนครศรีอยุธยา",   "Ayutthaya",        14.36, 100.58, 7.0),
-    ("suratthani",       "TH", "สุราษฎร์ธานี",      "Surat Thani",       9.14,  99.33, 7.0),
+    ("uthai",            "TH", "อุทัยธานี",         "Uthai Thani",      15.38, 100.03, 7.0),
+    ("udonthani",        "TH", "อุดรธานี",          "Udon Thani",       17.41, 102.79, 7.0),
+    ("nongkhai",         "TH", "หนองคาย",           "Nong Khai",        17.88, 102.74, 7.0),
+    ("loei",             "TH", "เลย",               "Loei",             17.49, 101.72, 7.0),
+    ("sakonnakhon",      "TH", "สกลนคร",            "Sakon Nakhon",     17.16, 104.15, 7.0),
+    ("nakhonphanom",     "TH", "นครพนม",            "Nakhon Phanom",    17.39, 104.77, 7.0),
+    ("mukdahan",         "TH", "มุกดาหาร",          "Mukdahan",         16.55, 104.72, 7.0),
+    ("khonkaen",         "TH", "ขอนแก่น",           "Khon Kaen",        16.44, 102.83, 7.0),
+    ("kalasin",          "TH", "กาฬสินธุ์",         "Kalasin",          16.43, 103.51, 7.0),
+    ("mahasarakham",     "TH", "มหาสารคาม",         "Maha Sarakham",    16.18, 103.30, 7.0),
+    ("roiet",            "TH", "ร้อยเอ็ด",          "Roi Et",           16.05, 103.65, 7.0),
+    ("yasothon",         "TH", "ยโสธร",              "Yasothon",         15.79, 104.14, 7.0),
+    ("amnatcharoen",     "TH", "อำนาจเจริญ",        "Amnat Charoen",    15.86, 104.63, 7.0),
+    ("ubon",             "TH", "อุบลราชธานี",       "Ubon Ratchathani", 15.23, 104.86, 7.0),
+    ("sisaket",          "TH", "ศรีสะเกษ",           "Si Sa Ket",        15.12, 104.32, 7.0),
+    ("surin",            "TH", "สุรินทร์",          "Surin",            14.88, 103.49, 7.0),
+    ("buriram",          "TH", "บุรีรัมย์",          "Buriram",          14.99, 103.10, 7.0),
+    ("korat",            "TH", "นครราชสีมา",        "Nakhon Ratchasima",14.97, 102.08, 7.0),
+    ("chaiyaphum",       "TH", "ชัยภูมิ",           "Chaiyaphum",       15.81, 102.03, 7.0),
+    ("phuket",           "TH", "ภูเก็ต",             "Phuket",            7.89,  98.40, 7.0),
     ("krabi",            "TH", "กระบี่",             "Krabi",             8.09,  98.91, 7.0),
-    ("chonburi",         "TH", "ชลบุรี",            "Chonburi",         13.36, 100.98, 7.0),
-    ("rayong",           "TH", "ระยอง",              "Rayong",           12.68, 101.28, 7.0),
-    ("nakhonpathom",     "TH", "นครปฐม",            "Nakhon Pathom",    13.81, 100.06, 7.0),
+    ("phangnga",         "TH", "พังงา",              "Phang Nga",         8.45,  98.53, 7.0),
+    ("ranong",           "TH", "ระนอง",              "Ranong",            9.96,  98.64, 7.0),
+    ("chumphon",         "TH", "ชุมพร",              "Chumphon",         10.49,  99.18, 7.0),
+    ("suratthani",       "TH", "สุราษฎร์ธานี",      "Surat Thani",       9.14,  99.33, 7.0),
+    ("nakhonsithammarat","TH", "นครศรีธรรมราช",     "Nakhon Si Thammarat", 8.43,  99.97, 7.0),
     ("trang",            "TH", "ตรัง",              "Trang",             7.56,  99.61, 7.0),
+    ("phatthalung",      "TH", "พัทลุง",             "Phatthalung",       7.62, 100.07, 7.0),
+    ("songkhla",         "TH", "สงขลา",             "Songkhla",          7.19, 100.60, 7.0),
+    ("hatyai",           "TH", "หาดใหญ่",           "Hat Yai",           7.01, 100.47, 7.0),
+    ("yala",             "TH", "ยะลา",              "Yala",              6.54, 101.28, 7.0),
+    ("pattani",          "TH", "ปัตตานี",           "Pattani",           6.87, 101.25, 7.0),
+    ("narathiwat",       "TH", "นราธิวาส",          "Narathiwat",        6.43, 101.83, 7.0),
+    ("satun",            "TH", "สตูล",              "Satun",             6.62, 100.07, 7.0),
 
-    # ── Korea (UTC+9, standard meridian 135° E) ────────────────────────────
+    # ── South Korea (UTC+9, 135° E) ────────────────────────────────────────
     ("seoul",            "KR", "โซล",                "Seoul",            37.57, 126.98, 9.0),
     ("busan",            "KR", "ปูซาน",              "Busan",            35.18, 129.08, 9.0),
     ("daegu",            "KR", "แทกู",               "Daegu",            35.87, 128.60, 9.0),
     ("incheon",          "KR", "อินชอน",             "Incheon",          37.46, 126.70, 9.0),
     ("gwangju",          "KR", "ควังจู",             "Gwangju",          35.16, 126.85, 9.0),
     ("daejeon",          "KR", "แทจอน",              "Daejeon",          36.35, 127.38, 9.0),
+    ("ulsan",            "KR", "อุลซาน",             "Ulsan",            35.54, 129.31, 9.0),
+    ("suwon",            "KR", "ซูวอน",              "Suwon",            37.26, 127.03, 9.0),
+    ("changwon",         "KR", "ชางวอน",             "Changwon",         35.23, 128.68, 9.0),
+    ("jeonju",           "KR", "ชอนจู",              "Jeonju",           35.82, 127.15, 9.0),
+    ("cheongju",         "KR", "ชองจู",              "Cheongju",         36.64, 127.49, 9.0),
     ("sangju",           "KR", "ซังจู",              "Sangju",           36.41, 128.16, 9.0),
     ("jeju",             "KR", "เชจู",               "Jeju",             33.50, 126.52, 9.0),
+    ("chuncheon",        "KR", "ชุนชอน",             "Chuncheon",        37.88, 127.73, 9.0),
+    ("gangneung",        "KR", "คังนึง",             "Gangneung",        37.75, 128.88, 9.0),
 
-    # ── Other ASEAN & world hubs ───────────────────────────────────────────
+    # ── Other ASEAN & Asia ─────────────────────────────────────────────────
     ("hanoi",            "VN", "ฮานอย",              "Hanoi",            21.03, 105.85, 7.0),
     ("hochiminh",        "VN", "โฮจิมินห์",          "Ho Chi Minh City", 10.82, 106.63, 7.0),
+    ("danang",           "VN", "ดานัง",              "Da Nang",          16.07, 108.22, 7.0),
     ("phnompenh",        "KH", "พนมเปญ",             "Phnom Penh",       11.56, 104.92, 7.0),
+    ("siemreap",         "KH", "เสียมราฐ",           "Siem Reap",        13.36, 103.86, 7.0),
     ("vientiane",        "LA", "เวียงจันทน์",        "Vientiane",        17.97, 102.60, 7.0),
+    ("luangprabang",     "LA", "หลวงพระบาง",        "Luang Prabang",    19.89, 102.13, 7.0),
     ("yangon",           "MM", "ย่างกุ้ง",           "Yangon",           16.87,  96.20, 6.5),
+    ("mandalay",         "MM", "มัณฑะเลย์",          "Mandalay",         21.97,  96.08, 6.5),
     ("kualalumpur",      "MY", "กัวลาลัมเปอร์",       "Kuala Lumpur",      3.14, 101.69, 8.0),
+    ("penang",           "MY", "ปีนัง",              "Penang",            5.41, 100.33, 8.0),
     ("singapore",        "SG", "สิงคโปร์",           "Singapore",         1.35, 103.82, 8.0),
     ("jakarta",          "ID", "จาการ์ตา",            "Jakarta",          -6.21, 106.85, 7.0),
+    ("bali",             "ID", "บาหลี (เดนปาซาร์)",   "Bali (Denpasar)",  -8.65, 115.22, 8.0),
     ("manila",           "PH", "มะนิลา",              "Manila",           14.60, 120.98, 8.0),
+    ("cebu",             "PH", "เซบู",               "Cebu",             10.32, 123.90, 8.0),
     ("taipei",           "TW", "ไทเป",               "Taipei",           25.03, 121.57, 8.0),
     ("hongkong",         "HK", "ฮ่องกง",             "Hong Kong",        22.32, 114.17, 8.0),
+    ("macau",            "MO", "มาเก๊า",             "Macau",            22.20, 113.55, 8.0),
     ("tokyo",            "JP", "โตเกียว",            "Tokyo",            35.68, 139.69, 9.0),
+    ("osaka",            "JP", "โอซากา",             "Osaka",            34.69, 135.50, 9.0),
     ("beijing",          "CN", "ปักกิ่ง",            "Beijing",          39.90, 116.41, 8.0),
     ("shanghai",         "CN", "เซี่ยงไฮ้",          "Shanghai",         31.23, 121.47, 8.0),
+    ("delhi",            "IN", "เดลี",               "Delhi",            28.61,  77.21, 5.5),
+
+    # ── Global hubs ────────────────────────────────────────────────────────
     ("london",           "GB", "ลอนดอน",              "London",           51.51,  -0.13, 0.0),
+    ("paris",            "FR", "ปารีส",              "Paris",            48.86,   2.35, 1.0),
     ("newyork",          "US", "นิวยอร์ก",           "New York",         40.71, -74.01, -5.0),
     ("losangeles",       "US", "ลอสแอนเจลิส",        "Los Angeles",      34.05,-118.24, -8.0),
+    ("toronto",          "CA", "โตรอนโต",            "Toronto",          43.65, -79.38, -5.0),
     ("sydney",           "AU", "ซิดนีย์",            "Sydney",          -33.87, 151.21, 10.0),
+    ("melbourne",        "AU", "เมลเบิร์น",          "Melbourne",       -37.81, 144.96, 10.0),
 ]
 
 
-def cities_for_lang(lang: str) -> list[tuple[str, str]]:
-    """Return [(key, display_label), ...] for dropdown rendering."""
+# Country list, ordered with Thailand first then by audience priority.
+COUNTRIES = [
+    ("TH", "ไทย",            "Thailand"),
+    ("KR", "เกาหลีใต้",       "South Korea"),
+    ("VN", "เวียดนาม",        "Vietnam"),
+    ("KH", "กัมพูชา",         "Cambodia"),
+    ("LA", "ลาว",             "Laos"),
+    ("MM", "เมียนมา",         "Myanmar"),
+    ("MY", "มาเลเซีย",        "Malaysia"),
+    ("SG", "สิงคโปร์",        "Singapore"),
+    ("ID", "อินโดนีเซีย",     "Indonesia"),
+    ("PH", "ฟิลิปปินส์",      "Philippines"),
+    ("TW", "ไต้หวัน",         "Taiwan"),
+    ("HK", "ฮ่องกง",          "Hong Kong"),
+    ("MO", "มาเก๊า",          "Macau"),
+    ("CN", "จีน",             "China"),
+    ("JP", "ญี่ปุ่น",          "Japan"),
+    ("IN", "อินเดีย",         "India"),
+    ("GB", "สหราชอาณาจักร",   "United Kingdom"),
+    ("FR", "ฝรั่งเศส",        "France"),
+    ("US", "สหรัฐอเมริกา",    "United States"),
+    ("CA", "แคนาดา",          "Canada"),
+    ("AU", "ออสเตรเลีย",      "Australia"),
+]
+
+
+def countries_for_lang(lang: str) -> list[tuple[str, str]]:
+    idx = 1 if lang == "th" else 2
+    return [(c[0], c[idx]) for c in COUNTRIES]
+
+
+def cities_for_country(country_code: str, lang: str) -> list[tuple[str, str]]:
     label_idx = 2 if lang == "th" else 3
-    return [(c[0], f"{c[label_idx]} ({c[1]})") for c in CITY_DB]
+    return [(c[0], c[label_idx]) for c in CITY_DB if c[1] == country_code]
 
 
 def get_city(key: str):

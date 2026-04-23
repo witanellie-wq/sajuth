@@ -1,93 +1,233 @@
-"""Auspicious stars (吉神 / 귀인) computed from standard Korean-saju tables.
+"""Auspicious stars and inauspicious omens (길성 / 신살) used in Korean saju.
 
-All lookups key off either the day stem (日干) or the year / day branch
-(年支 / 日支). Returns per-pillar flags so the UI can mark which of the
-four pillars' 地支 holds which noble.
+Each 신살 attaches to either a pillar's heavenly stem (천간) or its earthly
+branch (지지). The output structure mirrors that distinction so the UI can
+render two separate rows per pillar exactly like the Posteller / Cheon-eul
+Guiin reference layouts.
 """
 
-# 천을귀인 Tianyi Noble — classical table keyed by 日干
-# (甲戊庚: 丑未, 乙己: 申子, 丙丁: 亥酉, 辛: 寅午, 壬癸: 卯巳)
+from typing import Literal
+
+PillarIdx = Literal[0, 1, 2, 3]  # year, month, day, hour (engine order)
+
+
+# ── Branch-keyed nobles, keyed off the day stem (일간) ───────────────────────
+
+# 천을귀인 — classical pair per day stem
 CHEONEUL_GUIIN = {
-    "甲": ("丑", "未"),
-    "戊": ("丑", "未"),
-    "庚": ("丑", "未"),
-    "乙": ("申", "子"),
-    "己": ("申", "子"),
-    "丙": ("亥", "酉"),
-    "丁": ("亥", "酉"),
+    "甲": ("丑", "未"), "戊": ("丑", "未"), "庚": ("丑", "未"),
+    "乙": ("申", "子"), "己": ("申", "子"),
+    "丙": ("亥", "酉"), "丁": ("亥", "酉"),
     "辛": ("寅", "午"),
-    "壬": ("卯", "巳"),
-    "癸": ("卯", "巳"),
+    "壬": ("卯", "巳"), "癸": ("卯", "巳"),
 }
 
-# 문창귀인 Munchang Noble — 日干 → 地支 (hidden talent/academic)
 MUNCHANG_GUIIN = {
     "甲": "巳", "乙": "午", "丙": "申", "丁": "酉", "戊": "申",
     "己": "酉", "庚": "亥", "辛": "子", "壬": "寅", "癸": "卯",
 }
 
-# 학당귀인 Hakdang Noble — 日干 → 地支 (study / scholar)
 HAKDANG_GUIIN = {
     "甲": "亥", "乙": "午", "丙": "寅", "丁": "酉", "戊": "寅",
     "己": "酉", "庚": "巳", "辛": "子", "壬": "申", "癸": "卯",
 }
 
-# 역마살 Traveling Horse — keyed by 年支 or 日支
-# 申子辰→寅,  巳酉丑→亥,  寅午戌→申,  亥卯未→巳
-YEOKMA_MAP = {
-    "申": "寅", "子": "寅", "辰": "寅",
-    "巳": "亥", "酉": "亥", "丑": "亥",
-    "寅": "申", "午": "申", "戌": "申",
-    "亥": "巳", "卯": "巳", "未": "巳",
+# 양인살 — day-stem keyed branch (yang-stem strict; yin-stem variant kept for completeness)
+YANGIN_SAL = {
+    "甲": "卯", "丙": "午", "戊": "午", "庚": "酉", "壬": "子",
+    "乙": "寅", "丁": "巳", "己": "巳", "辛": "申", "癸": "亥",
 }
 
-# 도화살 Peach Blossom — keyed by 年支 or 日支
-DOHWA_MAP = {
-    "申": "酉", "子": "酉", "辰": "酉",
-    "巳": "午", "酉": "午", "丑": "午",
-    "寅": "卯", "午": "卯", "戌": "卯",
-    "亥": "子", "卯": "子", "未": "子",
+
+# ── Branch-keyed shensha, computed from year-or-day branch group ───────────
+
+# Three-branch group lookups: 삼합 keys → target branch
+_TRIO = {
+    ("申", "子", "辰"): "water_trio",
+    ("巳", "酉", "丑"): "metal_trio",
+    ("寅", "午", "戌"): "fire_trio",
+    ("亥", "卯", "未"): "wood_trio",
 }
 
-# 화개살 Arts Canopy — keyed by 年支 or 日支
-HWAGAE_MAP = {
-    "申": "辰", "子": "辰", "辰": "辰",
-    "巳": "丑", "酉": "丑", "丑": "丑",
-    "寅": "戌", "午": "戌", "戌": "戌",
-    "亥": "未", "卯": "未", "未": "未",
+def _trio_of(branch: str) -> str | None:
+    for trio, name in _TRIO.items():
+        if branch in trio:
+            return name
+    return None
+
+
+# Each row: trio_name → target branch
+TRIO_BRANCH_NOBLES = {
+    "yeokma":   {"water_trio": "寅", "metal_trio": "亥", "fire_trio": "申", "wood_trio": "巳"},
+    "dohwa":    {"water_trio": "酉", "metal_trio": "午", "fire_trio": "卯", "wood_trio": "子"},
+    "hwagae":   {"water_trio": "辰", "metal_trio": "丑", "fire_trio": "戌", "wood_trio": "未"},
+    "mangsin":  {"water_trio": "亥", "metal_trio": "申", "fire_trio": "巳", "wood_trio": "寅"},
+    "geob":     {"water_trio": "巳", "metal_trio": "寅", "fire_trio": "亥", "wood_trio": "申"},
+    "jae":      {"water_trio": "午", "metal_trio": "卯", "fire_trio": "子", "wood_trio": "酉"},
+    "ji":       {"water_trio": "申", "metal_trio": "巳", "fire_trio": "寅", "wood_trio": "亥"},
+    "cheonsal": {"water_trio": "未", "metal_trio": "辰", "fire_trio": "丑", "wood_trio": "戌"},
+    "wolsal":   {"water_trio": "戌", "metal_trio": "未", "fire_trio": "辰", "wood_trio": "丑"},
+    "banan":    {"water_trio": "丑", "metal_trio": "戌", "fire_trio": "未", "wood_trio": "辰"},
+    "jangseong":{"water_trio": "子", "metal_trio": "酉", "fire_trio": "午", "wood_trio": "卯"},
+    "yukhae":   {"water_trio": "卯", "metal_trio": "子", "fire_trio": "酉", "wood_trio": "午"},
+}
+
+# 월덕귀인 — keyed off month branch trio → favorable stem (matched against pillar stems)
+WOLDEOK_GUIIN_STEM = {
+    "water_trio": "壬", "metal_trio": "庚", "fire_trio": "丙", "wood_trio": "甲",
+}
+
+# 천덕귀인 — per month branch → stem or branch (Korean classical table)
+# Some months target a stem, some a branch.
+CHEONDEOK_GUIIN = {
+    "寅": ("stem", "丁"),  "卯": ("branch", "申"),
+    "辰": ("stem", "壬"),  "巳": ("stem", "辛"),
+    "午": ("branch", "亥"),"未": ("stem", "甲"),
+    "申": ("stem", "癸"),  "酉": ("branch", "寅"),
+    "戌": ("stem", "丙"),  "亥": ("stem", "乙"),
+    "子": ("branch", "巳"),"丑": ("stem", "庚"),
+}
+
+
+# ── Branch-keyed shensha based on specific branches alone ─────────────────
+
+# 천문성 / 천의성 — both attach to 戌 / 亥 in classical Korean usage
+CHEONMUN_BRANCHES = {"戌", "亥"}
+CHEONUI_BRANCHES  = {"戌", "亥"}
+
+
+# ── Stem-keyed nobles based on the pillar's own stem character ────────────
+
+# 현침살 — characters that "look like needles"; classically 甲 申 卯 午
+HYEONCHIM_CHARS = {"甲", "申", "卯", "午"}
+
+
+# ── Full-ganzhi keyed (the entire pillar's stem+branch) ───────────────────
+
+BAEKHO_DAESAL = {"甲辰", "乙未", "丙戌", "丁丑", "戊辰", "壬戌", "癸丑"}
+GOEGANG_SAL   = {"庚辰", "庚戌", "壬辰", "壬戌"}
+HWANGEUN_DAESA = {  # 황은대사 — auspicious "imperial favor" pillars
+    "甲戌", "乙丑", "丙寅", "丁卯", "戊辰", "己巳",
+    "庚午", "辛未", "壬申", "癸酉",
 }
 
 
 NOBLE_META = {
-    "cheoneul":  {"ko": "천을귀인", "en": "Heavenly Noble",    "th": "ขุนนางสวรรค์"},
-    "munchang":  {"ko": "문창귀인", "en": "Literary Noble",    "th": "ขุนนางอักษร"},
-    "hakdang":   {"ko": "학당귀인", "en": "Scholar Noble",     "th": "ขุนนางวิชาการ"},
-    "yeokma":    {"ko": "역마살",   "en": "Traveling Horse",   "th": "ดาวเดินทาง"},
-    "dohwa":     {"ko": "도화살",   "en": "Peach Blossom",     "th": "ดาวเสน่ห์"},
-    "hwagae":    {"ko": "화개살",   "en": "Arts Canopy",       "th": "ดาวศิลปะ"},
+    # Branch nobles
+    "cheoneul":   {"ko": "천을귀인", "en": "Heavenly Noble",     "th": "ขุนนางสวรรค์"},
+    "munchang":   {"ko": "문창귀인", "en": "Literary Noble",     "th": "ขุนนางอักษร"},
+    "hakdang":    {"ko": "학당귀인", "en": "Scholar Noble",      "th": "ขุนนางวิชาการ"},
+    "yangin":     {"ko": "양인살",       "en": "Strong-Edge Star",   "th": "ดาวคมแข็ง"},
+    "yeokma":     {"ko": "역마살",       "en": "Traveling Horse",    "th": "ดาวเดินทาง"},
+    "dohwa":      {"ko": "도화살",       "en": "Peach Blossom",      "th": "ดาวเสน่ห์"},
+    "hwagae":     {"ko": "화개살",       "en": "Arts Canopy",        "th": "ดาวศิลปะ"},
+    "mangsin":    {"ko": "망신살",       "en": "Loss Star",          "th": "ดาวสูญเสีย"},
+    "geob":       {"ko": "겁살",             "en": "Robbery Star",       "th": "ดาวปล้น"},
+    "jae":        {"ko": "재살",             "en": "Calamity Star",      "th": "ดาวหายนะ"},
+    "ji":         {"ko": "지살",             "en": "Earth Star",         "th": "ดาวผู้ตั้งถิ่นฐาน"},
+    "cheonsal":   {"ko": "천살",             "en": "Heaven Star",        "th": "ดาวฟ้า"},
+    "wolsal":     {"ko": "월살",             "en": "Moon Star",          "th": "ดาวจันทร์"},
+    "banan":      {"ko": "반안살",       "en": "Saddle Star",        "th": "ดาวอาน"},
+    "jangseong":  {"ko": "장성살",       "en": "General Star",       "th": "ดาวแม่ทัพ"},
+    "yukhae":     {"ko": "육해살",       "en": "Six Harms Star",     "th": "ดาวหกภัย"},
+    "cheonmun":   {"ko": "천문성",       "en": "Heaven Gate Star",   "th": "ดาวประตูสวรรค์"},
+    "cheonui":    {"ko": "천의성",       "en": "Healer Star",        "th": "ดาวหมอ"},
+    # Stem nobles
+    "woldeok":    {"ko": "월덕귀인", "en": "Monthly Virtue",     "th": "คุณธรรมรายเดือน"},
+    "cheondeok":  {"ko": "천덕귀인", "en": "Heavenly Virtue",    "th": "คุณธรรมสวรรค์"},
+    "hyeonchim":  {"ko": "현침살",       "en": "Needle Star",        "th": "ดาวเข็ม"},
+    # Full-pillar
+    "baekho":     {"ko": "백호대살", "en": "White Tiger",        "th": "เสือขาว"},
+    "goegang":    {"ko": "괴강살",       "en": "Goegang Star",       "th": "ดาวโกเกียง"},
+    "hwangeun":   {"ko": "황은대사", "en": "Imperial Favor",     "th": "พระราชทาน"},
 }
 
 
-def compute_nobles(day_gan: str, year_zhi: str, day_zhi: str,
-                   branches: list[str]) -> dict[str, list[bool]]:
-    """Returns dict mapping noble_key -> [year, month, day, hour] booleans
-    indicating which pillar's branch carries that noble/sha."""
+def compute_nobles(
+    *,
+    day_gan: str,
+    year_zhi: str,
+    day_zhi: str,
+    month_zhi: str,
+    pillar_stems: list[str],     # [year, month, day, hour]
+    pillar_branches: list[str],  # [year, month, day, hour]
+    pillar_ganzhi: list[str],    # [year, month, day, hour] full ganzhi
+) -> dict[str, dict[str, list[bool]]]:
+    """Returns:
+        {
+          noble_key: {
+            "on_stem":   [year, month, day, hour] flags (attached to 천간),
+            "on_branch": [year, month, day, hour] flags (attached to 지지),
+          }, ...
+        }
+    Pillars marked as 'on_stem' or 'on_branch' depending on which side of
+    the pillar the shensha attaches to in classical doctrine.
+    """
 
-    cheoneul_targets = CHEONEUL_GUIIN.get(day_gan, ())
-    munchang_target = MUNCHANG_GUIIN.get(day_gan)
-    hakdang_target = HAKDANG_GUIIN.get(day_gan)
+    cheoneul_targets = set(CHEONEUL_GUIIN.get(day_gan, ()))
+    munchang_target  = MUNCHANG_GUIIN.get(day_gan)
+    hakdang_target   = HAKDANG_GUIIN.get(day_gan)
+    yangin_target    = YANGIN_SAL.get(day_gan)
 
-    # For yeokma/dohwa/hwagae, conventionally key off year OR day branch;
-    # we mark the pillar if its branch matches either trigger.
-    ym_targets  = {YEOKMA_MAP.get(year_zhi),  YEOKMA_MAP.get(day_zhi)} - {None}
-    dh_targets  = {DOHWA_MAP.get(year_zhi),   DOHWA_MAP.get(day_zhi)} - {None}
-    hg_targets  = {HWAGAE_MAP.get(year_zhi),  HWAGAE_MAP.get(day_zhi)} - {None}
+    year_trio = _trio_of(year_zhi)
+    day_trio  = _trio_of(day_zhi)
+    month_trio = _trio_of(month_zhi)
 
-    return {
-        "cheoneul":  [b in cheoneul_targets for b in branches],
-        "munchang":  [b == munchang_target for b in branches],
-        "hakdang":   [b == hakdang_target  for b in branches],
-        "yeokma":    [b in ym_targets for b in branches],
-        "dohwa":     [b in dh_targets for b in branches],
-        "hwagae":    [b in hg_targets for b in branches],
-    }
+    def _trio_targets(noble_key: str) -> set[str]:
+        table = TRIO_BRANCH_NOBLES[noble_key]
+        return {table[t] for t in (year_trio, day_trio) if t} - {None}
+
+    woldeok_stem = WOLDEOK_GUIIN_STEM.get(month_trio) if month_trio else None
+    cheondeok = CHEONDEOK_GUIIN.get(month_zhi)  # ("stem"|"branch", char)
+
+    branch_flags = lambda targets: [b in targets for b in pillar_branches]
+    stem_flags   = lambda targets: [s in targets for s in pillar_stems]
+    full_flags   = lambda targets: [gz in targets for gz in pillar_ganzhi]
+
+    out: dict[str, dict[str, list[bool]]] = {}
+
+    def add(key: str, *, stem=None, branch=None):
+        out[key] = {
+            "on_stem":   stem if stem is not None else [False] * 4,
+            "on_branch": branch if branch is not None else [False] * 4,
+        }
+
+    # Branch-attached
+    add("cheoneul",  branch=branch_flags(cheoneul_targets))
+    add("munchang",  branch=branch_flags({munchang_target} if munchang_target else set()))
+    add("hakdang",   branch=branch_flags({hakdang_target}  if hakdang_target  else set()))
+    add("yangin",    branch=branch_flags({yangin_target}   if yangin_target   else set()))
+    add("yeokma",    branch=branch_flags(_trio_targets("yeokma")))
+    add("dohwa",     branch=branch_flags(_trio_targets("dohwa")))
+    add("hwagae",    branch=branch_flags(_trio_targets("hwagae")))
+    add("mangsin",   branch=branch_flags(_trio_targets("mangsin")))
+    add("geob",      branch=branch_flags(_trio_targets("geob")))
+    add("jae",       branch=branch_flags(_trio_targets("jae")))
+    add("ji",        branch=branch_flags(_trio_targets("ji")))
+    add("cheonsal",  branch=branch_flags(_trio_targets("cheonsal")))
+    add("wolsal",    branch=branch_flags(_trio_targets("wolsal")))
+    add("banan",     branch=branch_flags(_trio_targets("banan")))
+    add("jangseong", branch=branch_flags(_trio_targets("jangseong")))
+    add("yukhae",    branch=branch_flags(_trio_targets("yukhae")))
+    add("cheonmun",  branch=branch_flags(CHEONMUN_BRANCHES))
+    add("cheonui",   branch=branch_flags(CHEONUI_BRANCHES))
+
+    # Stem-attached
+    add("woldeok",   stem=stem_flags({woldeok_stem} if woldeok_stem else set()))
+    add("hyeonchim", stem=stem_flags(HYEONCHIM_CHARS),
+                     branch=branch_flags(HYEONCHIM_CHARS))
+    if cheondeok:
+        side, ch = cheondeok
+        if side == "stem":
+            add("cheondeok", stem=stem_flags({ch}))
+        else:
+            add("cheondeok", branch=branch_flags({ch}))
+    else:
+        add("cheondeok")
+
+    # Full-pillar
+    add("baekho",   stem=full_flags(BAEKHO_DAESAL))   # render on stem row visually
+    add("goegang",  stem=full_flags(GOEGANG_SAL))
+    add("hwangeun", stem=full_flags(HWANGEUN_DAESA))
+
+    return out
