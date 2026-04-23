@@ -112,6 +112,99 @@ HWANGEUN_DAESA = {  # 황은대사 — auspicious "imperial favor" pillars
 }
 
 
+# ── Additional day-stem-keyed nobles ───────────────────────────────────────
+
+# 태극귀인 (太極貴人) — spiritual / research noble
+TAEGEUK_GUIIN = {
+    "甲": ("子", "午"), "乙": ("子", "午"),
+    "丙": ("卯", "酉"), "丁": ("卯", "酉"),
+    "戊": ("辰", "戌", "丑", "未"), "己": ("辰", "戌", "丑", "未"),
+    "庚": ("寅", "亥"), "辛": ("寅", "亥"),
+    "壬": ("巳", "申"), "癸": ("巳", "申"),
+}
+
+# 천복귀인 (天福貴人)
+CHEONBOK_GUIIN = {
+    "甲": "酉", "乙": "申", "丙": "子", "丁": "亥", "戊": "卯",
+    "己": "寅", "庚": "午", "辛": "巳", "壬": "午", "癸": "巳",
+}
+
+# 복성귀인 (福星貴人)
+BOKSEONG_GUIIN = {
+    "甲": "寅", "乙": "丑", "丙": "子", "丁": "酉", "戊": "申",
+    "己": "未", "庚": "午", "辛": "巳", "壬": "辰", "癸": "卯",
+}
+
+# 금여 (金輿) — luxury / comfort star
+GEUMYEO = {
+    "甲": "辰", "乙": "巳", "丙": "未", "丁": "申", "戊": "未",
+    "己": "申", "庚": "戌", "辛": "亥", "壬": "丑", "癸": "寅",
+}
+
+# 문곡귀인 (文曲貴人)
+MUNGOK_GUIIN = {
+    "甲": "亥", "乙": "子", "丙": "寅", "丁": "卯", "戊": "寅",
+    "己": "卯", "庚": "巳", "辛": "午", "壬": "申", "癸": "酉",
+}
+
+# 문성 (文星)
+MUNSEONG = {
+    "甲": "午", "乙": "巳", "丙": "申", "丁": "未", "戊": "申",
+    "己": "未", "庚": "戌", "辛": "酉", "壬": "子", "癸": "亥",
+}
+
+# 지혜성 (智慧星)
+JIHYE_SEONG = {
+    "甲": "卯", "乙": "寅", "丙": "午", "丁": "巳", "戊": "午",
+    "己": "巳", "庚": "酉", "辛": "申", "壬": "子", "癸": "亥",
+}
+
+# 홍염살 (紅艷殺)
+HONGYEOM_SAL = {
+    "甲": "午", "乙": "午", "丙": "寅", "丁": "未", "戊": "辰",
+    "己": "辰", "庚": "戌", "辛": "酉", "壬": "子", "癸": "申",
+}
+
+# 재고귀인 (財庫貴人) — storage-of-wealth branch per day master's 재성 element
+JAEGO_GUIIN = {
+    "甲": "未", "乙": "未",  # wood → 재=토 → 토 storage (未)
+    "丙": "丑", "丁": "丑",  # fire → 재=금 → 금 storage (丑)
+    "戊": "辰", "己": "辰",  # earth → 재=수 → 수 storage (辰)
+    "庚": "未", "辛": "未",  # metal → 재=목 → 목 storage (未)
+    "壬": "戌", "癸": "戌",  # water → 재=화 → 화 storage (戌)
+}
+
+
+# ── Year-branch-season-keyed shensha (고신 / 과숙) ──────────────────────────
+
+_SEASON = {
+    "申": "autumn", "酉": "autumn", "戌": "autumn",
+    "亥": "winter", "子": "winter", "丑": "winter",
+    "寅": "spring", "卯": "spring", "辰": "spring",
+    "巳": "summer", "午": "summer", "未": "summer",
+}
+GOSIN_MAP  = {"autumn": "亥", "winter": "寅", "spring": "巳", "summer": "申"}
+GWASUK_MAP = {"autumn": "未", "winter": "戌", "spring": "丑", "summer": "辰"}
+
+
+# ── Relational shensha (compare pillar branches against each other) ────────
+
+CHUNG_PAIRS = [   # 육충
+    {"子", "午"}, {"丑", "未"}, {"寅", "申"},
+    {"卯", "酉"}, {"辰", "戌"}, {"巳", "亥"},
+]
+WONJIN_PAIRS = [  # 육해/원진
+    {"子", "未"}, {"丑", "午"}, {"寅", "酉"},
+    {"卯", "申"}, {"辰", "亥"}, {"巳", "戌"},
+]
+SAM_HYEONG = [   # 삼형
+    {"寅", "巳", "申"},
+    {"丑", "戌", "未"},
+]
+SANG_HYEONG = {"子", "卯"}   # 상형 (pairs when both present)
+JA_HYEONG_BRANCHES = {"辰", "午", "酉", "亥"}   # 자형 (self-punish when doubled)
+
+
 NOBLE_META = {
     # ── Branch-attached ───────────────────────────────────────────────────
     "cheoneul":   {"ko": "천을귀인", "en": "Heavenly Noble",       "th": "ผู้เกื้อหนุนจากฟ้า"},
@@ -140,6 +233,28 @@ NOBLE_META = {
     "baekho":     {"ko": "백호대살", "en": "White Tiger Force",    "th": "พลังอันตราย"},
     "goegang":    {"ko": "괴강살",   "en": "Dominant Force",       "th": "พลังแข็งแกร่ง"},
     "hwangeun":   {"ko": "황은대사", "en": "Imperial Grace",       "th": "พระราชทาน"},
+
+    # ── Extra day-stem-keyed nobles ───────────────────────────────────────
+    "taegeuk":    {"ko": "태극귀인", "en": "Spiritual Noble",      "th": "ผู้มีพลังจิต"},
+    "cheonbok":   {"ko": "천복귀인", "en": "Fortune Noble",        "th": "ผู้มีโชคหนุน"},
+    "bokseong":   {"ko": "복성귀인", "en": "Blessing Star",        "th": "ดาวแห่งโชค"},
+    "geumyeo":    {"ko": "금여",     "en": "Luxury Star",          "th": "ดาวความหรู"},
+    "mungok":     {"ko": "문곡귀인", "en": "Talent Star",          "th": "ดาวพรสวรรค์"},
+    "munseong":   {"ko": "문성",     "en": "Writing Star",         "th": "ดาวการเขียน"},
+    "jihye":      {"ko": "지혜성",   "en": "Wisdom Star",          "th": "ดาวปัญญา"},
+    "hongyeom":   {"ko": "홍염살",   "en": "Red Charm Star",       "th": "ดาวแรงดึงดูด"},
+    "hamji":      {"ko": "함지",     "en": "Desire Star",          "th": "ดาวความปรารถนา"},
+    "jaego":      {"ko": "재고귀인", "en": "Wealth Storage Noble", "th": "ผู้หนุนด้านเงิน"},
+
+    # ── Year-branch-season-keyed ──────────────────────────────────────────
+    "gosin":      {"ko": "고신",     "en": "Lone Star",            "th": "ดาวโดดเดี่ยว"},
+    "gwasuk":     {"ko": "과숙",     "en": "Solitude Star",        "th": "ดาวความเหงา"},
+
+    # ── Relational (between pillars) ──────────────────────────────────────
+    "chung":      {"ko": "충",       "en": "Clash Force",          "th": "พลังปะทะ"},
+    "wonjin":     {"ko": "원진",     "en": "Conflict Bond",        "th": "ความขัดแย้งลึก"},
+    "hyeong":     {"ko": "형살",     "en": "Punishment Force",     "th": "พลังโทษ"},
+    "gongmang":   {"ko": "공망",     "en": "Void State",           "th": "ภาวะว่างเปล่า"},
 }
 
 
@@ -152,6 +267,7 @@ def compute_nobles(
     pillar_stems: list[str],     # [year, month, day, hour]
     pillar_branches: list[str],  # [year, month, day, hour]
     pillar_ganzhi: list[str],    # [year, month, day, hour] full ganzhi
+    gongmang_branches: set[str] | None = None,
 ) -> dict[str, dict[str, list[bool]]]:
     """Returns:
         {
@@ -230,4 +346,72 @@ def compute_nobles(
     add("goegang",  stem=full_flags(GOEGANG_SAL))
     add("hwangeun", stem=full_flags(HWANGEUN_DAESA))
 
+    # Extra day-stem-keyed branch nobles
+    add("taegeuk",  branch=branch_flags(set(TAEGEUK_GUIIN.get(day_gan, ()))))
+    add("cheonbok", branch=branch_flags({CHEONBOK_GUIIN[day_gan]} if day_gan in CHEONBOK_GUIIN else set()))
+    add("bokseong", branch=branch_flags({BOKSEONG_GUIIN[day_gan]} if day_gan in BOKSEONG_GUIIN else set()))
+    add("geumyeo",  branch=branch_flags({GEUMYEO[day_gan]}        if day_gan in GEUMYEO        else set()))
+    add("mungok",   branch=branch_flags({MUNGOK_GUIIN[day_gan]}   if day_gan in MUNGOK_GUIIN   else set()))
+    add("munseong", branch=branch_flags({MUNSEONG[day_gan]}       if day_gan in MUNSEONG       else set()))
+    add("jihye",    branch=branch_flags({JIHYE_SEONG[day_gan]}    if day_gan in JIHYE_SEONG    else set()))
+    add("hongyeom", branch=branch_flags({HONGYEOM_SAL[day_gan]}   if day_gan in HONGYEOM_SAL   else set()))
+    add("hamji",    branch=branch_flags(_trio_targets("dohwa")))   # 함지 = 도화 (synonym)
+    add("jaego",    branch=branch_flags({JAEGO_GUIIN[day_gan]}    if day_gan in JAEGO_GUIIN    else set()))
+
+    # 고신 / 과숙 — year-branch season-keyed
+    season = _SEASON.get(year_zhi)
+    add("gosin",   branch=branch_flags({GOSIN_MAP[season]}  if season else set()))
+    add("gwasuk",  branch=branch_flags({GWASUK_MAP[season]} if season else set()))
+
+    # Relational shensha — flag every pillar involved in the relation
+    chung_flags  = _relational_pair_flags(pillar_branches, CHUNG_PAIRS)
+    wonjin_flags = _relational_pair_flags(pillar_branches, WONJIN_PAIRS)
+    hyeong_flags = _hyeong_flags(pillar_branches)
+    add("chung",  branch=chung_flags)
+    add("wonjin", branch=wonjin_flags)
+    add("hyeong", branch=hyeong_flags)
+
+    # 공망 — the 2 branches voided by the day pillar's 旬
+    kong_targets = gongmang_branches or set()
+    add("gongmang", branch=branch_flags(kong_targets))
+
     return out
+
+
+def _relational_pair_flags(branches: list[str], pairs: list[set[str]]) -> list[bool]:
+    """Flag any pillar branch that participates in a 2-branch relation
+    (e.g. 충, 원진) with another pillar's branch."""
+    flags = [False] * len(branches)
+    for i in range(len(branches)):
+        for j in range(len(branches)):
+            if i == j:
+                continue
+            if {branches[i], branches[j]} in pairs:
+                flags[i] = True
+                break
+    return flags
+
+
+def _hyeong_flags(branches: list[str]) -> list[bool]:
+    """형살: 삼형 (3-branch), 상형 (子-卯), 자형 (doubled self)."""
+    flags = [False] * len(branches)
+
+    # 삼형 — all three must be present
+    for trio in SAM_HYEONG:
+        if trio.issubset(set(branches)):
+            for i, b in enumerate(branches):
+                if b in trio:
+                    flags[i] = True
+
+    # 상형 子-卯 — both present
+    if SANG_HYEONG.issubset(set(branches)):
+        for i, b in enumerate(branches):
+            if b in SANG_HYEONG:
+                flags[i] = True
+
+    # 자형 — same branch appears twice or more
+    for i, b in enumerate(branches):
+        if b in JA_HYEONG_BRANCHES and branches.count(b) >= 2:
+            flags[i] = True
+
+    return flags

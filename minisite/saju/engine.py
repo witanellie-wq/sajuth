@@ -129,6 +129,11 @@ def compute_saju(
         _build("hour",  ec.getTime(),  ec.getTimeShiShenGan(),  ec.getTimeDiShi()),
     ]
 
+    # Void branches (공망) for the day pillar's 60-cycle; lunar_python
+    # returns a 2-char string like "午未" — split into individual branches.
+    kong_raw = ec.getDayXunKong() or ""
+    gongmang = {kong_raw[i] for i in range(min(2, len(kong_raw)))}
+
     nobles = compute_nobles(
         day_gan=day_master,
         year_zhi=pillars[0].branch,
@@ -137,6 +142,7 @@ def compute_saju(
         pillar_stems=[p.stem for p in pillars],
         pillar_branches=[p.branch for p in pillars],
         pillar_ganzhi=[p.ganzhi for p in pillars],
+        gongmang_branches=gongmang,
     )
 
     yun = ec.getYun(1 if gender == "male" else 0)
