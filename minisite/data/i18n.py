@@ -93,12 +93,6 @@ STRINGS = {
     "wolun.sub":       {"en": "for year {year}", "th": "สำหรับปี {year}", "ko": "{year}년 기준"},
     "wolun.month":     {"en": "Month", "th": "เดือน", "ko": "월"},
 
-    "footer.disclaimer": {
-        "en": "Educational tool. For paid readings you will receive a full astro-seek interpretation.",
-        "th": "เครื่องมือเพื่อการศึกษา สำหรับการอ่านดวงแบบชำระเงิน คุณจะได้รับการตีความ astro-seek แบบเต็มรูปแบบ",
-        "ko": "교육용 도구입니다. 유료 리딩 구매 시 astro-seek 기반의 상세 해석이 제공됩니다.",
-    },
-
     # ── Paid readings ─────────────────────────────────────────────────────
     "paid.header": {
         "en": "Unlock a Personalised Deep Reading",

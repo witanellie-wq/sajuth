@@ -392,25 +392,39 @@ def _branch(p, _i):
         unsafe_allow_html=True)
 _pillar_columns(_branch)
 
-# Ten-god of branch (multiple)
+# Ten-god of branch — show ONLY the primary (정기/본기) ten god right under
+# the branch character. The full per-hidden-stem breakdown lives inside the
+# 지장간 cell below.
 def _tg_br(p, _i):
-    parts = []
-    for tg_zhi in p.ten_god_branches:
-        tg = ten_god_info(tg_zhi)
-        label = _pick(tg, lang)
-        parts.append(f"<span class='saju-tiny'>{label}</span>")
-    st.markdown("<div class='saju-cell'>" + " · ".join(parts) + "</div>",
-                unsafe_allow_html=True)
+    primary = p.ten_god_branches[-1] if p.ten_god_branches else ""
+    tg = ten_god_info(primary)
+    label = _pick(tg, lang)
+    st.markdown(
+        f"<div class='saju-cell'><div class='saju-tiny'>{label}</div>"
+        f"<div class='saju-tiny' style='opacity:0.45'>{primary}</div></div>",
+        unsafe_allow_html=True)
 _pillar_columns(_tg_br)
 
-# Hidden stems
+# Hidden stems — each hidden stem gets its own mini column showing the
+# hanzi, the ten god it maps to for this chart, and the Korean reading.
 def _hide(p, _i):
-    hide_ko = " ".join(stem_info(h)["ko"] for h in p.hidden_stems)
+    tiles = []
+    for h, tg_zhi in zip(p.hidden_stems, p.ten_god_branches):
+        tg_label = _pick(ten_god_info(tg_zhi), lang)
+        h_ko = stem_info(h)["ko"]
+        tiles.append(
+            f"<div style='text-align:center; padding:0 4px'>"
+            f"<div style='font-size:1.05em; font-weight:600'>{h}</div>"
+            f"<div class='saju-tiny'>{tg_label}</div>"
+            f"<div class='saju-tiny' style='opacity:0.6'>{h_ko}</div>"
+            f"</div>"
+        )
     st.markdown(
         f"<div class='saju-stripe saju-cell'>"
         f"<div class='saju-tiny'>{t('pillars.hidden', lang)}</div>"
-        f"<div>{' '.join(p.hidden_stems)}</div>"
-        f"<div class='saju-tiny'>{hide_ko}</div></div>",
+        f"<div style='display:flex; justify-content:center; gap:2px'>"
+        + "".join(tiles) +
+        f"</div></div>",
         unsafe_allow_html=True)
 _pillar_columns(_hide)
 
@@ -734,6 +748,3 @@ else:
                     )
 
 
-# ── Footer ─────────────────────────────────────────────────────────────────
-st.markdown("---")
-st.caption(t("footer.disclaimer", lang))
