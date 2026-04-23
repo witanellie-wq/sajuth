@@ -36,19 +36,23 @@ BRANCHES = {
     "亥": {"ko": "해", "roman": "Hae",   "en": "Pig",     "element": "water", "polarity": "yin"},
 }
 
-# Ten Gods (十神) - lunar_python returns simplified Chinese; map to Korean + English
+# Ten Gods (十神) — user-facing labels favor the branding-style translations
+# ("Creator", "Performer" ...) over the literal classical names ("Eating God",
+# "Hurting Officer" ...) because the audience is Thai / English readers who
+# are unfamiliar with Chinese-astrology vocabulary. 比肩 / 劫财 keep the more
+# structural labels since "self" and "rival" read naturally without poetry.
 TEN_GODS = {
-    "比肩":   {"ko": "비견",   "en": "Friend",       "th": "เพื่อนร่วมทาง"},
-    "劫财":   {"ko": "겁재",   "en": "Rival",        "th": "คู่แข่ง"},
-    "食神":   {"ko": "식신",   "en": "Eating God",   "th": "เทพอาหาร"},
-    "伤官":   {"ko": "상관",   "en": "Hurting Officer", "th": "ผู้บั่นทอนอำนาจ"},
-    "偏财":   {"ko": "편재",   "en": "Indirect Wealth", "th": "ทรัพย์ทางอ้อม"},
-    "正财":   {"ko": "정재",   "en": "Direct Wealth",   "th": "ทรัพย์ทางตรง"},
-    "七杀":   {"ko": "편관",   "en": "Seven Killings",  "th": "เจ็ดสังหาร"},
-    "正官":   {"ko": "정관",   "en": "Direct Officer",  "th": "ขุนนางทางตรง"},
-    "偏印":   {"ko": "편인",   "en": "Indirect Resource", "th": "ผู้อุปถัมภ์ทางอ้อม"},
-    "正印":   {"ko": "정인",   "en": "Direct Resource",   "th": "ผู้อุปถัมภ์ทางตรง"},
-    "日主":   {"ko": "일간",   "en": "Day Master",        "th": "แกนของดวง"},
+    "比肩":   {"ko": "비견",   "en": "Self",      "th": "ตัวตน"},
+    "劫财":   {"ko": "겁재",   "en": "Rival",     "th": "คู่แข่ง"},
+    "食神":   {"ko": "식신",   "en": "Creator",   "th": "ผู้สร้าง"},
+    "伤官":   {"ko": "상관",   "en": "Performer", "th": "ผู้แสดง"},
+    "偏财":   {"ko": "편재",   "en": "Dealer",    "th": "นักหาโอกาส"},
+    "正财":   {"ko": "정재",   "en": "Saver",     "th": "นักสะสมเงิน"},
+    "七杀":   {"ko": "편관",   "en": "Fighter",   "th": "นักควบคุม"},
+    "正官":   {"ko": "정관",   "en": "Leader",    "th": "ผู้นำ"},
+    "偏印":   {"ko": "편인",   "en": "Thinker",   "th": "นักคิด"},
+    "正印":   {"ko": "정인",   "en": "Scholar",   "th": "นักเรียนรู้"},
+    "日主":   {"ko": "일간",   "en": "Day Master","th": "แกนของดวง"},
 }
 
 # 12 Life Stages (十二運星)
