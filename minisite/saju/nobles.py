@@ -113,33 +113,33 @@ HWANGEUN_DAESA = {  # 황은대사 — auspicious "imperial favor" pillars
 
 
 NOBLE_META = {
-    # Branch nobles
-    "cheoneul":   {"ko": "천을귀인", "en": "Heavenly Noble",     "th": "ขุนนางสวรรค์"},
-    "munchang":   {"ko": "문창귀인", "en": "Literary Noble",     "th": "ขุนนางอักษร"},
-    "hakdang":    {"ko": "학당귀인", "en": "Scholar Noble",      "th": "ขุนนางวิชาการ"},
-    "yangin":     {"ko": "양인살",       "en": "Strong-Edge Star",   "th": "ดาวคมแข็ง"},
-    "yeokma":     {"ko": "역마살",       "en": "Traveling Horse",    "th": "ดาวเดินทาง"},
-    "dohwa":      {"ko": "도화살",       "en": "Peach Blossom",      "th": "ดาวเสน่ห์"},
-    "hwagae":     {"ko": "화개살",       "en": "Arts Canopy",        "th": "ดาวศิลปะ"},
-    "mangsin":    {"ko": "망신살",       "en": "Loss Star",          "th": "ดาวสูญเสีย"},
-    "geob":       {"ko": "겁살",             "en": "Robbery Star",       "th": "ดาวปล้น"},
-    "jae":        {"ko": "재살",             "en": "Calamity Star",      "th": "ดาวหายนะ"},
-    "ji":         {"ko": "지살",             "en": "Earth Star",         "th": "ดาวผู้ตั้งถิ่นฐาน"},
-    "cheonsal":   {"ko": "천살",             "en": "Heaven Star",        "th": "ดาวฟ้า"},
-    "wolsal":     {"ko": "월살",             "en": "Moon Star",          "th": "ดาวจันทร์"},
-    "banan":      {"ko": "반안살",       "en": "Saddle Star",        "th": "ดาวอาน"},
-    "jangseong":  {"ko": "장성살",       "en": "General Star",       "th": "ดาวแม่ทัพ"},
-    "yukhae":     {"ko": "육해살",       "en": "Six Harms Star",     "th": "ดาวหกภัย"},
-    "cheonmun":   {"ko": "천문성",       "en": "Heaven Gate Star",   "th": "ดาวประตูสวรรค์"},
-    "cheonui":    {"ko": "천의성",       "en": "Healer Star",        "th": "ดาวหมอ"},
-    # Stem nobles
-    "woldeok":    {"ko": "월덕귀인", "en": "Monthly Virtue",     "th": "คุณธรรมรายเดือน"},
-    "cheondeok":  {"ko": "천덕귀인", "en": "Heavenly Virtue",    "th": "คุณธรรมสวรรค์"},
-    "hyeonchim":  {"ko": "현침살",       "en": "Needle Star",        "th": "ดาวเข็ม"},
-    # Full-pillar
-    "baekho":     {"ko": "백호대살", "en": "White Tiger",        "th": "เสือขาว"},
-    "goegang":    {"ko": "괴강살",       "en": "Goegang Star",       "th": "ดาวโกเกียง"},
-    "hwangeun":   {"ko": "황은대사", "en": "Imperial Favor",     "th": "พระราชทาน"},
+    # ── Branch-attached ───────────────────────────────────────────────────
+    "cheoneul":   {"ko": "천을귀인", "en": "Helper",         "th": "ผู้ช่วย"},
+    "munchang":   {"ko": "문창귀인", "en": "Academic",       "th": "การเรียน"},
+    "hakdang":    {"ko": "학당귀인", "en": "Study",          "th": "การเรียน"},
+    "yangin":     {"ko": "양인살",   "en": "Power",          "th": "พลังแรง"},
+    "yeokma":     {"ko": "역마살",   "en": "Movement",       "th": "การเดินทาง"},
+    "dohwa":      {"ko": "도화살",   "en": "Charm",          "th": "เสน่ห์"},
+    "hwagae":     {"ko": "화개살",   "en": "Artist",         "th": "ศิลปิน"},
+    "mangsin":    {"ko": "망신살",   "en": "Reputation Hit", "th": "เสียภาพลักษณ์"},
+    "geob":       {"ko": "겁살",     "en": "Loss",           "th": "สูญเสีย"},
+    "jae":        {"ko": "재살",     "en": "Disaster",       "th": "เคราะห์"},
+    "ji":         {"ko": "지살",     "en": "Relocation",     "th": "การย้าย"},
+    "cheonsal":   {"ko": "천살",     "en": "Sudden Risk",    "th": "เสี่ยงฉับพลัน"},
+    "wolsal":     {"ko": "월살",     "en": "Stagnation",     "th": "ซบเซา"},
+    "banan":      {"ko": "반안살",   "en": "Honor",          "th": "เกียรติยศ"},
+    "jangseong":  {"ko": "장성살",   "en": "Leader Power",   "th": "พลังผู้นำ"},
+    "yukhae":     {"ko": "육해살",   "en": "Obstruction",    "th": "อุปสรรค"},
+    "cheonmun":   {"ko": "천문성",   "en": "Heaven Gate",    "th": "ประตูสวรรค์"},
+    "cheonui":    {"ko": "천의성",   "en": "Healer",         "th": "หมอ"},
+    # ── Stem-attached ─────────────────────────────────────────────────────
+    "woldeok":    {"ko": "월덕귀인", "en": "Protection",     "th": "การคุ้มครอง"},
+    "cheondeok":  {"ko": "천덕귀인", "en": "Blessing",       "th": "บุญ"},
+    "hyeonchim":  {"ko": "현침살",   "en": "Sharp Edge",     "th": "คมกริบ"},
+    # ── Full-pillar ───────────────────────────────────────────────────────
+    "baekho":     {"ko": "백호대살", "en": "Danger",         "th": "อันตราย"},
+    "goegang":    {"ko": "괴강살",   "en": "Dominant",       "th": "แข็งแกร่ง"},
+    "hwangeun":   {"ko": "황은대사", "en": "Imperial Grace", "th": "พระราชทาน"},
 }
 
 
