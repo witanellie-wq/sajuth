@@ -307,8 +307,9 @@ def _render_noble_chips(keys: list[str]) -> str:
     for k in keys:
         meta = NOBLE_META[k]
         loc = meta["th"] if lang == "th" else meta["en"]
+        ko = meta["ko"]
         cls = "saju-noble danger" if k in DANGER_KEYS else "saju-noble"
-        chips.append(f"<span class='{cls}' title='{meta[\"ko\"]}'>{loc}</span>")
+        chips.append(f"<span class='{cls}' title='{ko}'>{loc}</span>")
     return "<div style='text-align:center'>" + "".join(chips) + "</div>"
 
 # Header row
