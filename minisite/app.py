@@ -62,9 +62,10 @@ st.markdown("""
 .saju-headcell { color:#888; font-size:0.85em; text-align:center; }
 .saju-rowlabel { color:#666; font-size:0.78em; padding:6px 0; }
 .saju-sidelabel {
-  color:#666; font-size:0.85em; font-weight:600;
+  color:#666; font-size:0.78em; font-weight:600;
   display:flex; align-items:center; justify-content:flex-end;
-  height:100%; padding-right:6px; text-align:right; white-space:nowrap;
+  height:100%; padding-right:3px; text-align:right;
+  word-break:keep-all; line-height:1.15;
 }
 
 /* Cycle (daewoon / sewoon / wolun) card — every row uses *exact* height so
@@ -102,6 +103,24 @@ st.markdown("""
 .cy-ls2    { height:14px; line-height:14px; font-size:11px; opacity:0.55; overflow:hidden; }
 
 hr { margin:1.2em 0; }
+
+/* ── Paid tier cards — fixed-height slots so the three cards always align
+   whether the title wraps to one or two lines and whether the Coming Soon
+   badge is present or not. */
+.tier-card   { display:flex; flex-direction:column; }
+.tier-title  {
+  font-weight:700; font-size:1.05em; line-height:1.35;
+  height:2.7em; overflow:hidden;
+}
+.tier-badge  { height:22px; line-height:22px; margin:4px 0 2px; }
+.tier-tag    {
+  color:#888; font-size:0.82em; line-height:1.35;
+  height:2.7em; overflow:hidden; margin-top:4px;
+}
+.tier-price  {
+  margin-top:10px; font-size:1.2em; color:#c23; font-weight:700;
+  line-height:1.2;
+}
 
 /* ── Mobile (<= 768px) ────────────────────────────────────────────────
    Streamlit collapses st.columns into a vertical stack on narrow
@@ -492,8 +511,9 @@ def _render_noble_chips(keys: list[str]) -> str:
         chips.append(f"<span class='{cls}' title='{ko}'>{loc}</span>")
     return "<div style='text-align:center'>" + "".join(chips) + "</div>"
 
-# 5-column grid: side label (wider so "Stem"/"Branch" never wraps) + 4 pillars
-NOBLE_GRID = [2, 5, 5, 5, 5]
+# 5-column grid: tight side label + 4 pillars. Side label gets ~4% of the
+# row so the pillar cells have more room for chip wrapping.
+NOBLE_GRID = [1, 6, 6, 6, 6]
 
 # Header row
 hdr_cols = st.columns(NOBLE_GRID)
@@ -740,23 +760,26 @@ else:
             price = f"{spec['price_thb']}{t('paid.price_suffix', lang)}"
             cta   = f"{t('paid.cta', lang)} · {price}"
             link  = payment_link_for_tier(tier_key, _chart_ref) if _live else None
-            coming_soon_badge = (
-                "<div style='display:inline-block; background:#ffe69c; color:#8a6a00; "
-                "border-radius:4px; padding:2px 8px; font-size:0.7em; margin-top:4px'>"
-                f"{t('paid.coming_soon', lang)}</div>"
-                if not _live else ""
+            badge_inner = (
+                "<span style='display:inline-block; background:#ffe69c; color:#8a6a00; "
+                "border-radius:4px; padding:2px 8px; font-size:0.7em'>"
+                f"{t('paid.coming_soon', lang)}</span>"
+                if not _live else "&nbsp;"
+            )
+            # Every slot uses fixed pixel heights so the badge / tagline /
+            # price lines stay aligned across cards even when the title
+            # wraps to one line in one card and two in another.
+            card_html = (
+                "<div class='tier-card' style='border:1px solid #eee; border-radius:10px; "
+                f"padding:14px 12px; opacity:{'0.7' if not _live else '1'}'>"
+                f"<div class='tier-title'>{label}</div>"
+                f"<div class='tier-badge'>{badge_inner}</div>"
+                f"<div class='tier-tag'>{tag}</div>"
+                f"<div class='tier-price'>{price}</div>"
+                "</div>"
             )
             with col:
-                st.markdown(
-                    f"<div style='border:1px solid #eee; border-radius:10px; "
-                    f"padding:14px; min-height:150px; opacity:{'0.7' if not _live else '1'}'>"
-                    f"<div style='font-weight:700; font-size:1.05em'>{label}</div>"
-                    f"{coming_soon_badge}"
-                    f"<div style='color:#888; font-size:0.82em; margin-top:6px'>{tag}</div>"
-                    f"<div style='margin-top:10px; font-size:1.2em; color:#c23'>{price}</div>"
-                    f"</div>",
-                    unsafe_allow_html=True,
-                )
+                st.markdown(card_html, unsafe_allow_html=True)
                 if _live and link:
                     st.link_button(cta, link, use_container_width=True)
                 else:
