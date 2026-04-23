@@ -19,7 +19,7 @@
 - 슬라이드 수:
 - [ ] **PICK**
 
-### IG-2: @forceteller — (미확정)
+### IG-2: @forceteller_official — (미확정, 숏폼 릴스 강추)
 - URL:
 - 좋아요/저장/댓글:
 - 주제:
@@ -28,7 +28,7 @@
 - 슬라이드 수:
 - [ ] **PICK**
 
-### IG-3: @bachelor.saju — (미확정)
+### IG-3: @easy_saju — (번호리스트형, 실생활 적용)
 - URL:
 - 좋아요/저장/댓글:
 - 주제:

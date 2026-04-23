@@ -308,10 +308,15 @@
 > **운영 모델 변경 (2026-04-22)**: 풀 오토 슬라이드 생성 → **주간 큐레이션 + Canva 수동 디자인**.
 
 > **v2 업데이트 (2026-04-22)**: 주 5회 발행 (🖼️ 캐러셀 3 + 🎬 숏폼 2).
-> 3 플랫폼 × 3 계정 = 9개 소스풀 (IG: @the.saju, @forceteller, @bachelor.saju /
-> YouTube Shorts: @나는사주, 포스텔러, TBD / TikTok: @jewelsjpj, @ahnestkitchen, @chaweonkoo).
-> S-tier 주제: 남자 인기 여자 사주 / 돈 사주 / 궁합 TOP.
-> 운영 문서: [WORKFLOW.md](./WORKFLOW.md), [TARGET_ACCOUNTS.md](./TARGET_ACCOUNTS.md), [content_calendar/](./content_calendar/).
+> 3 플랫폼 × 3 계정 = 9개 소스풀.
+>
+> **v3 업데이트 (2026-04-22)**: 계정 컨펌 반영.
+> - IG: `@the.saju`, `@forceteller_official`, `@easy_saju` (`@bachelor.saju` 제외)
+> - YT Shorts: `@나는사주`, `포스텔러`, 3번째 TBD
+> - TikTok: `@jewelsjpj`, `@ahnestkitchen`, `@chaweonkoo` (대안 수용)
+>
+> 브랜드 보이스: **"포스텔러 세련됨 + 가끔 easy_saju 체감형"**.
+> 운영 문서: [WORKFLOW.md](./WORKFLOW.md), [TARGET_ACCOUNTS.md](./TARGET_ACCOUNTS.md), [VOICE.md](./VOICE.md), [content_calendar/](./content_calendar/).
 
 ### 🚦 게이트: 검증 결과 리뷰
 - ✅ 팔로워 300+ / DM 5+ → Phase 1 진입
