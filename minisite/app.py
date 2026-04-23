@@ -104,40 +104,60 @@ st.markdown("""
 hr { margin:1.2em 0; }
 
 /* ── Mobile (<= 768px) ────────────────────────────────────────────────
-   Streamlit keeps columns side-by-side on mobile, so the 4-pillar and
-   5-column noble grids just get cramped. Shrink the interior text so
-   each cell still fits without truncation. Cycle strips already scroll
-   horizontally thanks to .cy-strip above. */
+   Streamlit collapses st.columns into a vertical stack on narrow
+   viewports by default. We override that so the 4-pillar and 5-column
+   noble grids keep the same left-to-right layout as desktop; text and
+   padding shrink instead. Cycle strips already scroll horizontally
+   thanks to .cy-strip above. */
 @media (max-width: 768px) {
-  .block-container { padding-left: 0.6rem !important; padding-right: 0.6rem !important; }
+  .block-container { padding-left: 0.5rem !important; padding-right: 0.5rem !important; }
 
-  .saju-big    { font-size: 1.4em; }
-  .saju-mid    { font-size: 0.72em; }
-  .saju-tiny   { font-size: 0.62em; }
-  .saju-cell   { padding: 6px 2px; }
-  .saju-headcell { font-size: 0.72em; }
-  .saju-sidelabel { font-size: 0.7em; padding-right: 3px; }
-  .saju-noble  { font-size: 0.6em; padding: 1px 4px; margin: 1px 1px; }
+  /* Force columns to stay side-by-side and keep their flex ratios */
+  div[data-testid="stHorizontalBlock"] {
+    flex-wrap: nowrap !important;
+    flex-direction: row !important;
+    gap: 4px !important;
+  }
+  div[data-testid="stHorizontalBlock"] > div[data-testid="column"],
+  div[data-testid="stHorizontalBlock"] > div[data-testid="stColumn"] {
+    width: auto !important;
+    min-width: 0 !important;
+    flex-basis: 0 !important;
+  }
+
+  .saju-big    { font-size: 1.3em; }
+  .saju-mid    { font-size: 0.68em; }
+  .saju-tiny   { font-size: 0.58em; }
+  .saju-cell   { padding: 5px 1px; margin: 2px 0; }
+  .saju-headcell { font-size: 0.66em; }
+  .saju-sidelabel { font-size: 0.62em; padding-right: 2px; }
+  .saju-noble  { font-size: 0.54em; padding: 1px 3px; margin: 1px 1px; }
 
   /* Four-pillar cell (big stem/branch inside noble grid) */
-  .saju-cell > div[style*="font-size:1.6em"] { font-size: 1.25em !important; }
+  .saju-cell > div[style*="font-size:1.6em"] { font-size: 1.1em !important; }
 
   /* Cycle cards — slightly tighter */
-  .cy-item  { flex-basis: 52px; min-width: 52px; }
-  .cy-char  { font-size: 19px; line-height: 20px; }
-  .cy-card  { height: 48px; }
+  .cy-item  { flex-basis: 50px; min-width: 50px; }
+  .cy-char  { font-size: 18px; line-height: 20px; }
+  .cy-card  { height: 46px; }
   .cy-tg    { height: 28px; font-size: 10px; }
   .cy-top, .cy-sub { font-size: 10px; }
   .cy-sub-ko { font-size: 10px; }
   .cy-ls1   { font-size: 11px; }
   .cy-ls2   { font-size: 10px; }
 
-  /* Streamlit tightens column gutters too */
-  div[data-testid="stHorizontalBlock"] { gap: 4px !important; }
+  h1 { font-size: 1.35rem !important; }
+  h2 { font-size: 1.15rem !important; }
+  h3 { font-size: 1rem !important; }
+}
 
-  h1 { font-size: 1.45rem !important; }
-  h2 { font-size: 1.2rem !important; }
-  h3 { font-size: 1.05rem !important; }
+/* Extra squeeze for very narrow phones (≤ 380px) — Chinese chars still
+   need to fit cleanly in each of the 4 pillar columns. */
+@media (max-width: 380px) {
+  .saju-big  { font-size: 1.1em; }
+  .saju-mid  { font-size: 0.62em; }
+  .saju-tiny { font-size: 0.54em; }
+  .saju-cell > div[style*="font-size:1.6em"] { font-size: 1em !important; }
 }
 </style>
 """, unsafe_allow_html=True)
