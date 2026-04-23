@@ -61,11 +61,9 @@ st.markdown("""
 .saju-stripe { background:#fafafa; padding:6px 4px; border-radius:6px; }
 .saju-headcell { color:#888; font-size:0.85em; text-align:center; }
 .saju-rowlabel { color:#666; font-size:0.78em; padding:6px 0; }
-.saju-sidelabel {
+.saju-rowtitle {
   color:#666; font-size:0.78em; font-weight:600;
-  display:flex; align-items:center; justify-content:flex-end;
-  height:100%; padding-right:3px; text-align:right;
-  word-break:keep-all; line-height:1.15;
+  margin:8px 0 2px; padding-left:2px; line-height:1.2;
 }
 
 /* Cycle (daewoon / sewoon / wolun) card — every row uses *exact* height so
@@ -149,7 +147,7 @@ hr { margin:1.2em 0; }
   .saju-tiny   { font-size: 0.58em; }
   .saju-cell   { padding: 5px 1px; margin: 2px 0; }
   .saju-headcell { font-size: 0.66em; }
-  .saju-sidelabel { font-size: 0.62em; padding-right: 2px; }
+  .saju-rowtitle  { font-size: 0.68em; margin:6px 0 1px; }
   .saju-noble  { font-size: 0.54em; padding: 1px 3px; margin: 1px 1px; }
 
   /* Four-pillar cell (big stem/branch inside noble grid) */
@@ -511,24 +509,23 @@ def _render_noble_chips(keys: list[str]) -> str:
         chips.append(f"<span class='{cls}' title='{ko}'>{loc}</span>")
     return "<div style='text-align:center'>" + "".join(chips) + "</div>"
 
-# 5-column grid: tight side label + 4 pillars. Side label gets ~4% of the
-# row so the pillar cells have more room for chip wrapping.
-NOBLE_GRID = [1, 6, 6, 6, 6]
+# 4-col grid that mirrors the main 사주팔자 layout above. The row label
+# (천간 / 지지) is rendered as a compact header above each row instead of
+# consuming a side column, so the four pillar cells span the full width.
 
-# Header row
-hdr_cols = st.columns(NOBLE_GRID)
-hdr_cols[0].markdown("&nbsp;", unsafe_allow_html=True)
-for slot, idx in enumerate(DISPLAY_ORDER, start=1):
+# Header row (시 · 일 · 월 · 년)
+hdr_cols = st.columns(4)
+for slot in range(4):
     hdr_cols[slot].markdown(
-        f"<div class='saju-headcell'>{pos_labels[POSITION_KEYS[slot-1]]}</div>",
+        f"<div class='saju-headcell'>{pos_labels[POSITION_KEYS[slot]]}</div>",
         unsafe_allow_html=True)
 
-# Stem character row + stem-noble chips
-stem_cols = st.columns(NOBLE_GRID)
-stem_cols[0].markdown(
-    f"<div class='saju-sidelabel'>{t('nobles.stem_row', lang)}</div>",
+# Stem row
+st.markdown(
+    f"<div class='saju-rowtitle'>{t('nobles.stem_row', lang)}</div>",
     unsafe_allow_html=True)
-for slot, idx in enumerate(DISPLAY_ORDER, start=1):
+stem_cols = st.columns(4)
+for slot, idx in enumerate(DISPLAY_ORDER):
     p = result.pillars[idx]
     s = stem_info(p.stem)
     color = ELEMENTS[s["element"]]["color"]
@@ -539,12 +536,12 @@ for slot, idx in enumerate(DISPLAY_ORDER, start=1):
         f"</div>{chips_html}",
         unsafe_allow_html=True)
 
-# Branch character row + branch-noble chips
-br_cols = st.columns(NOBLE_GRID)
-br_cols[0].markdown(
-    f"<div class='saju-sidelabel'>{t('nobles.branch_row', lang)}</div>",
+# Branch row
+st.markdown(
+    f"<div class='saju-rowtitle'>{t('nobles.branch_row', lang)}</div>",
     unsafe_allow_html=True)
-for slot, idx in enumerate(DISPLAY_ORDER, start=1):
+br_cols = st.columns(4)
+for slot, idx in enumerate(DISPLAY_ORDER):
     p = result.pillars[idx]
     b = branch_info(p.branch)
     color = ELEMENTS[b["element"]]["color"]
