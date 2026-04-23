@@ -268,10 +268,12 @@ _pillar_columns(_tg_stem)
 def _stem(p, _i):
     s = stem_info(p.stem)
     color = ELEMENTS[s["element"]]["color"]
+    narr = day_master_narrative(p.stem, lang)
     st.markdown(
         f"<div class='saju-cell' style='background:{color}22; border:2px solid {color}'>"
         f"<div class='saju-big' style='color:{color}'>{p.stem}</div>"
-        f"<div class='saju-mid'>{s['ko']} · {s['roman']}</div></div>",
+        f"<div class='saju-mid'>{s['ko']} · {s['roman']}</div>"
+        f"<div class='saju-tiny'>{narr['image']}</div></div>",
         unsafe_allow_html=True)
 _pillar_columns(_stem)
 
