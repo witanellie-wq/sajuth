@@ -75,6 +75,35 @@ with top_col_l:
 # ── Input form ─────────────────────────────────────────────────────────────
 st.header(t("form.header", lang))
 
+# Country + City are placed outside of st.form so that changing the country
+# immediately refilters the city list. Widgets inside a form only emit values
+# on submit, which would leave the city dropdown stale.
+c5, c6 = st.columns(2)
+with c5:
+    countries = countries_for_lang(lang)
+    country_keys = [k for k, _ in countries]
+    country_labels = dict(countries)
+    country_code = st.selectbox(
+        t("form.country", lang),
+        options=country_keys,
+        format_func=lambda k: country_labels[k],
+        index=country_keys.index("TH"),
+        key="country_code",
+    )
+with c6:
+    cities = cities_for_country(country_code, lang)
+    if not cities:
+        st.warning("No cities listed for this country yet.")
+        st.stop()
+    city_keys = [k for k, _ in cities]
+    city_labels = dict(cities)
+    city_key = st.selectbox(
+        t("form.city", lang),
+        options=city_keys,
+        format_func=lambda k: city_labels[k],
+        key=f"city_key_{country_code}",
+    )
+
 with st.form("saju_form"):
     c1, c2 = st.columns([2, 1])
     with c1:
@@ -105,31 +134,6 @@ with st.form("saju_form"):
         )
         if unknown_time:
             birth_time = time(12, 0)
-
-    # Country → City two-step
-    c5, c6 = st.columns(2)
-    with c5:
-        countries = countries_for_lang(lang)
-        country_keys = [k for k, _ in countries]
-        country_labels = dict(countries)
-        country_code = st.selectbox(
-            t("form.country", lang),
-            options=country_keys,
-            format_func=lambda k: country_labels[k],
-            index=country_keys.index("TH"),
-        )
-    with c6:
-        cities = cities_for_country(country_code, lang)
-        if not cities:
-            st.warning("No cities listed for this country yet.")
-            st.stop()
-        city_keys = [k for k, _ in cities]
-        city_labels = dict(cities)
-        city_key = st.selectbox(
-            t("form.city", lang),
-            options=city_keys,
-            format_func=lambda k: city_labels[k],
-        )
 
     submitted = st.form_submit_button(t("form.submit", lang), type="primary")
 
