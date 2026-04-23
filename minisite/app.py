@@ -45,6 +45,32 @@ st.markdown("""
 .saju-stripe { background:#fafafa; padding:6px 4px; border-radius:6px; }
 .saju-headcell { color:#888; font-size:0.85em; text-align:center; }
 .saju-rowlabel { color:#666; font-size:0.78em; padding:6px 0; }
+.saju-sidelabel {
+  color:#666; font-size:0.85em; font-weight:600;
+  display:flex; align-items:center; justify-content:flex-end;
+  height:100%; padding-right:6px; text-align:right; white-space:nowrap;
+}
+
+/* Cycle (daewoon / sewoon) card — fixed row heights so every column lines up
+   even when ten-god labels wrap to two lines (e.g. "Direct Resource"). */
+.cy-wrap   { text-align:center; }
+.cy-line   { line-height:1.2; }
+.cy-top    { min-height:1.3em; font-size:0.72em; opacity:0.8; }
+.cy-sub    { min-height:1.3em; font-size:0.72em; opacity:0.55; }
+.cy-tg     {
+  min-height:2.6em; font-size:0.72em; opacity:0.85;
+  display:flex; align-items:center; justify-content:center; text-align:center;
+  padding:2px 0;
+}
+.cy-card {
+  border-radius:8px; padding:6px 0; margin:2px 0;
+  min-height:3.6em; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+}
+.cy-char { font-size:1.6em; font-weight:700; line-height:1.0; }
+.cy-ls1  { min-height:1.4em; font-size:0.75em; font-weight:600; opacity:0.8; }
+.cy-ls2  { min-height:1.3em; font-size:0.72em; opacity:0.55; }
+
 hr { margin:1.2em 0; }
 </style>
 """, unsafe_allow_html=True)
@@ -88,7 +114,7 @@ with c5:
         options=country_keys,
         format_func=lambda k: country_labels[k],
         index=country_keys.index("TH"),
-        key="country_code",
+        key=f"country_code_{lang}",
     )
 with c6:
     cities = cities_for_country(country_code, lang)
@@ -101,7 +127,7 @@ with c6:
         t("form.city", lang),
         options=city_keys,
         format_func=lambda k: city_labels[k],
-        key=f"city_key_{country_code}",
+        key=f"city_key_{country_code}_{lang}",
     )
 
 with st.form("saju_form"):
@@ -316,8 +342,11 @@ def _render_noble_chips(keys: list[str]) -> str:
         chips.append(f"<span class='{cls}' title='{ko}'>{loc}</span>")
     return "<div style='text-align:center'>" + "".join(chips) + "</div>"
 
+# 5-column grid: side label (wider so "Stem"/"Branch" never wraps) + 4 pillars
+NOBLE_GRID = [2, 5, 5, 5, 5]
+
 # Header row
-hdr_cols = st.columns([1, 4, 4, 4, 4])
+hdr_cols = st.columns(NOBLE_GRID)
 hdr_cols[0].markdown("&nbsp;", unsafe_allow_html=True)
 for slot, idx in enumerate(DISPLAY_ORDER, start=1):
     hdr_cols[slot].markdown(
@@ -325,9 +354,9 @@ for slot, idx in enumerate(DISPLAY_ORDER, start=1):
         unsafe_allow_html=True)
 
 # Stem character row + stem-noble chips
-stem_cols = st.columns([1, 4, 4, 4, 4])
+stem_cols = st.columns(NOBLE_GRID)
 stem_cols[0].markdown(
-    f"<div class='saju-rowlabel'>{t('pillars.stem', lang)}</div>",
+    f"<div class='saju-sidelabel'>{t('nobles.stem_row', lang)}</div>",
     unsafe_allow_html=True)
 for slot, idx in enumerate(DISPLAY_ORDER, start=1):
     p = result.pillars[idx]
@@ -341,9 +370,9 @@ for slot, idx in enumerate(DISPLAY_ORDER, start=1):
         unsafe_allow_html=True)
 
 # Branch character row + branch-noble chips
-br_cols = st.columns([1, 4, 4, 4, 4])
+br_cols = st.columns(NOBLE_GRID)
 br_cols[0].markdown(
-    f"<div class='saju-rowlabel'>{t('pillars.branch', lang)}</div>",
+    f"<div class='saju-sidelabel'>{t('nobles.branch_row', lang)}</div>",
     unsafe_allow_html=True)
 for slot, idx in enumerate(DISPLAY_ORDER, start=1):
     p = result.pillars[idx]
@@ -372,17 +401,19 @@ st.caption(
 
 
 def render_cycle_strip(entries, top_label_fn):
-    """Render up to 10 cycle cards as horizontal columns."""
+    """Render up to 10 cycle cards as horizontal columns.
+    Each row uses a fixed min-height so columns stay aligned even when
+    a ten-god label wraps to two lines (e.g. 'Direct Resource')."""
     entries = entries[:10]
     if not entries:
         return
     cols = st.columns(len(entries))
     for col, e in zip(cols, entries):
         with col:
-            s = stem_info(e.ganzhi[0])
-            b = branch_info(e.ganzhi[1])
-            sc = ELEMENTS[s["element"]]["color"]
-            bc = ELEMENTS[b["element"]]["color"]
+            s_ko = stem_info(e.ganzhi[0])["ko"]
+            b_ko = branch_info(e.ganzhi[1])["ko"]
+            sc = ELEMENTS[stem_info(e.ganzhi[0])["element"]]["color"]
+            bc = ELEMENTS[branch_info(e.ganzhi[1])["element"]]["color"]
             tg_s = ten_god_info(e.ten_god_stem)
             tg_b = ten_god_info(e.ten_god_branch_primary)
             ls = life_stage_info(e.life_stage)
@@ -391,21 +422,21 @@ def render_cycle_strip(entries, top_label_fn):
             ls_loc   = ls["th"]   if lang == "th" else ls["en"]
             top, sub = top_label_fn(e)
             st.markdown(
-                f"<div style='text-align:center'>"
-                f"<div class='saju-tiny'>{top}</div>"
-                f"<div class='saju-tiny' style='opacity:0.55'>{sub}</div>"
-                f"<div class='saju-tiny' style='margin-top:2px'>{tg_s_loc}</div>"
-                f"<div style='background:{sc}22;border:2px solid {sc};border-radius:8px;"
-                f"padding:6px 0;margin:2px 0'>"
-                f"<span style='font-size:1.6em;font-weight:700;color:{sc}'>{e.ganzhi[0]}</span>"
-                f"<div class='saju-tiny'>{stem_info(e.ganzhi[0])['ko']}</div></div>"
-                f"<div style='background:{bc}22;border:2px solid {bc};border-radius:8px;"
-                f"padding:6px 0;margin:2px 0'>"
-                f"<span style='font-size:1.6em;font-weight:700;color:{bc}'>{e.ganzhi[1]}</span>"
-                f"<div class='saju-tiny'>{branch_info(e.ganzhi[1])['ko']}</div></div>"
-                f"<div class='saju-tiny' style='margin-top:2px'>{tg_b_loc}</div>"
-                f"<div class='saju-tiny' style='opacity:0.7'><b>{e.life_stage}</b></div>"
-                f"<div class='saju-tiny' style='opacity:0.55'>{ls_loc}</div>"
+                f"<div class='cy-wrap'>"
+                f"<div class='cy-top cy-line'>{top}</div>"
+                f"<div class='cy-sub cy-line'>{sub}</div>"
+                f"<div class='cy-tg'>{tg_s_loc}</div>"
+                f"<div class='cy-card' style='background:{sc}22;border:2px solid {sc}'>"
+                f"<div class='cy-char' style='color:{sc}'>{e.ganzhi[0]}</div>"
+                f"<div class='saju-tiny'>{s_ko}</div>"
+                f"</div>"
+                f"<div class='cy-card' style='background:{bc}22;border:2px solid {bc}'>"
+                f"<div class='cy-char' style='color:{bc}'>{e.ganzhi[1]}</div>"
+                f"<div class='saju-tiny'>{b_ko}</div>"
+                f"</div>"
+                f"<div class='cy-tg'>{tg_b_loc}</div>"
+                f"<div class='cy-ls1'>{e.life_stage}</div>"
+                f"<div class='cy-ls2'>{ls_loc}</div>"
                 f"</div>",
                 unsafe_allow_html=True,
             )

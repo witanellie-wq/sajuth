@@ -46,8 +46,8 @@ STRINGS = {
 
     "nobles.header":      {"en": "Auspicious & Inauspicious Stars (귀인 · 신살)",
                            "th": "ดาวมงคลและดาวภัย (귀인 · 신살)"},
-    "nobles.stem_row":    {"en": "Stem stars",   "th": "ดาวบนก้าน"},
-    "nobles.branch_row":  {"en": "Branch stars", "th": "ดาวบนกิ่ง"},
+    "nobles.stem_row":    {"en": "Stem",   "th": "ก้าน"},
+    "nobles.branch_row":  {"en": "Branch", "th": "กิ่ง"},
     "nobles.none":        {"en": "—", "th": "—"},
 
     "daewoon.header":  {"en": "Great Luck Cycles (대운)", "th": "วัฏจักรโชคใหญ่ (대운)"},
