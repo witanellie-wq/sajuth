@@ -59,6 +59,9 @@ STRINGS = {
     "daewoon.months":  {"en": "mo",  "th": "เดือน"},
 
     "sewoon.header":   {"en": "Yearly Run (세운)", "th": "ดวงรายปี (세운)"},
+    "wolun.header":    {"en": "Monthly Run (월운)", "th": "ดวงรายเดือน (월운)"},
+    "wolun.sub":       {"en": "for year {year}", "th": "สำหรับปี {year}"},
+    "wolun.month":     {"en": "{n}", "th": "เดือน {n}"},
 
     "footer.disclaimer": {
         "en": "Educational tool. For paid readings you will receive a full astro-seek interpretation.",

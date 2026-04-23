@@ -51,25 +51,27 @@ st.markdown("""
   height:100%; padding-right:6px; text-align:right; white-space:nowrap;
 }
 
-/* Cycle (daewoon / sewoon) card — fixed row heights so every column lines up
-   even when ten-god labels wrap to two lines (e.g. "Direct Resource"). */
+/* Cycle (daewoon / sewoon / wolun) card — every row uses *exact* height so
+   columns always line up regardless of whether a ten-god label is one word
+   ("Rival") or two ("Direct Resource"). Short labels reserve the second line
+   as empty space (block top-aligned), keeping the card geometry identical. */
 .cy-wrap   { text-align:center; }
-.cy-line   { line-height:1.2; }
-.cy-top    { min-height:1.3em; font-size:0.72em; opacity:0.8; }
-.cy-sub    { min-height:1.3em; font-size:0.72em; opacity:0.55; }
+.cy-top    { height:14px; line-height:14px; font-size:11px; opacity:0.8; overflow:hidden; }
+.cy-sub    { height:14px; line-height:14px; font-size:11px; opacity:0.55; overflow:hidden; }
 .cy-tg     {
-  min-height:2.6em; font-size:0.72em; opacity:0.85;
-  display:flex; align-items:center; justify-content:center; text-align:center;
-  padding:2px 0;
+  height:30px; line-height:14px; font-size:11px; opacity:0.88;
+  text-align:center; padding:1px 0; overflow:hidden;
+  word-break:break-word;
 }
-.cy-card {
-  border-radius:8px; padding:6px 0; margin:2px 0;
-  min-height:3.6em; display:flex; flex-direction:column;
+.cy-card   {
+  border-radius:8px; padding:4px 0; margin:2px 0;
+  height:58px; display:flex; flex-direction:column;
   align-items:center; justify-content:center;
 }
-.cy-char { font-size:1.6em; font-weight:700; line-height:1.0; }
-.cy-ls1  { min-height:1.4em; font-size:0.75em; font-weight:600; opacity:0.8; }
-.cy-ls2  { min-height:1.3em; font-size:0.72em; opacity:0.55; }
+.cy-char   { font-size:24px; font-weight:700; line-height:24px; }
+.cy-sub-ko { font-size:11px; line-height:12px; opacity:0.65; margin-top:2px; }
+.cy-ls1    { height:16px; line-height:16px; font-size:12px; font-weight:600; opacity:0.85; overflow:hidden; }
+.cy-ls2    { height:14px; line-height:14px; font-size:11px; opacity:0.55; overflow:hidden; }
 
 hr { margin:1.2em 0; }
 </style>
@@ -400,11 +402,11 @@ st.caption(
 )
 
 
-def render_cycle_strip(entries, top_label_fn):
-    """Render up to 10 cycle cards as horizontal columns.
-    Each row uses a fixed min-height so columns stay aligned even when
-    a ten-god label wraps to two lines (e.g. 'Direct Resource')."""
-    entries = entries[:10]
+def render_cycle_strip(entries, top_label_fn, max_cols: int = 12):
+    """Render up to `max_cols` cycle cards as horizontal columns.
+    Each row uses fixed pixel heights so columns stay aligned even when a
+    ten-god label wraps to two lines (e.g. 'Direct Resource')."""
+    entries = entries[:max_cols]
     if not entries:
         return
     cols = st.columns(len(entries))
@@ -423,16 +425,16 @@ def render_cycle_strip(entries, top_label_fn):
             top, sub = top_label_fn(e)
             st.markdown(
                 f"<div class='cy-wrap'>"
-                f"<div class='cy-top cy-line'>{top}</div>"
-                f"<div class='cy-sub cy-line'>{sub}</div>"
+                f"<div class='cy-top'>{top}</div>"
+                f"<div class='cy-sub'>{sub}</div>"
                 f"<div class='cy-tg'>{tg_s_loc}</div>"
                 f"<div class='cy-card' style='background:{sc}22;border:2px solid {sc}'>"
                 f"<div class='cy-char' style='color:{sc}'>{e.ganzhi[0]}</div>"
-                f"<div class='saju-tiny'>{s_ko}</div>"
+                f"<div class='cy-sub-ko'>{s_ko}</div>"
                 f"</div>"
                 f"<div class='cy-card' style='background:{bc}22;border:2px solid {bc}'>"
                 f"<div class='cy-char' style='color:{bc}'>{e.ganzhi[1]}</div>"
-                f"<div class='saju-tiny'>{b_ko}</div>"
+                f"<div class='cy-sub-ko'>{b_ko}</div>"
                 f"</div>"
                 f"<div class='cy-tg'>{tg_b_loc}</div>"
                 f"<div class='cy-ls1'>{e.life_stage}</div>"
@@ -457,6 +459,18 @@ if result.sewoon:
     render_cycle_strip(
         result.sewoon,
         top_label_fn=lambda e: (e.label, f"{e.sub_label} {age_label}"),
+    )
+
+
+# ── Wolun (12 months of the current year) ──────────────────────────────────
+if result.wolun:
+    st.markdown("---")
+    st.subheader(t("wolun.header", lang))
+    st.caption(t("wolun.sub", lang).format(year=result.sewoon_year))
+    month_label = "Month" if lang == "en" else "เดือน"
+    render_cycle_strip(
+        result.wolun,
+        top_label_fn=lambda e: (f"{e.label} {month_label}", ""),
     )
 
 

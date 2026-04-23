@@ -84,6 +84,8 @@ class SajuResult:
     daewoon_start_age_months: int
     daewoon: list[CycleEntry]
     sewoon: list[CycleEntry]
+    wolun: list[CycleEntry]
+    sewoon_year: int                 # solar year the wolun belongs to
     direction: Literal["forward", "backward"]
 
 
@@ -157,7 +159,9 @@ def compute_saju(
     # 세운 — pick the daewoon active around the user's current age (or first).
     # Then enumerate its 10-year window using getLiuNian().
     sewoon: list[CycleEntry] = []
-    today_year = datetime.now().year
+    wolun: list[CycleEntry] = []
+    sewoon_year = datetime.now().year
+    today_year = sewoon_year
     chosen_idx = 0
     for i, d in enumerate(raw_daewoon[1:], start=1):
         if d.getStartYear() <= today_year:
@@ -166,7 +170,9 @@ def compute_saju(
             break
     if 1 <= chosen_idx < len(raw_daewoon):
         try:
-            for ln in raw_daewoon[chosen_idx].getLiuNian():
+            current_daewoon = raw_daewoon[chosen_idx]
+            current_liunian = None
+            for ln in current_daewoon.getLiuNian():
                 gz = ln.getGanZhi()
                 if not gz or len(gz) != 2:
                     continue
@@ -179,6 +185,31 @@ def compute_saju(
                     ten_god_branch_primary=_primary_ten_god_of_branch(day_master, zhi),
                     life_stage=_life_stage_of(day_master, zhi),
                 ))
+                if ln.getYear() == today_year:
+                    current_liunian = ln
+            if current_liunian is None and sewoon:
+                # Fallback: use the nearest LiuNian to today_year.
+                for ln in current_daewoon.getLiuNian():
+                    if ln.getYear() >= today_year:
+                        current_liunian = ln
+                        break
+            if current_liunian is not None:
+                sewoon_year = current_liunian.getYear()
+                for ly in current_liunian.getLiuYue():
+                    gz = ly.getGanZhi()
+                    if not gz or len(gz) != 2:
+                        continue
+                    gan, zhi = gz[0], gz[1]
+                    bazi_idx = ly.getIndex()          # 0 → 寅月, ... 11 → 丑月
+                    solar_month = ((bazi_idx + 1) % 12) + 1  # 寅月 ≈ Feb
+                    wolun.append(CycleEntry(
+                        label=f"{solar_month}",
+                        sub_label="",
+                        ganzhi=gz,
+                        ten_god_stem=_ten_god_of_stem(day_master, gan),
+                        ten_god_branch_primary=_primary_ten_god_of_branch(day_master, zhi),
+                        life_stage=_life_stage_of(day_master, zhi),
+                    ))
         except Exception:
             pass  # older lunar_python versions may differ
 
@@ -199,6 +230,8 @@ def compute_saju(
         daewoon_start_age_months=yun.getStartMonth(),
         daewoon=daewoon,
         sewoon=sewoon,
+        wolun=wolun,
+        sewoon_year=sewoon_year,
         direction=_direction(pillars[0].stem, gender),
     )
 
