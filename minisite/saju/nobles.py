@@ -190,11 +190,6 @@ HYEOBROK_FLANKS = {
     "癸": ("亥", "丑"),   # 녹 = 子
 }
 
-# Cardinal 왕지 branches — used by the popular "왕지 도화" rule that treats
-# every 子·午·卯·酉 in the chart as a peach-blossom branch, regardless of
-# year/day trio. Replaces the classical 12신살 rule for dohwa.
-WANGJI_BRANCHES = {"子", "午", "卯", "酉"}
-
 
 # ── Year-branch-season-keyed shensha (고신 / 과숙) ──────────────────────────
 
@@ -268,7 +263,6 @@ NOBLE_META = {
     "munseong":   {"ko": "문성",     "en": "Writing Star",         "th": "ดาวการเขียน"},
     "jihye":      {"ko": "지혜성",   "en": "Wisdom Star",          "th": "ดาวปัญญา"},
     "hongyeom":   {"ko": "홍염살",   "en": "Red Charm Star",       "th": "ดาวแรงดึงดูด"},
-    "hamji":      {"ko": "함지",     "en": "Desire Star",          "th": "ดาวความปรารถนา"},
     "jaego":      {"ko": "재고귀인", "en": "Wealth Storage Noble", "th": "ผู้หนุนด้านเงิน"},
     "hyeobrok":   {"ko": "협록",     "en": "Stable Wealth",        "th": "เงินมั่นคง"},
 
@@ -396,9 +390,8 @@ def compute_nobles(
     add("hakdang",   branch=branch_flags({hakdang_target}  if hakdang_target  else set()))
     add("yangin",    branch=branch_flags({yangin_target}   if yangin_target   else set()))
     add("yeokma",    branch=branch_flags(_trio_targets("yeokma")))
-    # 도화: 왕지 도화 (any 子·午·卯·酉 in the chart). 함지 below keeps the
-    # classical 12신살 trio rule so the two still distinguish themselves.
-    add("dohwa",     branch=branch_flags(WANGJI_BRANCHES))
+    # 도화: 12신살 삼합법 (진짜 도화). Year/day trio's 생지 다음 왕지.
+    add("dohwa",     branch=branch_flags(_trio_targets("dohwa")))
     add("hwagae",    branch=branch_flags(_trio_targets("hwagae")))
     add("mangsin",   branch=branch_flags(_trio_targets("mangsin")))
     add("geob",      branch=branch_flags(_trio_targets("geob")))
@@ -439,7 +432,6 @@ def compute_nobles(
     add("munseong", branch=branch_flags({MUNSEONG[day_gan]}       if day_gan in MUNSEONG       else set()))
     add("jihye",    branch=branch_flags({JIHYE_SEONG[day_gan]}    if day_gan in JIHYE_SEONG    else set()))
     add("hongyeom", branch=branch_flags({HONGYEOM_SAL[day_gan]}   if day_gan in HONGYEOM_SAL   else set()))
-    add("hamji",    branch=branch_flags(_trio_targets("dohwa")))   # 함지 = 도화 (synonym, classical 12신살 trio rule)
     add("jaego",    branch=branch_flags({JAEGO_GUIIN[day_gan]}    if day_gan in JAEGO_GUIIN    else set()))
 
     # 협록 (夾祿) — only lights up when BOTH flanking branches are present
