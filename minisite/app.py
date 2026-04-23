@@ -29,6 +29,7 @@ from saju.tables import (
 from reading.llm import stream_reading
 from reading.payment import (
     ChartRef,
+    is_live_mode,
     payment_link_for_tier,
     readings_configured,
     verify_payment,
@@ -555,6 +556,9 @@ else:
     if not readings_configured():
         st.info(t("paid.disabled", lang))
     else:
+        _live = is_live_mode()
+        if not _live:
+            st.info(t("paid.coming_soon_note", lang))
         _chart_ref = ChartRef(
             birth_date=birth_date,
             birth_time=birth_time,
@@ -570,19 +574,33 @@ else:
             tag   = spec["tagline_th"] if lang == "th" else spec["tagline_en"]
             price = f"{spec['price_thb']}{t('paid.price_suffix', lang)}"
             cta   = f"{t('paid.cta', lang)} · {price}"
-            link  = payment_link_for_tier(tier_key, _chart_ref)
+            link  = payment_link_for_tier(tier_key, _chart_ref) if _live else None
+            coming_soon_badge = (
+                "<div style='display:inline-block; background:#ffe69c; color:#8a6a00; "
+                "border-radius:4px; padding:2px 8px; font-size:0.7em; margin-top:4px'>"
+                f"{t('paid.coming_soon', lang)}</div>"
+                if not _live else ""
+            )
             with col:
                 st.markdown(
                     f"<div style='border:1px solid #eee; border-radius:10px; "
-                    f"padding:14px; min-height:150px'>"
+                    f"padding:14px; min-height:150px; opacity:{'0.7' if not _live else '1'}'>"
                     f"<div style='font-weight:700; font-size:1.05em'>{label}</div>"
+                    f"{coming_soon_badge}"
                     f"<div style='color:#888; font-size:0.82em; margin-top:6px'>{tag}</div>"
                     f"<div style='margin-top:10px; font-size:1.2em; color:#c23'>{price}</div>"
                     f"</div>",
                     unsafe_allow_html=True,
                 )
-                if link:
+                if _live and link:
                     st.link_button(cta, link, use_container_width=True)
+                else:
+                    st.button(
+                        t("paid.coming_soon", lang),
+                        key=f"cs_{tier_key}",
+                        disabled=True,
+                        use_container_width=True,
+                    )
 
 
 # ── Footer ─────────────────────────────────────────────────────────────────

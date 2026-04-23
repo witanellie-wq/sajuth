@@ -83,6 +83,14 @@ STRINGS = {
         "en": "Paid readings are not configured on this deployment yet. Check back soon.",
         "th": "การอ่านแบบชำระเงินยังไม่พร้อมใช้งาน กรุณากลับมาตรวจสอบเร็ว ๆ นี้",
     },
+    "paid.coming_soon": {
+        "en": "Coming Soon",
+        "th": "เปิดให้บริการเร็ว ๆ นี้",
+    },
+    "paid.coming_soon_note": {
+        "en": "Paid deep readings launch shortly — follow along on Instagram for the go-live announcement.",
+        "th": "การอ่านเชิงลึกแบบชำระเงินจะเปิดเร็ว ๆ นี้ ติดตามประกาศการเปิดให้บริการทางอินสตาแกรม",
+    },
     "paid.unpaid": {
         "en": "This checkout hasn't been paid yet. If you just finished, wait a moment and refresh.",
         "th": "การชำระเงินยังไม่สำเร็จ หากเพิ่งชำระเสร็จ รอสักครู่แล้วรีเฟรชหน้า",

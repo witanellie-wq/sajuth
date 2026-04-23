@@ -100,6 +100,15 @@ def readings_configured() -> bool:
     return False
 
 
+def is_live_mode() -> bool:
+    """True when Stripe is in live (production) mode.
+    Test keys start with sk_test_, live keys with sk_live_. We use this to
+    gate the tier buttons with a Coming Soon state while the Stripe account
+    is still under KYC review and only test links are available."""
+    key = _secret("STRIPE_SECRET_KEY") or ""
+    return key.startswith("sk_live_")
+
+
 def payment_link_for_tier(tier: str, chart_ref: ChartRef) -> str | None:
     base = _secret(f"STRIPE_PAYMENT_LINK_{tier.upper()}")
     if not base:
