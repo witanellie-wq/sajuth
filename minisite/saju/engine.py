@@ -7,7 +7,7 @@ from typing import Literal
 from lunar_python import Solar
 
 from .correction import apply_corrections, solar_shift_only_minutes
-from .nobles import compute_nobles
+from .nobles import compute_nobles, compute_relational_shensha
 from .tables import (
     branch as branch_info,
     ganzhi_ko,
@@ -80,6 +80,7 @@ class SajuResult:
     pillars: list[Pillar]            # [year, month, day, hour]
     day_master: str
     nobles: dict[str, dict[str, list[bool]]]
+    relational: dict[str, list[dict]]   # 충 / 귀문 / 원진 / 형 / 공망
     daewoon_start_age_years: int
     daewoon_start_age_months: int
     daewoon: list[CycleEntry]
@@ -142,6 +143,10 @@ def compute_saju(
         pillar_stems=[p.stem for p in pillars],
         pillar_branches=[p.branch for p in pillars],
         pillar_ganzhi=[p.ganzhi for p in pillars],
+        gongmang_branches=gongmang,
+    )
+    relational = compute_relational_shensha(
+        pillar_branches=[p.branch for p in pillars],
         gongmang_branches=gongmang,
     )
 
@@ -232,6 +237,7 @@ def compute_saju(
         pillars=pillars,
         day_master=day_master,
         nobles=nobles,
+        relational=relational,
         daewoon_start_age_years=yun.getStartYear(),
         daewoon_start_age_months=yun.getStartMonth(),
         daewoon=daewoon,

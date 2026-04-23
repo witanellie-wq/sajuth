@@ -70,7 +70,19 @@ st.markdown("""
 /* Cycle (daewoon / sewoon / wolun) card — every row uses *exact* height so
    columns always line up regardless of whether a ten-god label is one word
    ("Rival") or two ("Direct Resource"). Short labels reserve the second line
-   as empty space (block top-aligned), keeping the card geometry identical. */
+   as empty space (block top-aligned), keeping the card geometry identical.
+   The strip itself is a horizontally scrollable flex container so many-card
+   rows (8 daewoon / 10 sewoon / 12 wolun) stay readable on mobile. */
+.cy-strip  {
+  display:flex; gap:4px;
+  overflow-x:auto; overflow-y:hidden;
+  padding:2px 0 8px;
+  scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch;
+}
+.cy-strip::-webkit-scrollbar { height:6px; }
+.cy-strip::-webkit-scrollbar-thumb { background:#ddd; border-radius:3px; }
+.cy-item   { flex:1 0 58px; min-width:58px; max-width:120px; }
 .cy-wrap   { text-align:center; }
 .cy-top    { height:14px; line-height:14px; font-size:11px; opacity:0.8; overflow:hidden; }
 .cy-sub    { height:14px; line-height:14px; font-size:11px; opacity:0.55; overflow:hidden; }
@@ -90,6 +102,43 @@ st.markdown("""
 .cy-ls2    { height:14px; line-height:14px; font-size:11px; opacity:0.55; overflow:hidden; }
 
 hr { margin:1.2em 0; }
+
+/* ── Mobile (<= 768px) ────────────────────────────────────────────────
+   Streamlit keeps columns side-by-side on mobile, so the 4-pillar and
+   5-column noble grids just get cramped. Shrink the interior text so
+   each cell still fits without truncation. Cycle strips already scroll
+   horizontally thanks to .cy-strip above. */
+@media (max-width: 768px) {
+  .block-container { padding-left: 0.6rem !important; padding-right: 0.6rem !important; }
+
+  .saju-big    { font-size: 1.4em; }
+  .saju-mid    { font-size: 0.72em; }
+  .saju-tiny   { font-size: 0.62em; }
+  .saju-cell   { padding: 6px 2px; }
+  .saju-headcell { font-size: 0.72em; }
+  .saju-sidelabel { font-size: 0.7em; padding-right: 3px; }
+  .saju-noble  { font-size: 0.6em; padding: 1px 4px; margin: 1px 1px; }
+
+  /* Four-pillar cell (big stem/branch inside noble grid) */
+  .saju-cell > div[style*="font-size:1.6em"] { font-size: 1.25em !important; }
+
+  /* Cycle cards — slightly tighter */
+  .cy-item  { flex-basis: 52px; min-width: 52px; }
+  .cy-char  { font-size: 19px; line-height: 20px; }
+  .cy-card  { height: 48px; }
+  .cy-tg    { height: 28px; font-size: 10px; }
+  .cy-top, .cy-sub { font-size: 10px; }
+  .cy-sub-ko { font-size: 10px; }
+  .cy-ls1   { font-size: 11px; }
+  .cy-ls2   { font-size: 10px; }
+
+  /* Streamlit tightens column gutters too */
+  div[data-testid="stHorizontalBlock"] { gap: 4px !important; }
+
+  h1 { font-size: 1.45rem !important; }
+  h2 { font-size: 1.2rem !important; }
+  h3 { font-size: 1.05rem !important; }
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -384,9 +433,18 @@ st.subheader(t("nobles.header", lang))
 DANGER_KEYS = {"baekho", "goegang", "yangin", "yeokma", "dohwa", "mangsin",
                "geob", "jae", "cheonsal", "wolsal", "yukhae", "hyeonchim"}
 
+# Relational shensha depend on how pillars pair up with each other, so they
+# render in their own section below with explicit pillar-pair details instead
+# of as per-pillar chips on the main grid.
+RELATIONAL_KEYS = {"chung", "gwimun", "wonjin", "gongmang"}
+
 def _nobles_for(side: str, idx: int) -> list[str]:
-    """Return list of noble keys whose `side` flag is True for pillar idx."""
-    return [k for k, v in result.nobles.items() if v[side][idx]]
+    """Return list of noble keys whose `side` flag is True for pillar idx,
+    excluding relational shensha that have their own section."""
+    return [
+        k for k, v in result.nobles.items()
+        if v[side][idx] and k not in RELATIONAL_KEYS
+    ]
 
 def _render_noble_chips(keys: list[str]) -> str:
     if not keys:
@@ -444,6 +502,67 @@ for slot, idx in enumerate(DISPLAY_ORDER, start=1):
         unsafe_allow_html=True)
 
 
+# ── Relational shensha (충 · 귀문 · 원진 · 형 · 공망) ─────────────────────
+st.markdown("---")
+st.subheader(t("relational.header", lang))
+
+_rel = result.relational
+# User asked to move these four out of the main grid; 형살 stays on the grid
+# since it still renders cleanly there.
+_rel_order = ["chung", "gwimun", "wonjin", "gongmang"]
+_pos_short = {
+    "year":  t("pillars.year",  lang),
+    "month": t("pillars.month", lang),
+    "day":   t("pillars.day",   lang),
+    "hour":  t("pillars.hour",  lang),
+}
+_empty = all(not _rel.get(k) for k in _rel_order)
+if _empty:
+    st.caption(t("relational.empty", lang))
+else:
+    for key in _rel_order:
+        entries = _rel.get(key) or []
+        if not entries:
+            continue
+        meta = NOBLE_META[key]
+        title = _pick(meta, lang)
+        danger = key in DANGER_KEYS or key in {"chung", "wonjin", "gwimun", "gongmang"}
+        badge_color = "#c23" if danger else "#0a7"
+        st.markdown(
+            f"<div style='margin:10px 0 4px; font-weight:700; color:{badge_color}'>"
+            f"{title} <span style='opacity:0.55; font-weight:400; font-size:0.85em'>({meta['ko']})</span>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
+        lines: list[str] = []
+        if key == "gongmang":
+            parts = [f"{_pos_short[e['pillar']]} {e['branch']}" for e in entries]
+            lines.append(", ".join(parts))
+            lines.append(
+                f"<span style='opacity:0.55; font-size:0.8em'>"
+                f"{t('relational.gongmang.note', lang)}</span>"
+            )
+        else:
+            for e in entries:
+                sub = ""
+                hyeong_type = e.get("type")
+                if key == "hyeong" and hyeong_type:
+                    type_label = t(f"relational.type.{hyeong_type}", lang)
+                    sub = (
+                        f" <span style='opacity:0.55; font-size:0.8em'>· "
+                        f"{type_label}</span>"
+                    )
+                pieces = [f"{_pos_short[pos]} <b>{ch}</b>" for pos, ch in e["pillars"]]
+                lines.append(" &nbsp;↔&nbsp; ".join(pieces) + sub)
+        st.markdown(
+            "<div style='padding:4px 10px; background:#fafafa; border-radius:6px; "
+            "font-size:0.92em; line-height:1.7'>"
+            + "<br>".join(lines)
+            + "</div>",
+            unsafe_allow_html=True,
+        )
+
+
 # ── Daewoon (10 cards across) ──────────────────────────────────────────────
 st.markdown("---")
 st.subheader(t("daewoon.header", lang))
@@ -459,45 +578,45 @@ st.caption(
 
 
 def render_cycle_strip(entries, top_label_fn, max_cols: int = 12):
-    """Render up to `max_cols` cycle cards as horizontal columns.
-    Each row uses fixed pixel heights so columns stay aligned even when a
-    ten-god label wraps to two lines (e.g. 'Direct Resource')."""
+    """Render up to `max_cols` cycle cards as a single horizontally-scrollable
+    flex strip. Using a single HTML block (instead of st.columns) lets the
+    strip overflow and scroll cleanly on mobile, while still growing to fill
+    the viewport on desktop."""
     entries = entries[:max_cols]
     if not entries:
         return
-    cols = st.columns(len(entries))
-    for col, e in zip(cols, entries):
-        with col:
-            s_ko = stem_info(e.ganzhi[0])["ko"]
-            b_ko = branch_info(e.ganzhi[1])["ko"]
-            sc = ELEMENTS[stem_info(e.ganzhi[0])["element"]]["color"]
-            bc = ELEMENTS[branch_info(e.ganzhi[1])["element"]]["color"]
-            tg_s = ten_god_info(e.ten_god_stem)
-            tg_b = ten_god_info(e.ten_god_branch_primary)
-            ls = life_stage_info(e.life_stage)
-            tg_s_loc = _pick(tg_s, lang)
-            tg_b_loc = _pick(tg_b, lang)
-            ls_loc   = _pick(ls, lang)
-            top, sub = top_label_fn(e)
-            st.markdown(
-                f"<div class='cy-wrap'>"
-                f"<div class='cy-top'>{top}</div>"
-                f"<div class='cy-sub'>{sub}</div>"
-                f"<div class='cy-tg'>{tg_s_loc}</div>"
-                f"<div class='cy-card' style='background:{sc}22;border:2px solid {sc}'>"
-                f"<div class='cy-char' style='color:{sc}'>{e.ganzhi[0]}</div>"
-                f"<div class='cy-sub-ko'>{s_ko}</div>"
-                f"</div>"
-                f"<div class='cy-card' style='background:{bc}22;border:2px solid {bc}'>"
-                f"<div class='cy-char' style='color:{bc}'>{e.ganzhi[1]}</div>"
-                f"<div class='cy-sub-ko'>{b_ko}</div>"
-                f"</div>"
-                f"<div class='cy-tg'>{tg_b_loc}</div>"
-                f"<div class='cy-ls1'>{e.life_stage}</div>"
-                f"<div class='cy-ls2'>{ls_loc}</div>"
-                f"</div>",
-                unsafe_allow_html=True,
-            )
+    items: list[str] = []
+    for e in entries:
+        s_ko = stem_info(e.ganzhi[0])["ko"]
+        b_ko = branch_info(e.ganzhi[1])["ko"]
+        sc = ELEMENTS[stem_info(e.ganzhi[0])["element"]]["color"]
+        bc = ELEMENTS[branch_info(e.ganzhi[1])["element"]]["color"]
+        tg_s_loc = _pick(ten_god_info(e.ten_god_stem), lang)
+        tg_b_loc = _pick(ten_god_info(e.ten_god_branch_primary), lang)
+        ls_loc   = _pick(life_stage_info(e.life_stage), lang)
+        top, sub = top_label_fn(e)
+        items.append(
+            f"<div class='cy-item'><div class='cy-wrap'>"
+            f"<div class='cy-top'>{top}</div>"
+            f"<div class='cy-sub'>{sub}</div>"
+            f"<div class='cy-tg'>{tg_s_loc}</div>"
+            f"<div class='cy-card' style='background:{sc}22;border:2px solid {sc}'>"
+            f"<div class='cy-char' style='color:{sc}'>{e.ganzhi[0]}</div>"
+            f"<div class='cy-sub-ko'>{s_ko}</div>"
+            f"</div>"
+            f"<div class='cy-card' style='background:{bc}22;border:2px solid {bc}'>"
+            f"<div class='cy-char' style='color:{bc}'>{e.ganzhi[1]}</div>"
+            f"<div class='cy-sub-ko'>{b_ko}</div>"
+            f"</div>"
+            f"<div class='cy-tg'>{tg_b_loc}</div>"
+            f"<div class='cy-ls1'>{e.life_stage}</div>"
+            f"<div class='cy-ls2'>{ls_loc}</div>"
+            f"</div></div>"
+        )
+    st.markdown(
+        "<div class='cy-strip'>" + "".join(items) + "</div>",
+        unsafe_allow_html=True,
+    )
 
 age_label   = t("daewoon.age", lang)
 month_label = t("wolun.month", lang)

@@ -193,8 +193,12 @@ CHUNG_PAIRS = [   # 육충
     {"子", "午"}, {"丑", "未"}, {"寅", "申"},
     {"卯", "酉"}, {"辰", "戌"}, {"巳", "亥"},
 ]
-WONJIN_PAIRS = [  # 육해/원진
+WONJIN_PAIRS = [  # 원진 (classical 6-pair list)
     {"子", "未"}, {"丑", "午"}, {"寅", "酉"},
+    {"卯", "申"}, {"辰", "亥"}, {"巳", "戌"},
+]
+GWIMUN_PAIRS = [  # 귀문관살 — overlaps with 원진 on most pairs but 子↔酉 and 寅↔未
+    {"子", "酉"}, {"丑", "午"}, {"寅", "未"},
     {"卯", "申"}, {"辰", "亥"}, {"巳", "戌"},
 ]
 SAM_HYEONG = [   # 삼형
@@ -253,9 +257,65 @@ NOBLE_META = {
     # ── Relational (between pillars) ──────────────────────────────────────
     "chung":      {"ko": "충",       "en": "Clash Force",          "th": "พลังปะทะ"},
     "wonjin":     {"ko": "원진",     "en": "Conflict Bond",        "th": "ความขัดแย้งลึก"},
+    "gwimun":     {"ko": "귀문관살", "en": "Ghost Gate Force",     "th": "พลังประตูผี"},
     "hyeong":     {"ko": "형살",     "en": "Punishment Force",     "th": "พลังโทษ"},
     "gongmang":   {"ko": "공망",     "en": "Void State",           "th": "ภาวะว่างเปล่า"},
 }
+
+
+PILLAR_POSITIONS = ["year", "month", "day", "hour"]
+
+
+def compute_relational_shensha(
+    pillar_branches: list[str],
+    gongmang_branches: set[str] | None = None,
+) -> dict[str, list[dict]]:
+    """Return per-relation structured involvement between the four pillar branches.
+
+    Each relation entry lists the specific pillars involved, so the UI can
+    show "월지 子 ↔ 시지 午 (충)" instead of a generic chip on each pillar.
+    """
+    gongmang_branches = gongmang_branches or set()
+    out: dict[str, list[dict]] = {k: [] for k in ("chung", "gwimun", "wonjin", "hyeong", "gongmang")}
+
+    def _pillars(indices: list[int]) -> list[tuple[str, str]]:
+        return [(PILLAR_POSITIONS[i], pillar_branches[i]) for i in indices]
+
+    # Pair-based relations
+    for i in range(4):
+        for j in range(i + 1, 4):
+            pair = {pillar_branches[i], pillar_branches[j]}
+            if len(pair) != 2:
+                continue  # same branch — not a cross-pillar pair
+            if pair in CHUNG_PAIRS:
+                out["chung"].append({"pillars": _pillars([i, j])})
+            if pair in GWIMUN_PAIRS:
+                out["gwimun"].append({"pillars": _pillars([i, j])})
+            if pair in WONJIN_PAIRS:
+                out["wonjin"].append({"pillars": _pillars([i, j])})
+
+    # 형살: 삼형 (3-branch), 상형 (子-卯), 자형 (doubled branch)
+    branches_set = set(pillar_branches)
+    for trio in SAM_HYEONG:
+        if trio.issubset(branches_set):
+            hits = [k for k, b in enumerate(pillar_branches) if b in trio]
+            if hits:
+                out["hyeong"].append({"type": "samhyeong", "pillars": _pillars(hits)})
+    if SANG_HYEONG.issubset(branches_set):
+        hits = [k for k, b in enumerate(pillar_branches) if b in SANG_HYEONG]
+        if hits:
+            out["hyeong"].append({"type": "sanghyeong", "pillars": _pillars(hits)})
+    for b in set(pillar_branches):
+        if b in JA_HYEONG_BRANCHES and pillar_branches.count(b) >= 2:
+            hits = [k for k, x in enumerate(pillar_branches) if x == b]
+            out["hyeong"].append({"type": "jahyeong", "pillars": _pillars(hits)})
+
+    # Gongmang — simple list of pillar+branch whose branch lands in the void set.
+    for i, b in enumerate(pillar_branches):
+        if b in gongmang_branches:
+            out["gongmang"].append({"pillar": PILLAR_POSITIONS[i], "branch": b})
+
+    return out
 
 
 def compute_nobles(
@@ -363,12 +423,17 @@ def compute_nobles(
     add("gosin",   branch=branch_flags({GOSIN_MAP[season]}  if season else set()))
     add("gwasuk",  branch=branch_flags({GWASUK_MAP[season]} if season else set()))
 
-    # Relational shensha — flag every pillar involved in the relation
+    # Relational shensha — flag every pillar involved in the relation.
+    # The UI renders these in a dedicated "relational" section below using
+    # compute_relational_shensha(), but we still populate per-pillar flags
+    # here so the LLM chart summary can pick them up.
     chung_flags  = _relational_pair_flags(pillar_branches, CHUNG_PAIRS)
     wonjin_flags = _relational_pair_flags(pillar_branches, WONJIN_PAIRS)
+    gwimun_flags = _relational_pair_flags(pillar_branches, GWIMUN_PAIRS)
     hyeong_flags = _hyeong_flags(pillar_branches)
     add("chung",  branch=chung_flags)
     add("wonjin", branch=wonjin_flags)
+    add("gwimun", branch=gwimun_flags)
     add("hyeong", branch=hyeong_flags)
 
     # 공망 — the 2 branches voided by the day pillar's 旬

@@ -61,6 +61,23 @@ STRINGS = {
     "nobles.branch_row":  {"en": "Branch", "th": "กิ่ง", "ko": "지지"},
     "nobles.none":        {"en": "—", "th": "—", "ko": "—"},
 
+    # ── Relational shensha (충 / 귀문 / 원진 / 공망 / 형) ─────────────────
+    "relational.header":  {"en": "Relational Stars (관계 신살)",
+                           "th": "ความสัมพันธ์ระหว่างเสา (관계 신살)",
+                           "ko": "관계 신살"},
+    "relational.empty":   {"en": "No relational stars active in this chart.",
+                           "th": "ไม่มีความสัมพันธ์พิเศษในดวงนี้",
+                           "ko": "해당하는 관계 신살이 없습니다."},
+    "relational.type.samhyeong":  {"en": "Three-way punishment (삼형)",
+                                   "th": "โทษสามเสา (삼형)", "ko": "삼형"},
+    "relational.type.sanghyeong": {"en": "Mutual punishment (상형)",
+                                   "th": "โทษคู่ (상형)", "ko": "상형"},
+    "relational.type.jahyeong":   {"en": "Self-punishment (자형)",
+                                   "th": "โทษตนเอง (자형)", "ko": "자형"},
+    "relational.gongmang.note":   {"en": "Day-pillar 60-cycle void branches.",
+                                   "th": "กิ่งที่ว่างเปล่าตามรอบ 60 ของเสาวัน",
+                                   "ko": "일주 60갑자 순 기준 공망 지지"},
+
     "daewoon.header":  {"en": "Great Luck Cycles (대운)", "th": "วัฏจักรโชคใหญ่ (대운)", "ko": "대운"},
     "daewoon.start":   {"en": "Starts at age", "th": "เริ่มเมื่ออายุ", "ko": "시작 나이"},
     "daewoon.direction":{"en": "Direction", "th": "ทิศทาง", "ko": "방향"},
