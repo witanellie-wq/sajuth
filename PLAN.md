@@ -9,14 +9,22 @@
 
 | 항목 | 결정 | 날짜 |
 |---|---|---|
-| 브랜드 | **Duang Saju (ดวงซาจู)** | 2026-04-21 |
-| 인스타 핸들 | **`@duangsaju`** (계정 개설 완료 ✅) | 2026-04-22 |
-| 도메인 | 구매 보류 — Vercel 서브도메인(`duangsaju.vercel.app`) 사용 | 2026-04-21 |
+| 🇹🇭 TH 브랜드 | **Duang Saju (ดวงซาจู)** / `@duangsaju` ✅ 개설완료 | 2026-04-21~22 |
+| 🇺🇸 EN 브랜드 | **`@sajucode`** (계정 개설 진행 중) | 2026-04-25 |
+| 듀얼 언어 전략 | TH + EN 동시발행 (CPM 격차 8~15배 활용) | 2026-04-25 |
+| 도메인 | `sajucode.com` 검토 / 무료티어 `sajucode.vercel.app`로 시작 | 2026-04-25 |
+| 웹앱 URL 전략 | path-based: `sajucode.com/th`, `sajucode.com/en` | 2026-04-25 |
 | 운영 구조 | 초기 1인 운영 | 2026-04-21 |
-| 결제 수단 | PromptPay (1차), Stripe는 Phase 2 이후 | 2026-04-21 |
-| Instagram 비즈 전환 + FB 페이지 연결 | ✅ 완료 | 2026-04-22 |
-| LINE OA | Step 5에서 개설 예정 | 2026-04-21 |
-| **개발 접근법** | **옵션 2 — 인스타 콘텐츠로 시장 검증 먼저, 웹앱은 2주 후** | 2026-04-21 |
+| 거주국 / 세금 | 한국 국적, 태국 거주 (워크퍼밋 진행 중) | 2026-04-25 |
+| **수익 모델** | **PDF 자동판매 (Gumroad) ⭐ 메인** + 1:1 상담 보조 | 2026-04-25 |
+| 결제 — Phase 0 (TH) | 개인 PromptPay QR + 은행이체 | 2026-04-25 |
+| 결제 — Phase 0 (EN) | Gumroad 디지털판매 (사업자 불필요) | 2026-04-25 |
+| 결제 — Phase 1+ | TH: 별도 사업자(엔터/상담 카테고리) / EN: Stripe Atlas LLC | 미정 |
+| Instagram | `@duangsaju` 비즈+FB ✅ / `@sajucode` 진행 중 | 2026-04-22~25 |
+| LINE OA | TH side Step 5 개설 (PDF 메인이라 우선순위 낮음) | 2026-04-22 |
+| **개발 접근법** | 옵션 2 — 인스타 콘텐츠로 시장 검증 먼저, 웹앱은 2~3주 후 | 2026-04-21 |
+| **운영 모델 v3** | 주 5회 (캐러셀 3 + 숏폼 2), 1번 제작 → TH+EN 동시발행 | 2026-04-22~25 |
+| **툴 스택** | Canva, Midjourney, Nano Banana Pro, Higgsfield, Claude, ChatGPT, CapCut, ElevenLabs, Suno (월 ~$80~150) | 2026-04-25 |
 
 ---
 
@@ -43,24 +51,42 @@
 
 ---
 
-## 3. 수익 모델 (단계별)
+## 3. 수익 모델 (v2 — PDF 자동판매 중심)
 
-### Phase 1 — 월 0~3만밧 (MVP, 0~3개월)
-- 인스타 DM / LINE OA 개인 상담
-  - 단건 해석 (연애, 직장, 금전): **299 THB**
-  - 궁합 분석 (2인): **499 THB**
-  - 1년 운세 리포트 PDF: **799 THB**
-- 결제: PromptPay QR, LINE Pay, Stripe(해외카드)
+> 2026-04-25 변경: 1:1 상담 → **PDF 자동판매(Gumroad) 메인**.
+> 1인 운영 부담 최소화 + 24/7 자동매출 + 광고로 트래픽 끌면 즉시 수익화.
 
-### Phase 2 — 월 5~15만밧 (3~6개월)
-- 웹사이트 프리미엄 리포트 자동판매 (결제 후 자동 PDF)
-- 제휴: 태국 타로/점술 앱 제휴 링크, 한국 화장품/굿즈 CPS
-- 유튜브 쇼츠 / TikTok 동시 발행으로 트래픽 2배
+### Phase 0 — 월 0~5만밧 (MVP, 0~3개월)
+**🇹🇭 TH (Gumroad TH 또는 PromptPay 직거래)**:
+- Day Master 셀프진단 PDF: **199 THB** (~$5)
+- 궁합 분석 PDF (2인): **399 THB** (~$11)
+- 1년 운세 리포트 PDF: **699 THB** (~$19)
+- 보너스 1:1 DM 상담 (수요 봐서): 999~1,999 THB
 
-### Phase 3 — 월 30만밧+ (6개월~)
-- 월 구독 (매일 운세 푸시): **199 THB/월**
-- B2B: 태국 카페/매장 이벤트용 "오늘의 사주" 위젯
-- 자체 앱 출시 (React Native)
+**🇺🇸 EN (Gumroad)**:
+- Day Master Decoder PDF: **$9**
+- Compatibility Reading PDF (2 charts): **$19**
+- Yearly Forecast Bundle PDF: **$29**
+- "Saju + Western Astrology" Combo: **$39**
+
+**유입 → 결제 동선**:
+```
+인스타 콘텐츠 → 바이오 링크 → Gumroad 상품 페이지 → 자동결제 → PDF 즉시 발송
+```
+
+### Phase 1 — 월 5~20만밧 (3~6개월)
+- **광고 ON**: Meta Ads TH/US, Google Ads EN. CPM 격차 활용.
+- **사주 자가진단 웹앱** 런칭 (`sajucode.com/th`, `/en`):
+  - 무료 요약 진단 → 유료 상세 리포트 결제 유도
+  - SEO 트래픽 흡수
+- **번들 상품**: "1년 멤버십 패키지" $59~99
+- 제휴: K-뷰티/굿즈 CPS, 사주 앱 제휴
+
+### Phase 2 — 월 30만밧+ (6개월~)
+- **월 구독**: 매일 푸시 운세 — TH 199 THB / EN $9 (월)
+- **AI 사주 챗봇** SaaS — 월 9.99~19.99 USD
+- B2B: 태국 카페/매장 이벤트용 위젯
+- 자체 앱 (RN) 출시
 
 ---
 
@@ -317,6 +343,12 @@
 >
 > 브랜드 보이스: **"포스텔러 세련됨 + 가끔 easy_saju 체감형"**.
 > 운영 문서: [WORKFLOW.md](./WORKFLOW.md), [TARGET_ACCOUNTS.md](./TARGET_ACCOUNTS.md), [VOICE.md](./VOICE.md), [content_calendar/](./content_calendar/).
+
+> **v4 업데이트 (2026-04-25)**: 듀얼 언어 (TH+EN) 동시발행 전략 채택.
+> - 🇺🇸 EN 브랜드: `@sajucode` 추가 운영
+> - 수익 모델: PDF 자동판매 (Gumroad) 메인, 1:1 상담은 보조
+> - 결제: Phase 0에서 사업자 우회 (PromptPay 개인 + Gumroad)
+> - 상품 라인업: [PRODUCTS.md](./PRODUCTS.md)
 
 ### 🚦 게이트: 검증 결과 리뷰
 - ✅ 팔로워 300+ / DM 5+ → Phase 1 진입
