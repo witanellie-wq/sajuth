@@ -49,11 +49,9 @@ Week 1부터 유지할 톤 조합:
 
 | # | 계정 | 강점 | 비고 |
 |---|---|---|---|
-| 1 | **[@jewelsjpj](https://www.tiktok.com/@jewelsjpj)** | "SJPJ = 새로운 MBTI" 바이럴 프레이밍 | 제안 |
-| 2 | **[@ahnestkitchen](https://www.tiktok.com/@ahnestkitchen)** | Western 타겟 사주 설명, ChatGPT 사주 프롬프트 밈 | 제안 |
-| 3 | **[@chaweonkoo](https://www.tiktok.com/@chaweonkoo)** | 운세 리딩, 개인 스토리 | 제안 |
-
-> 한국어 네이티브 TikTok 선호시 user가 본 계정 URL 알려주면 교체.
+| 1 | **[@jewelsjpj](https://www.tiktok.com/@jewelsjpj)** | "SJPJ = 새로운 MBTI" 바이럴 프레이밍 | ✅ user 확정 |
+| 2 | **[@ahnestkitchen](https://www.tiktok.com/@ahnestkitchen)** | Western 타겟 사주 설명, ChatGPT 사주 프롬프트 밈 | ✅ user 확정 |
+| 3 | **[@chaweonkoo](https://www.tiktok.com/@chaweonkoo)** | 운세 리딩, 개인 스토리 | ✅ user 확정 |
 
 ---
 
@@ -103,7 +101,7 @@ Week 1부터 유지할 톤 조합:
 
 - [x] IG 계정 3개 확정: `@the.saju`, `@forceteller_official`, `@easy_saju`
 - [x] YT Shorts 2개 확정: `@나는사주`, `포스텔러`
+- [x] TikTok 3개 확정: `@jewelsjpj`, `@ahnestkitchen`, `@chaweonkoo`
 - [ ] YT Shorts 3번째 채널 결정 (user 추천? or 제가 탐색)
-- [ ] TikTok 3개 OK? (영어권 크로스컬처 수용)
 - [ ] Week 1 시작일 확정
-- [ ] `@easy_saju` 인스타 핸들 별도 있는지 확인 (user가 팔로우 중이면 알려주세요)
+- [ ] `@easy_saju` 인스타 핸들 별도 있는지 확인
