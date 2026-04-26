@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contact — Witan Thailand</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Noto+Sans+KR:wght@300;400;500;600&family=Noto+Sans+Thai:wght@300;400;500;600&family=Noto+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body data-page-title="nav.contact">
+    <div data-layout="header"></div>
+
+    <main>
+      <section class="page-header">
+        <div class="container">
+          <div class="page-header__crumb" data-i18n="contact.crumb"></div>
+          <h1 data-i18n="contact.title"></h1>
+          <p class="hero__lead" style="margin: 0 auto" data-i18n="contact.lead"></p>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="container">
+          <div class="contact-grid">
+            <div class="contact-card">
+              <div class="contact-card__label" data-i18n="contact.info.office.label"></div>
+              <div class="contact-card__value" data-i18n="contact.info.office.value"></div>
+            </div>
+            <div class="contact-card">
+              <div class="contact-card__label" data-i18n="contact.info.email.label"></div>
+              <div class="contact-card__value" data-i18n="contact.info.email.value"></div>
+            </div>
+            <div class="contact-card">
+              <div class="contact-card__label" data-i18n="contact.info.phone.label"></div>
+              <div class="contact-card__value" data-i18n="contact.info.phone.value"></div>
+            </div>
+            <div class="contact-card">
+              <div class="contact-card__label" data-i18n="contact.info.hours.label"></div>
+              <div class="contact-card__value" data-i18n="contact.info.hours.value"></div>
+            </div>
+          </div>
+
+          <form class="form" data-contact-form>
+            <div class="form__row">
+              <div class="field">
+                <label data-i18n="contact.form.name"></label>
+                <input type="text" name="name" required />
+              </div>
+              <div class="field">
+                <label data-i18n="contact.form.company"></label>
+                <input type="text" name="company" />
+              </div>
+            </div>
+            <div class="form__row">
+              <div class="field">
+                <label data-i18n="contact.form.email"></label>
+                <input type="email" name="email" required />
+              </div>
+              <div class="field">
+                <label data-i18n="contact.form.phone"></label>
+                <input type="tel" name="phone" />
+              </div>
+            </div>
+            <div class="field">
+              <label data-i18n="contact.form.service"></label>
+              <select name="service">
+                <option value="" data-i18n="contact.form.servicePlaceholder"></option>
+                <option value="rnd" data-i18n="contact.form.options.rnd"></option>
+                <option value="materials" data-i18n="contact.form.options.materials"></option>
+                <option value="oem" data-i18n="contact.form.options.oem"></option>
+                <option value="fda" data-i18n="contact.form.options.fda"></option>
+                <option value="clinical" data-i18n="contact.form.options.clinical"></option>
+                <option value="logistics" data-i18n="contact.form.options.logistics"></option>
+                <option value="all" data-i18n="contact.form.options.all"></option>
+                <option value="other" data-i18n="contact.form.options.other"></option>
+              </select>
+            </div>
+            <div class="field">
+              <label data-i18n="contact.form.message"></label>
+              <textarea name="message" required></textarea>
+            </div>
+            <button type="submit" class="btn btn--primary form__submit" data-i18n="contact.form.submit"></button>
+            <p class="form__note" data-i18n="contact.form.note"></p>
+            <p class="form__note" data-form-success hidden style="color: var(--color-success); font-weight: 500;" data-i18n="contact.form.success"></p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <div data-layout="footer"></div>
+
+    <script src="js/layout.js"></script>
+    <script src="js/i18n.js"></script>
+    <script src="js/main.js"></script>
+  </body>
+</html>

@@ -1,0 +1,228 @@
+{
+  "meta": {
+    "lang": "en",
+    "siteName": "Witan Thailand",
+    "tagline": "All-in-One K-Beauty Partner in Thailand"
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "process": "Process",
+    "contact": "Contact"
+  },
+  "footer": {
+    "brand": "Witan Thailand",
+    "tagline": "Your one-stop K-Beauty partner — from raw material to retail shelf.",
+    "company": "Company",
+    "services": "Services",
+    "contact": "Contact",
+    "rights": "© 2026 Witan Thailand Co., Ltd. All rights reserved.",
+    "parent": "A Thailand subsidiary of Witan Company (Korea)."
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "K-Beauty · Thailand",
+      "title": "From Korean Lab to Thai Shelf — All in One Place.",
+      "lead": "Witan Thailand connects Korean R&D, regulatory, and manufacturing power with the Thai cosmetics market. One partner, one workflow, one shipment.",
+      "cta1": "Explore Services",
+      "cta2": "Talk to Us"
+    },
+    "intro": {
+      "eyebrow": "Why Witan Thailand",
+      "title": "Six services, one partner.",
+      "lead": "Most brands juggle five or six vendors to launch a single SKU in Thailand. We replace that chain with one accountable team — backed by Witan Company's 10+ years of K-beauty experience."
+    },
+    "services": {
+      "eyebrow": "Services",
+      "title": "An end-to-end K-Beauty pipeline.",
+      "rnd": {
+        "title": "R&D · Ingredient Development",
+        "desc": "Custom actives, formulation R&D, and IP-protected ingredient development with our Korean lab network."
+      },
+      "materials": {
+        "title": "Material Sales",
+        "desc": "Direct supply of certified Korean cosmetic raw materials — actives, extracts, packaging."
+      },
+      "oem": {
+        "title": "OEM / ODM Small-Batch Platform",
+        "desc": "Launch a Thai brand with as few as 1,000 units. Korean factories, Thai-friendly MOQs."
+      },
+      "fda": {
+        "title": "FDA Registration",
+        "desc": "Thai FDA notification, product testing, label compliance — handled end-to-end."
+      },
+      "clinical": {
+        "title": "Korean Clinical Testing",
+        "desc": "CRO-grade efficacy and safety studies through certified Korean clinical institutes."
+      },
+      "logistics": {
+        "title": "Korea → Thailand Logistics",
+        "desc": "Bonded sea & air freight, customs clearance, and last-mile delivery into Thai retail."
+      },
+      "more": "Learn more →"
+    },
+    "stats": {
+      "title": "Backed by Witan Company.",
+      "stat1": { "num": "10+", "label": "Years in K-Beauty" },
+      "stat2": { "num": "200+", "label": "Brand Projects" },
+      "stat3": { "num": "30+", "label": "Partner Korean Factories" },
+      "stat4": { "num": "3", "label": "Languages Supported" }
+    },
+    "cta": {
+      "title": "Ready to bring your brand to Thailand?",
+      "lead": "Tell us your product, MOQ, and target launch date. We'll come back with a roadmap within 48 hours.",
+      "btn": "Start a Project"
+    }
+  },
+  "about": {
+    "crumb": "About",
+    "title": "Witan Thailand",
+    "lead": "The Thailand subsidiary of Witan Company — a Korean cosmetics partner with a decade of cross-border experience.",
+    "story": {
+      "eyebrow": "Our Story",
+      "title": "Built between Seoul and Bangkok.",
+      "p1": "Witan Company was founded in Korea to bridge the gap between K-beauty laboratories and global brands. After years of helping international clients navigate Korean manufacturing, we opened Witan Thailand to bring that capability closer to one of Asia's fastest-growing beauty markets.",
+      "p2": "From our Bangkok office we serve Thai brands, distributors, and entrepreneurs who want the quality of Korean cosmetics — without the complexity of managing it from abroad."
+    },
+    "values": {
+      "eyebrow": "What we believe",
+      "title": "Three principles.",
+      "v1": { "title": "One Accountable Partner", "desc": "Replace five vendors with one team that owns the entire pipeline — from raw material to delivered product." },
+      "v2": { "title": "Korean Quality, Thai Speed", "desc": "Korean lab-grade R&D and QC, paired with Thailand-aware MOQs, lead times, and regulatory know-how." },
+      "v3": { "title": "Three Languages, No Friction", "desc": "We work in Thai, English, and Korean — every contract, every spec sheet, every conversation." }
+    }
+  },
+  "services": {
+    "crumb": "Services",
+    "title": "Six services. One workflow.",
+    "lead": "Pick the services you need — or hand us the entire pipeline.",
+    "rnd": {
+      "crumb": "Service · 01",
+      "title": "R&D · Ingredient Development",
+      "lead": "Custom actives and formulations developed with our Korean R&D partners.",
+      "p1": "We co-develop cosmetic actives and finished formulations with Korean research institutes and contract labs. Whether you need a proprietary peptide, a botanical extract, or a fully formulated serum, we run the project end-to-end — from concept brief to stability-tested final spec.",
+      "features": [
+        "Custom active ingredient development",
+        "Formulation R&D (skincare, suncare, haircare)",
+        "Stability, compatibility, preservative challenge testing",
+        "IP-protected co-development agreements",
+        "Korean Patent and KFDA functional ingredient pathway support"
+      ]
+    },
+    "materials": {
+      "crumb": "Service · 02",
+      "title": "Material Sales",
+      "lead": "Direct supply of Korean cosmetic raw materials and packaging.",
+      "p1": "Skip the trader markup. We supply Korean-origin actives, extracts, fragrances, and packaging components directly from manufacturers — with full COA, MSDS, and regulatory documentation.",
+      "features": [
+        "Functional actives (peptides, niacinamide, hyaluronic acid, etc.)",
+        "Botanical and fermented extracts",
+        "Cosmetic-grade packaging (airless, dropper, tubes, jars)",
+        "Full documentation: COA, MSDS, regulatory sheets",
+        "Bulk and sample-scale orders welcomed"
+      ]
+    },
+    "oem": {
+      "crumb": "Service · 03",
+      "title": "OEM / ODM Small-Batch Platform",
+      "lead": "Launch a brand with 1,000-unit MOQs. Korean factories, Thai-friendly terms.",
+      "p1": "Most Korean OEMs require 5,000–10,000 units per SKU. We aggregate orders across our partner factory network so Thai brands can launch real Korean-made products with as few as 1,000 units.",
+      "features": [
+        "MOQ from 1,000 units (selected categories)",
+        "30+ partner Korean OEM/ODM factories",
+        "Skincare, suncare, color, haircare, body, fragrance",
+        "Stock formula library + custom formulation",
+        "Full-service: formula → packaging → label → shipment"
+      ]
+    },
+    "fda": {
+      "crumb": "Service · 04",
+      "title": "Thai FDA Registration",
+      "lead": "End-to-end Thai FDA notification and compliance.",
+      "p1": "Thai FDA cosmetic notification requires the right local entity, full ingredient disclosure, GMP documentation, and Thai-language labeling. We handle all of it — including the parts most foreign brands miss.",
+      "features": [
+        "Thai FDA cosmetic notification (อย.)",
+        "Ingredient list review and prohibited substance check",
+        "GMP / ISO documentation handling",
+        "Thai-language label design and review",
+        "Post-launch compliance and renewal management"
+      ]
+    },
+    "clinical": {
+      "crumb": "Service · 05",
+      "title": "Korean Clinical Testing",
+      "lead": "CRO-grade efficacy and safety claims through Korean clinical institutes.",
+      "p1": "\"Clinically proven in Korea\" is one of the strongest claims in Asian beauty. We run efficacy and human safety studies through accredited Korean CROs — with study design, statistical analysis, and claim language reviewed for Thai regulatory use.",
+      "features": [
+        "Efficacy claims: hydration, anti-wrinkle, brightening, soothing, etc.",
+        "Human safety / patch testing (RIPT, HRIPT)",
+        "Sensitive skin and ophthalmologist-tested protocols",
+        "Korean accredited clinical institutes (KFDA-recognized)",
+        "Bilingual reports usable in Thai marketing"
+      ]
+    },
+    "logistics": {
+      "crumb": "Service · 06",
+      "title": "Korea → Thailand Logistics",
+      "lead": "Sea and air freight, customs, and last-mile delivery into Thai retail.",
+      "p1": "Cosmetics ship under specific HS codes, temperature limits, and FDA documentation requirements. Our logistics team — based in both Seoul and Bangkok — handles the entire route, including bonded warehousing and Thai retail distribution.",
+      "features": [
+        "Sea LCL/FCL and air freight from Korea",
+        "Cosmetics-aware export packing and HS code handling",
+        "Thai customs clearance and FDA cross-check",
+        "Bonded warehousing in Bangkok",
+        "Last-mile delivery to Thai retail, e-commerce 3PL"
+      ]
+    },
+    "view": "View Service →"
+  },
+  "process": {
+    "crumb": "Process",
+    "title": "How a project runs.",
+    "lead": "From the first brief to the first shipment — typically 90 to 180 days.",
+    "steps": {
+      "s1": { "title": "Brief", "desc": "You share product idea, target market, MOQ, and budget. NDA on request." },
+      "s2": { "title": "Roadmap", "desc": "We return a 48-hour roadmap: services needed, factory match, timeline, cost." },
+      "s3": { "title": "R&D / Sourcing", "desc": "Formula development or material sourcing. Sample sent to your office." },
+      "s4": { "title": "Pilot Production", "desc": "Small-batch pilot run, QC inspection, stability and clinical testing if needed." },
+      "s5": { "title": "FDA & Labeling", "desc": "Thai FDA notification filed in parallel with Thai-language label design." },
+      "s6": { "title": "Mass Production", "desc": "Full Korean factory run with QC and pre-shipment inspection." },
+      "s7": { "title": "Logistics", "desc": "Sea/air freight, customs clearance, bonded warehouse arrival in Bangkok." },
+      "s8": { "title": "Delivery", "desc": "Last-mile to your Thai warehouse, retail DC, or e-commerce 3PL." }
+    }
+  },
+  "contact": {
+    "crumb": "Contact",
+    "title": "Let's talk.",
+    "lead": "Tell us about your product idea. We'll respond within 48 hours in Thai, English, or Korean.",
+    "info": {
+      "office": { "label": "Bangkok Office", "value": "Sukhumvit, Bangkok, Thailand" },
+      "email": { "label": "Email", "value": "hello@witan.co.th" },
+      "phone": { "label": "Phone", "value": "+66 (0) 2 XXX XXXX" },
+      "hours": { "label": "Hours", "value": "Mon–Fri · 09:00–18:00 ICT" }
+    },
+    "form": {
+      "name": "Name",
+      "company": "Company",
+      "email": "Email",
+      "phone": "Phone",
+      "service": "Interested in",
+      "servicePlaceholder": "Select a service",
+      "message": "Project details",
+      "submit": "Send Message",
+      "note": "By submitting, you agree to our privacy policy. We never share your information.",
+      "success": "Thank you. We will reply within 48 hours.",
+      "options": {
+        "rnd": "R&D · Ingredient Development",
+        "materials": "Material Sales",
+        "oem": "OEM / ODM",
+        "fda": "FDA Registration",
+        "clinical": "Clinical Testing",
+        "logistics": "Logistics",
+        "all": "Full pipeline (all-in-one)",
+        "other": "Other"
+      }
+    }
+  }
+}
