@@ -29,3 +29,5 @@ data/published/*
 # Logs
 *.log
 logs/
+.streamlit/secrets.toml
+
