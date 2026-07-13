@@ -1,68 +1,87 @@
-// Regression snapshot harness (run: npm run test:saju).
+// Verification harness (run: npm run test:saju).
 //
-// These lock the engine's Four-Pillar output so a lunar-javascript version bump
-// or a correction-logic change can't silently drift. They are SNAPSHOTS of the
-// library, NOT yet externally confirmed. The real 검증 (PLAN.md 6.2) diffs ~100
-// of these against the 천을귀인 app to hit 99%+ — as each case is confirmed,
-// mark it ✔confirmed below.
+// Three layers:
+//  1. CONFIRMED anchors — Four Pillars verified against a trusted 만세력.
+//  2. SNAPSHOT (100 cases) — locks lunar-javascript output so a version bump or
+//     a correction-logic change can't silently drift. Regenerate deliberately
+//     with `npm run gen:snapshot`. External confirmation vs 천을귀인 (PLAN.md
+//     6.2, 99%+ target) is tracked as those cases get checked.
+//  3. PromptPay CRC — a wrong checksum = unscannable QR = no revenue.
 
 import { computeSaju } from "./saju";
-
-interface Case {
-  name: string;
-  input: Parameters<typeof computeSaju>[0];
-  // Four Pillars WITHOUT true-solar-time correction (raw clock time) — what a
-  // standard 만세력 app shows for a given clock time.
-  expect: { year: string; month: string; day: string; hour?: string };
-}
-
-const CASES: Case[] = [
-  {
-    // snapshot — TODO: confirm against 천을귀인
-    name: "1990-05-15 14:30 (no TST)",
-    input: { year: 1990, month: 5, day: 15, hour: 14, minute: 30, trueSolarTime: false },
-    expect: { year: "庚午", month: "辛巳", day: "庚辰", hour: "癸未" },
-  },
-  {
-    // ✔confirmed 2000-01-01 = 戊午 day
-    name: "2000-01-01 00:00 (no TST)",
-    input: { year: 2000, month: 1, day: 1, hour: 0, minute: 0, trueSolarTime: false },
-    expect: { year: "己卯", month: "丙子", day: "戊午", hour: "壬子" },
-  },
-];
+import { promptPayPayload, crc16 } from "./promptpay";
+import snapshot from "./saju.snapshot.json";
 
 let pass = 0;
 let fail = 0;
-for (const c of CASES) {
-  const chart = computeSaju(c.input);
-  const got = {
-    year: chart.year.gan + chart.year.zhi,
-    month: chart.month.gan + chart.month.zhi,
-    day: chart.day.gan + chart.day.zhi,
-    hour: chart.hour ? chart.hour.gan + chart.hour.zhi : undefined,
-  };
-  const ok =
-    got.year === c.expect.year &&
-    got.month === c.expect.month &&
-    got.day === c.expect.day &&
-    (c.expect.hour === undefined || got.hour === c.expect.hour);
+function check(name: string, ok: boolean, detail?: string) {
   if (ok) {
     pass++;
-    console.log(`  ✅ ${c.name}`);
   } else {
     fail++;
-    console.log(`  ❌ ${c.name}`);
-    console.log(`     expected ${JSON.stringify(c.expect)}`);
-    console.log(`     got      ${JSON.stringify(got)}`);
+    console.log(`  ❌ ${name}${detail ? "\n     " + detail : ""}`);
   }
 }
 
-// True-solar-time correction should shift Bangkok clock time by ~-18 min.
-const tst = computeSaju({ year: 1990, month: 5, day: 15, hour: 0, minute: 5 });
-console.log(
-  `  ℹ️  TST correction @Bangkok = ${tst.trueSolarCorrectionMin} min ` +
-    `(00:05 → hour pillar ${tst.hour?.gan}${tst.hour?.zhi})`
-);
+// ── 1. Confirmed anchors ────────────────────────────────────────────────
+// ✔ 2000-01-01 = 戊午 day (verified in a trusted 만세력).
+{
+  const c = computeSaju({ year: 2000, month: 1, day: 1, hour: 0, trueSolarTime: false });
+  check(
+    "confirmed 2000-01-01 00:00",
+    c.year.gan + c.year.zhi === "己卯" &&
+      c.month.gan + c.month.zhi === "丙子" &&
+      c.day.gan + c.day.zhi === "戊午" &&
+      c.hour!.gan + c.hour!.zhi === "壬子"
+  );
+}
+
+// ── 2. Snapshot regression (100 cases) ──────────────────────────────────
+type Snap = { in: { year: number; month: number; day: number; hour: number }; out: Record<string, string> };
+let snapFail = 0;
+for (const s of snapshot as Snap[]) {
+  const c = computeSaju({ ...s.in, trueSolarTime: false });
+  const got = {
+    year: c.year.gan + c.year.zhi,
+    month: c.month.gan + c.month.zhi,
+    day: c.day.gan + c.day.zhi,
+    hour: c.hour!.gan + c.hour!.zhi,
+  };
+  const ok = (["year", "month", "day", "hour"] as const).every((k) => got[k] === s.out[k]);
+  if (!ok) {
+    snapFail++;
+    console.log(`  ❌ snapshot ${JSON.stringify(s.in)}: got ${JSON.stringify(got)} want ${JSON.stringify(s.out)}`);
+  }
+}
+check(`snapshot regression (${(snapshot as Snap[]).length} cases)`, snapFail === 0);
+
+// ── 3. True-solar-time correction ───────────────────────────────────────
+{
+  const c = computeSaju({ year: 1990, month: 5, day: 15, hour: 0, minute: 5 });
+  check("Bangkok TST correction = -18 min", c.trueSolarCorrectionMin === -18);
+}
+
+// ── 4. PromptPay CRC — validate against the canonical check vector ───────
+// CRC-16/CCITT-FALSE of "123456789" is 0x29B1 (the standard test value).
+check("crc16 check vector 123456789 → 29B1", crc16("123456789") === "29B1", `got ${crc16("123456789")}`);
+
+// Payload structure: format indicator, AID, formatted phone, THB, ends with a
+// self-consistent CRC over everything up to and including "6304".
+{
+  const p = promptPayPayload("0812345678");
+  const structOk =
+    p.startsWith("000201") &&
+    p.includes("A000000677010111") &&
+    p.includes("0066812345678") &&
+    p.includes("5303764");
+  const crcOk = p.slice(-4) === crc16(p.slice(0, -4));
+  check("PromptPay static structure + self-consistent CRC", structOk && crcOk, `got ${p}`);
+}
+// Dynamic QR carries the amount tag (59.00 THB) and initiation method 12.
+{
+  const p = promptPayPayload("0812345678", 59);
+  check("PromptPay dynamic amount + method", p.includes("540559.00") && p.includes("010212"), `got ${p}`);
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 if (fail > 0) process.exit(1);

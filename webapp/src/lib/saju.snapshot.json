@@ -1,0 +1,1402 @@
+[
+  {
+    "in": {
+      "year": 1970,
+      "month": 1,
+      "day": 1,
+      "hour": 0
+    },
+    "out": {
+      "year": "己酉",
+      "month": "丙子",
+      "day": "辛巳",
+      "hour": "戊子"
+    }
+  },
+  {
+    "in": {
+      "year": 1970,
+      "month": 2,
+      "day": 10,
+      "hour": 7
+    },
+    "out": {
+      "year": "庚戌",
+      "month": "戊寅",
+      "day": "辛酉",
+      "hour": "壬辰"
+    }
+  },
+  {
+    "in": {
+      "year": 1970,
+      "month": 3,
+      "day": 19,
+      "hour": 14
+    },
+    "out": {
+      "year": "庚戌",
+      "month": "己卯",
+      "day": "戊戌",
+      "hour": "己未"
+    }
+  },
+  {
+    "in": {
+      "year": 1970,
+      "month": 4,
+      "day": 28,
+      "hour": 21
+    },
+    "out": {
+      "year": "庚戌",
+      "month": "庚辰",
+      "day": "戊寅",
+      "hour": "癸亥"
+    }
+  },
+  {
+    "in": {
+      "year": 1970,
+      "month": 6,
+      "day": 9,
+      "hour": 4
+    },
+    "out": {
+      "year": "庚戌",
+      "month": "壬午",
+      "day": "庚申",
+      "hour": "戊寅"
+    }
+  },
+  {
+    "in": {
+      "year": 1970,
+      "month": 7,
+      "day": 18,
+      "hour": 11
+    },
+    "out": {
+      "year": "庚戌",
+      "month": "癸未",
+      "day": "己亥",
+      "hour": "庚午"
+    }
+  },
+  {
+    "in": {
+      "year": 1970,
+      "month": 8,
+      "day": 27,
+      "hour": 18
+    },
+    "out": {
+      "year": "庚戌",
+      "month": "甲申",
+      "day": "己卯",
+      "hour": "癸酉"
+    }
+  },
+  {
+    "in": {
+      "year": 1970,
+      "month": 10,
+      "day": 8,
+      "hour": 1
+    },
+    "out": {
+      "year": "庚戌",
+      "month": "乙酉",
+      "day": "辛酉",
+      "hour": "己丑"
+    }
+  },
+  {
+    "in": {
+      "year": 1970,
+      "month": 11,
+      "day": 17,
+      "hour": 8
+    },
+    "out": {
+      "year": "庚戌",
+      "month": "丁亥",
+      "day": "辛丑",
+      "hour": "壬辰"
+    }
+  },
+  {
+    "in": {
+      "year": 1970,
+      "month": 12,
+      "day": 26,
+      "hour": 15
+    },
+    "out": {
+      "year": "庚戌",
+      "month": "戊子",
+      "day": "庚辰",
+      "hour": "甲申"
+    }
+  },
+  {
+    "in": {
+      "year": 1971,
+      "month": 2,
+      "day": 7,
+      "hour": 22
+    },
+    "out": {
+      "year": "辛亥",
+      "month": "庚寅",
+      "day": "癸亥",
+      "hour": "癸亥"
+    }
+  },
+  {
+    "in": {
+      "year": 1971,
+      "month": 3,
+      "day": 16,
+      "hour": 5
+    },
+    "out": {
+      "year": "辛亥",
+      "month": "辛卯",
+      "day": "庚子",
+      "hour": "己卯"
+    }
+  },
+  {
+    "in": {
+      "year": 1971,
+      "month": 4,
+      "day": 25,
+      "hour": 12
+    },
+    "out": {
+      "year": "辛亥",
+      "month": "壬辰",
+      "day": "庚辰",
+      "hour": "壬午"
+    }
+  },
+  {
+    "in": {
+      "year": 1971,
+      "month": 6,
+      "day": 6,
+      "hour": 19
+    },
+    "out": {
+      "year": "辛亥",
+      "month": "甲午",
+      "day": "壬戌",
+      "hour": "庚戌"
+    }
+  },
+  {
+    "in": {
+      "year": 1971,
+      "month": 7,
+      "day": 15,
+      "hour": 2
+    },
+    "out": {
+      "year": "辛亥",
+      "month": "乙未",
+      "day": "辛丑",
+      "hour": "己丑"
+    }
+  },
+  {
+    "in": {
+      "year": 1971,
+      "month": 8,
+      "day": 24,
+      "hour": 9
+    },
+    "out": {
+      "year": "辛亥",
+      "month": "丙申",
+      "day": "辛巳",
+      "hour": "癸巳"
+    }
+  },
+  {
+    "in": {
+      "year": 1971,
+      "month": 10,
+      "day": 5,
+      "hour": 16
+    },
+    "out": {
+      "year": "辛亥",
+      "month": "丁酉",
+      "day": "癸亥",
+      "hour": "庚申"
+    }
+  },
+  {
+    "in": {
+      "year": 1971,
+      "month": 11,
+      "day": 14,
+      "hour": 23
+    },
+    "out": {
+      "year": "辛亥",
+      "month": "己亥",
+      "day": "癸卯",
+      "hour": "甲子"
+    }
+  },
+  {
+    "in": {
+      "year": 1971,
+      "month": 12,
+      "day": 23,
+      "hour": 6
+    },
+    "out": {
+      "year": "辛亥",
+      "month": "庚子",
+      "day": "壬午",
+      "hour": "癸卯"
+    }
+  },
+  {
+    "in": {
+      "year": 1972,
+      "month": 2,
+      "day": 4,
+      "hour": 13
+    },
+    "out": {
+      "year": "辛亥",
+      "month": "辛丑",
+      "day": "乙丑",
+      "hour": "癸未"
+    }
+  },
+  {
+    "in": {
+      "year": 1972,
+      "month": 3,
+      "day": 13,
+      "hour": 20
+    },
+    "out": {
+      "year": "壬子",
+      "month": "癸卯",
+      "day": "癸卯",
+      "hour": "壬戌"
+    }
+  },
+  {
+    "in": {
+      "year": 1972,
+      "month": 4,
+      "day": 22,
+      "hour": 3
+    },
+    "out": {
+      "year": "壬子",
+      "month": "甲辰",
+      "day": "癸未",
+      "hour": "甲寅"
+    }
+  },
+  {
+    "in": {
+      "year": 1972,
+      "month": 6,
+      "day": 3,
+      "hour": 10
+    },
+    "out": {
+      "year": "壬子",
+      "month": "乙巳",
+      "day": "乙丑",
+      "hour": "辛巳"
+    }
+  },
+  {
+    "in": {
+      "year": 1972,
+      "month": 7,
+      "day": 12,
+      "hour": 17
+    },
+    "out": {
+      "year": "壬子",
+      "month": "丁未",
+      "day": "甲辰",
+      "hour": "癸酉"
+    }
+  },
+  {
+    "in": {
+      "year": 1972,
+      "month": 8,
+      "day": 21,
+      "hour": 0
+    },
+    "out": {
+      "year": "壬子",
+      "month": "戊申",
+      "day": "甲申",
+      "hour": "甲子"
+    }
+  },
+  {
+    "in": {
+      "year": 1972,
+      "month": 10,
+      "day": 2,
+      "hour": 7
+    },
+    "out": {
+      "year": "壬子",
+      "month": "己酉",
+      "day": "丙寅",
+      "hour": "壬辰"
+    }
+  },
+  {
+    "in": {
+      "year": 1972,
+      "month": 11,
+      "day": 11,
+      "hour": 14
+    },
+    "out": {
+      "year": "壬子",
+      "month": "辛亥",
+      "day": "丙午",
+      "hour": "乙未"
+    }
+  },
+  {
+    "in": {
+      "year": 1972,
+      "month": 12,
+      "day": 20,
+      "hour": 21
+    },
+    "out": {
+      "year": "壬子",
+      "month": "壬子",
+      "day": "乙酉",
+      "hour": "丁亥"
+    }
+  },
+  {
+    "in": {
+      "year": 1973,
+      "month": 2,
+      "day": 1,
+      "hour": 4
+    },
+    "out": {
+      "year": "壬子",
+      "month": "癸丑",
+      "day": "戊辰",
+      "hour": "甲寅"
+    }
+  },
+  {
+    "in": {
+      "year": 1973,
+      "month": 3,
+      "day": 10,
+      "hour": 11
+    },
+    "out": {
+      "year": "癸丑",
+      "month": "乙卯",
+      "day": "乙巳",
+      "hour": "壬午"
+    }
+  },
+  {
+    "in": {
+      "year": 1973,
+      "month": 4,
+      "day": 19,
+      "hour": 18
+    },
+    "out": {
+      "year": "癸丑",
+      "month": "丙辰",
+      "day": "乙酉",
+      "hour": "乙酉"
+    }
+  },
+  {
+    "in": {
+      "year": 1973,
+      "month": 5,
+      "day": 28,
+      "hour": 1
+    },
+    "out": {
+      "year": "癸丑",
+      "month": "丁巳",
+      "day": "甲子",
+      "hour": "乙丑"
+    }
+  },
+  {
+    "in": {
+      "year": 1973,
+      "month": 7,
+      "day": 9,
+      "hour": 8
+    },
+    "out": {
+      "year": "癸丑",
+      "month": "己未",
+      "day": "丙午",
+      "hour": "壬辰"
+    }
+  },
+  {
+    "in": {
+      "year": 1973,
+      "month": 8,
+      "day": 18,
+      "hour": 15
+    },
+    "out": {
+      "year": "癸丑",
+      "month": "庚申",
+      "day": "丙戌",
+      "hour": "丙申"
+    }
+  },
+  {
+    "in": {
+      "year": 1973,
+      "month": 9,
+      "day": 27,
+      "hour": 22
+    },
+    "out": {
+      "year": "癸丑",
+      "month": "辛酉",
+      "day": "丙寅",
+      "hour": "己亥"
+    }
+  },
+  {
+    "in": {
+      "year": 1973,
+      "month": 11,
+      "day": 8,
+      "hour": 5
+    },
+    "out": {
+      "year": "癸丑",
+      "month": "癸亥",
+      "day": "戊申",
+      "hour": "乙卯"
+    }
+  },
+  {
+    "in": {
+      "year": 1973,
+      "month": 12,
+      "day": 17,
+      "hour": 12
+    },
+    "out": {
+      "year": "癸丑",
+      "month": "甲子",
+      "day": "丁亥",
+      "hour": "丙午"
+    }
+  },
+  {
+    "in": {
+      "year": 1974,
+      "month": 1,
+      "day": 26,
+      "hour": 19
+    },
+    "out": {
+      "year": "癸丑",
+      "month": "乙丑",
+      "day": "丁卯",
+      "hour": "庚戌"
+    }
+  },
+  {
+    "in": {
+      "year": 1974,
+      "month": 3,
+      "day": 7,
+      "hour": 2
+    },
+    "out": {
+      "year": "甲寅",
+      "month": "丁卯",
+      "day": "丁未",
+      "hour": "辛丑"
+    }
+  },
+  {
+    "in": {
+      "year": 1974,
+      "month": 4,
+      "day": 16,
+      "hour": 9
+    },
+    "out": {
+      "year": "甲寅",
+      "month": "戊辰",
+      "day": "丁亥",
+      "hour": "乙巳"
+    }
+  },
+  {
+    "in": {
+      "year": 1974,
+      "month": 5,
+      "day": 25,
+      "hour": 16
+    },
+    "out": {
+      "year": "甲寅",
+      "month": "己巳",
+      "day": "丙寅",
+      "hour": "丙申"
+    }
+  },
+  {
+    "in": {
+      "year": 1974,
+      "month": 7,
+      "day": 6,
+      "hour": 23
+    },
+    "out": {
+      "year": "甲寅",
+      "month": "庚午",
+      "day": "戊申",
+      "hour": "甲子"
+    }
+  },
+  {
+    "in": {
+      "year": 1974,
+      "month": 8,
+      "day": 15,
+      "hour": 6
+    },
+    "out": {
+      "year": "甲寅",
+      "month": "壬申",
+      "day": "戊子",
+      "hour": "乙卯"
+    }
+  },
+  {
+    "in": {
+      "year": 1974,
+      "month": 9,
+      "day": 24,
+      "hour": 13
+    },
+    "out": {
+      "year": "甲寅",
+      "month": "癸酉",
+      "day": "戊辰",
+      "hour": "己未"
+    }
+  },
+  {
+    "in": {
+      "year": 1974,
+      "month": 11,
+      "day": 5,
+      "hour": 20
+    },
+    "out": {
+      "year": "甲寅",
+      "month": "甲戌",
+      "day": "庚戌",
+      "hour": "丙戌"
+    }
+  },
+  {
+    "in": {
+      "year": 1974,
+      "month": 12,
+      "day": 14,
+      "hour": 3
+    },
+    "out": {
+      "year": "甲寅",
+      "month": "丙子",
+      "day": "己丑",
+      "hour": "丙寅"
+    }
+  },
+  {
+    "in": {
+      "year": 1975,
+      "month": 1,
+      "day": 23,
+      "hour": 10
+    },
+    "out": {
+      "year": "甲寅",
+      "month": "丁丑",
+      "day": "己巳",
+      "hour": "己巳"
+    }
+  },
+  {
+    "in": {
+      "year": 1975,
+      "month": 3,
+      "day": 4,
+      "hour": 17
+    },
+    "out": {
+      "year": "乙卯",
+      "month": "戊寅",
+      "day": "己酉",
+      "hour": "癸酉"
+    }
+  },
+  {
+    "in": {
+      "year": 1975,
+      "month": 4,
+      "day": 13,
+      "hour": 0
+    },
+    "out": {
+      "year": "乙卯",
+      "month": "庚辰",
+      "day": "己丑",
+      "hour": "甲子"
+    }
+  },
+  {
+    "in": {
+      "year": 1975,
+      "month": 5,
+      "day": 22,
+      "hour": 7
+    },
+    "out": {
+      "year": "乙卯",
+      "month": "辛巳",
+      "day": "戊辰",
+      "hour": "丙辰"
+    }
+  },
+  {
+    "in": {
+      "year": 1975,
+      "month": 7,
+      "day": 3,
+      "hour": 14
+    },
+    "out": {
+      "year": "乙卯",
+      "month": "壬午",
+      "day": "庚戌",
+      "hour": "癸未"
+    }
+  },
+  {
+    "in": {
+      "year": 1975,
+      "month": 8,
+      "day": 12,
+      "hour": 21
+    },
+    "out": {
+      "year": "乙卯",
+      "month": "甲申",
+      "day": "庚寅",
+      "hour": "丁亥"
+    }
+  },
+  {
+    "in": {
+      "year": 1975,
+      "month": 9,
+      "day": 21,
+      "hour": 4
+    },
+    "out": {
+      "year": "乙卯",
+      "month": "乙酉",
+      "day": "庚午",
+      "hour": "戊寅"
+    }
+  },
+  {
+    "in": {
+      "year": 1975,
+      "month": 11,
+      "day": 2,
+      "hour": 11
+    },
+    "out": {
+      "year": "乙卯",
+      "month": "丙戌",
+      "day": "壬子",
+      "hour": "丙午"
+    }
+  },
+  {
+    "in": {
+      "year": 1975,
+      "month": 12,
+      "day": 11,
+      "hour": 18
+    },
+    "out": {
+      "year": "乙卯",
+      "month": "戊子",
+      "day": "辛卯",
+      "hour": "丁酉"
+    }
+  },
+  {
+    "in": {
+      "year": 1976,
+      "month": 1,
+      "day": 20,
+      "hour": 1
+    },
+    "out": {
+      "year": "乙卯",
+      "month": "己丑",
+      "day": "辛未",
+      "hour": "己丑"
+    }
+  },
+  {
+    "in": {
+      "year": 1976,
+      "month": 3,
+      "day": 1,
+      "hour": 8
+    },
+    "out": {
+      "year": "丙辰",
+      "month": "庚寅",
+      "day": "壬子",
+      "hour": "甲辰"
+    }
+  },
+  {
+    "in": {
+      "year": 1976,
+      "month": 4,
+      "day": 10,
+      "hour": 15
+    },
+    "out": {
+      "year": "丙辰",
+      "month": "壬辰",
+      "day": "壬辰",
+      "hour": "戊申"
+    }
+  },
+  {
+    "in": {
+      "year": 1976,
+      "month": 5,
+      "day": 19,
+      "hour": 22
+    },
+    "out": {
+      "year": "丙辰",
+      "month": "癸巳",
+      "day": "辛未",
+      "hour": "己亥"
+    }
+  },
+  {
+    "in": {
+      "year": 1976,
+      "month": 6,
+      "day": 28,
+      "hour": 5
+    },
+    "out": {
+      "year": "丙辰",
+      "month": "甲午",
+      "day": "辛亥",
+      "hour": "辛卯"
+    }
+  },
+  {
+    "in": {
+      "year": 1976,
+      "month": 8,
+      "day": 9,
+      "hour": 12
+    },
+    "out": {
+      "year": "丙辰",
+      "month": "丙申",
+      "day": "癸巳",
+      "hour": "戊午"
+    }
+  },
+  {
+    "in": {
+      "year": 1976,
+      "month": 9,
+      "day": 18,
+      "hour": 19
+    },
+    "out": {
+      "year": "丙辰",
+      "month": "丁酉",
+      "day": "癸酉",
+      "hour": "壬戌"
+    }
+  },
+  {
+    "in": {
+      "year": 1976,
+      "month": 10,
+      "day": 27,
+      "hour": 2
+    },
+    "out": {
+      "year": "丙辰",
+      "month": "戊戌",
+      "day": "壬子",
+      "hour": "辛丑"
+    }
+  },
+  {
+    "in": {
+      "year": 1976,
+      "month": 12,
+      "day": 8,
+      "hour": 9
+    },
+    "out": {
+      "year": "丙辰",
+      "month": "庚子",
+      "day": "甲午",
+      "hour": "己巳"
+    }
+  },
+  {
+    "in": {
+      "year": 1977,
+      "month": 1,
+      "day": 17,
+      "hour": 16
+    },
+    "out": {
+      "year": "丙辰",
+      "month": "辛丑",
+      "day": "甲戌",
+      "hour": "壬申"
+    }
+  },
+  {
+    "in": {
+      "year": 1977,
+      "month": 2,
+      "day": 26,
+      "hour": 23
+    },
+    "out": {
+      "year": "丁巳",
+      "month": "壬寅",
+      "day": "甲寅",
+      "hour": "丙子"
+    }
+  },
+  {
+    "in": {
+      "year": 1977,
+      "month": 4,
+      "day": 7,
+      "hour": 6
+    },
+    "out": {
+      "year": "丁巳",
+      "month": "甲辰",
+      "day": "甲午",
+      "hour": "丁卯"
+    }
+  },
+  {
+    "in": {
+      "year": 1977,
+      "month": 5,
+      "day": 16,
+      "hour": 13
+    },
+    "out": {
+      "year": "丁巳",
+      "month": "乙巳",
+      "day": "癸酉",
+      "hour": "己未"
+    }
+  },
+  {
+    "in": {
+      "year": 1977,
+      "month": 6,
+      "day": 25,
+      "hour": 20
+    },
+    "out": {
+      "year": "丁巳",
+      "month": "丙午",
+      "day": "癸丑",
+      "hour": "壬戌"
+    }
+  },
+  {
+    "in": {
+      "year": 1977,
+      "month": 8,
+      "day": 6,
+      "hour": 3
+    },
+    "out": {
+      "year": "丁巳",
+      "month": "丁未",
+      "day": "乙未",
+      "hour": "戊寅"
+    }
+  },
+  {
+    "in": {
+      "year": 1977,
+      "month": 9,
+      "day": 15,
+      "hour": 10
+    },
+    "out": {
+      "year": "丁巳",
+      "month": "己酉",
+      "day": "乙亥",
+      "hour": "辛巳"
+    }
+  },
+  {
+    "in": {
+      "year": 1977,
+      "month": 10,
+      "day": 24,
+      "hour": 17
+    },
+    "out": {
+      "year": "丁巳",
+      "month": "庚戌",
+      "day": "甲寅",
+      "hour": "癸酉"
+    }
+  },
+  {
+    "in": {
+      "year": 1977,
+      "month": 12,
+      "day": 5,
+      "hour": 0
+    },
+    "out": {
+      "year": "丁巳",
+      "month": "辛亥",
+      "day": "丙申",
+      "hour": "戊子"
+    }
+  },
+  {
+    "in": {
+      "year": 1978,
+      "month": 1,
+      "day": 14,
+      "hour": 7
+    },
+    "out": {
+      "year": "丁巳",
+      "month": "癸丑",
+      "day": "丙子",
+      "hour": "壬辰"
+    }
+  },
+  {
+    "in": {
+      "year": 1978,
+      "month": 2,
+      "day": 23,
+      "hour": 14
+    },
+    "out": {
+      "year": "戊午",
+      "month": "甲寅",
+      "day": "丙辰",
+      "hour": "乙未"
+    }
+  },
+  {
+    "in": {
+      "year": 1978,
+      "month": 4,
+      "day": 4,
+      "hour": 21
+    },
+    "out": {
+      "year": "戊午",
+      "month": "乙卯",
+      "day": "丙申",
+      "hour": "己亥"
+    }
+  },
+  {
+    "in": {
+      "year": 1978,
+      "month": 5,
+      "day": 13,
+      "hour": 4
+    },
+    "out": {
+      "year": "戊午",
+      "month": "丁巳",
+      "day": "乙亥",
+      "hour": "戊寅"
+    }
+  },
+  {
+    "in": {
+      "year": 1978,
+      "month": 6,
+      "day": 22,
+      "hour": 11
+    },
+    "out": {
+      "year": "戊午",
+      "month": "戊午",
+      "day": "乙卯",
+      "hour": "壬午"
+    }
+  },
+  {
+    "in": {
+      "year": 1978,
+      "month": 8,
+      "day": 3,
+      "hour": 18
+    },
+    "out": {
+      "year": "戊午",
+      "month": "己未",
+      "day": "丁酉",
+      "hour": "己酉"
+    }
+  },
+  {
+    "in": {
+      "year": 1978,
+      "month": 9,
+      "day": 12,
+      "hour": 1
+    },
+    "out": {
+      "year": "戊午",
+      "month": "辛酉",
+      "day": "丁丑",
+      "hour": "辛丑"
+    }
+  },
+  {
+    "in": {
+      "year": 1978,
+      "month": 10,
+      "day": 21,
+      "hour": 8
+    },
+    "out": {
+      "year": "戊午",
+      "month": "壬戌",
+      "day": "丙辰",
+      "hour": "壬辰"
+    }
+  },
+  {
+    "in": {
+      "year": 1978,
+      "month": 12,
+      "day": 2,
+      "hour": 15
+    },
+    "out": {
+      "year": "戊午",
+      "month": "癸亥",
+      "day": "戊戌",
+      "hour": "庚申"
+    }
+  },
+  {
+    "in": {
+      "year": 1979,
+      "month": 1,
+      "day": 11,
+      "hour": 22
+    },
+    "out": {
+      "year": "戊午",
+      "month": "乙丑",
+      "day": "戊寅",
+      "hour": "癸亥"
+    }
+  },
+  {
+    "in": {
+      "year": 1979,
+      "month": 2,
+      "day": 20,
+      "hour": 5
+    },
+    "out": {
+      "year": "己未",
+      "month": "丙寅",
+      "day": "戊午",
+      "hour": "乙卯"
+    }
+  },
+  {
+    "in": {
+      "year": 1979,
+      "month": 4,
+      "day": 1,
+      "hour": 12
+    },
+    "out": {
+      "year": "己未",
+      "month": "丁卯",
+      "day": "戊戌",
+      "hour": "戊午"
+    }
+  },
+  {
+    "in": {
+      "year": 1979,
+      "month": 5,
+      "day": 10,
+      "hour": 19
+    },
+    "out": {
+      "year": "己未",
+      "month": "己巳",
+      "day": "丁丑",
+      "hour": "庚戌"
+    }
+  },
+  {
+    "in": {
+      "year": 1979,
+      "month": 6,
+      "day": 19,
+      "hour": 2
+    },
+    "out": {
+      "year": "己未",
+      "month": "庚午",
+      "day": "丁巳",
+      "hour": "辛丑"
+    }
+  },
+  {
+    "in": {
+      "year": 1979,
+      "month": 7,
+      "day": 28,
+      "hour": 9
+    },
+    "out": {
+      "year": "己未",
+      "month": "辛未",
+      "day": "丙申",
+      "hour": "癸巳"
+    }
+  },
+  {
+    "in": {
+      "year": 1979,
+      "month": 9,
+      "day": 9,
+      "hour": 16
+    },
+    "out": {
+      "year": "己未",
+      "month": "癸酉",
+      "day": "己卯",
+      "hour": "壬申"
+    }
+  },
+  {
+    "in": {
+      "year": 1979,
+      "month": 10,
+      "day": 18,
+      "hour": 23
+    },
+    "out": {
+      "year": "己未",
+      "month": "甲戌",
+      "day": "戊午",
+      "hour": "甲子"
+    }
+  },
+  {
+    "in": {
+      "year": 1979,
+      "month": 11,
+      "day": 27,
+      "hour": 6
+    },
+    "out": {
+      "year": "己未",
+      "month": "乙亥",
+      "day": "戊戌",
+      "hour": "乙卯"
+    }
+  },
+  {
+    "in": {
+      "year": 1980,
+      "month": 1,
+      "day": 8,
+      "hour": 13
+    },
+    "out": {
+      "year": "己未",
+      "month": "丁丑",
+      "day": "庚辰",
+      "hour": "癸未"
+    }
+  },
+  {
+    "in": {
+      "year": 1980,
+      "month": 2,
+      "day": 17,
+      "hour": 20
+    },
+    "out": {
+      "year": "庚申",
+      "month": "戊寅",
+      "day": "庚申",
+      "hour": "丙戌"
+    }
+  },
+  {
+    "in": {
+      "year": 1980,
+      "month": 3,
+      "day": 26,
+      "hour": 3
+    },
+    "out": {
+      "year": "庚申",
+      "month": "己卯",
+      "day": "戊戌",
+      "hour": "甲寅"
+    }
+  },
+  {
+    "in": {
+      "year": 1980,
+      "month": 5,
+      "day": 7,
+      "hour": 10
+    },
+    "out": {
+      "year": "庚申",
+      "month": "辛巳",
+      "day": "庚辰",
+      "hour": "辛巳"
+    }
+  },
+  {
+    "in": {
+      "year": 1980,
+      "month": 6,
+      "day": 16,
+      "hour": 17
+    },
+    "out": {
+      "year": "庚申",
+      "month": "壬午",
+      "day": "庚申",
+      "hour": "乙酉"
+    }
+  },
+  {
+    "in": {
+      "year": 1980,
+      "month": 7,
+      "day": 25,
+      "hour": 0
+    },
+    "out": {
+      "year": "庚申",
+      "month": "癸未",
+      "day": "己亥",
+      "hour": "甲子"
+    }
+  },
+  {
+    "in": {
+      "year": 1980,
+      "month": 9,
+      "day": 6,
+      "hour": 7
+    },
+    "out": {
+      "year": "庚申",
+      "month": "甲申",
+      "day": "壬午",
+      "hour": "甲辰"
+    }
+  },
+  {
+    "in": {
+      "year": 1980,
+      "month": 10,
+      "day": 15,
+      "hour": 14
+    },
+    "out": {
+      "year": "庚申",
+      "month": "丙戌",
+      "day": "辛酉",
+      "hour": "乙未"
+    }
+  },
+  {
+    "in": {
+      "year": 1980,
+      "month": 11,
+      "day": 24,
+      "hour": 21
+    },
+    "out": {
+      "year": "庚申",
+      "month": "丁亥",
+      "day": "辛丑",
+      "hour": "己亥"
+    }
+  }
+]

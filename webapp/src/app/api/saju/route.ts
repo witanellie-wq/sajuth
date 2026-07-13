@@ -1,14 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { computeSaju, type SajuInput } from "@/lib/saju";
 import { interpret, DISCLAIMER_TH } from "@/lib/interpret";
+import { rewriteSections } from "@/lib/rewrite";
+import { store } from "@/lib/store";
 
-// POST /api/saju — body: { year, month, day, hour?, minute?, longitude? }
-// Returns the chart + interpreted sections. Free sections come through in full;
-// locked sections are returned with a paywall flag for the client to blur.
+// POST /api/saju — body: { year, month, day, hour?, minute?, longitude?, rewrite? }
+// Computes the chart, interprets it, optionally rewrites free sections with
+// Claude, persists the reading, and returns it with a shareable id.
 export async function POST(req: NextRequest) {
-  let input: SajuInput;
+  let input: SajuInput & { rewrite?: boolean };
   try {
-    input = (await req.json()) as SajuInput;
+    input = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
@@ -28,19 +30,24 @@ export async function POST(req: NextRequest) {
   }
 
   const chart = computeSaju(input);
-  const sections = interpret(chart);
+  let sections = interpret(chart);
+  if (input.rewrite) sections = await rewriteSections(chart, sections);
+
+  const reading = await store.save({
+    input: {
+      year: input.year,
+      month: input.month,
+      day: input.day,
+      hour: typeof input.hour === "number" ? input.hour : null,
+    },
+    chart,
+    sections,
+    paid: false,
+  });
 
   return NextResponse.json({
-    chart: {
-      year: chart.year,
-      month: chart.month,
-      day: chart.day,
-      hour: chart.hour,
-      dayMaster: chart.dayMaster,
-      dayMasterElement: chart.dayMasterElement,
-      elementCounts: chart.elementCounts,
-      trueSolarCorrectionMin: chart.trueSolarCorrectionMin,
-    },
+    id: reading.id,
+    chart,
     sections,
     disclaimer: DISCLAIMER_TH,
   });

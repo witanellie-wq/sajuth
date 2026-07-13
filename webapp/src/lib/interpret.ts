@@ -87,14 +87,9 @@ export function interpret(chart: SajuChart): ReportSection[] {
     locked: false,
   });
 
-  // 4-7. Locked premium sections (paywall / DM funnel)
-  const locked: Array<[string, string]> = [
-    ["love", "ความรักและเนื้อคู่"],
-    ["career", "การงานและเส้นทางอาชีพที่ใช่"],
-    ["wealth", "โชคลาภและการเงิน"],
-    ["luck10", "ดวงชะตา 10 ปีข้างหน้า (แดวอน)"],
-  ];
-  for (const [key, title] of locked) {
+  // 4-7. Locked premium sections (paywall / DM funnel). Real bodies live in
+  // PREMIUM and are revealed by unlock(); here they stay hidden behind the blur.
+  for (const [key, title] of PREMIUM_TITLES) {
     sections.push({
       key,
       title,
@@ -104,6 +99,57 @@ export function interpret(chart: SajuChart): ReportSection[] {
   }
 
   return sections;
+}
+
+const PREMIUM_TITLES: Array<[string, string]> = [
+  ["love", "ความรักและเนื้อคู่"],
+  ["career", "การงานและเส้นทางอาชีพที่ใช่"],
+  ["wealth", "โชคลาภและการเงิน"],
+  ["luck10", "ดวงชะตา 10 ปีข้างหน้า (แดวอน)"],
+];
+
+// Premium bodies keyed by day-master element — first-pass Thai draft.
+const PREMIUM_BY_ELEMENT: Record<Element, Record<string, string>> = {
+  wood: {
+    love: "คุณรักแบบจริงจังและซื่อตรง มองหาคนที่เติบโตไปด้วยกันได้ ระวังการยึดหลักการจนไม่ยอมง้อ",
+    career: "เหมาะกับงานที่ได้สร้างและนำทีม เช่น การศึกษา สื่อ หรือธุรกิจของตัวเอง",
+    wealth: "การเงินมั่นคงแบบค่อยเป็นค่อยไป เก็บระยะยาวได้ดีกว่าเสี่ยงระยะสั้น",
+    luck10: "10 ปีข้างหน้าเป็นช่วงขยายฐานและวางราก การลงทุนในความรู้จะออกดอกผล",
+  },
+  fire: {
+    love: "คุณรักอย่างร้อนแรงและเปิดเผย ดึงดูดคนง่าย แต่ควรระวังใจร้อนในช่วงมีปากเสียง",
+    career: "โดดเด่นในงานที่ได้แสดงออก เช่น การตลาด บันเทิง งานขาย หรือสายครีเอทีฟ",
+    wealth: "รายได้เข้าไว แต่ใช้ไว ควรตั้งระบบออมอัตโนมัติกันเงินรั่ว",
+    luck10: "10 ปีข้างหน้ามีจังหวะสปอตไลต์ ชื่อเสียงมาแรง ใช้โอกาสตอนพีคให้คุ้ม",
+  },
+  earth: {
+    love: "คุณเป็นคนรักที่มั่นคงและดูแลดี คู่จะรู้สึกอุ่นใจ ระวังเก็บความรู้สึกไว้จนอีกฝ่ายไม่รู้",
+    career: "เหมาะกับงานที่ต้องอาศัยความน่าเชื่อถือ เช่น อสังหาฯ การเงิน บริหาร หรือดูแลคน",
+    wealth: "สะสมทรัพย์ได้ดีเป็นพิเศษ ที่ดิน/สินทรัพย์ระยะยาวคือจุดแข็งของคุณ",
+    luck10: "10 ปีข้างหน้าเป็นช่วงเก็บเกี่ยวความมั่นคง เหมาะซื้อบ้าน/ที่ดิน",
+  },
+  metal: {
+    love: "คุณรักแบบมีขอบเขตชัดเจนและซื่อสัตย์ ต้องการคนที่เคารพพื้นที่ส่วนตัว",
+    career: "เก่งงานที่ต้องตัดสินใจเด็ดขาด เช่น กฎหมาย การแพทย์ วิศวะ หรือการเงิน",
+    wealth: "บริหารเงินมีวินัย เหมาะกับการลงทุนที่มีกฎเกณฑ์ชัดเจน",
+    luck10: "10 ปีข้างหน้าเป็นช่วงตกผลึกและได้รับการยอมรับในความเชี่ยวชาญ",
+  },
+  water: {
+    love: "คุณรักลึกซึ้งและเข้าใจใจคน แต่คิดเยอะ ควรสื่อสารสิ่งที่รู้สึกออกมาตรง ๆ",
+    career: "โดดเด่นในงานที่ใช้ไหวพริบและการปรับตัว เช่น ค้าขาย ท่องเที่ยว สื่อสาร หรือวิจัย",
+    wealth: "โอกาสทางการเงินมาหลายทาง แต่ควรโฟกัส อย่ากระจายจนจับอะไรไม่ได้เต็มมือ",
+    luck10: "10 ปีข้างหน้าเต็มไปด้วยการเดินทางและโอกาสใหม่ ยืดหยุ่นไว้จะได้เปรียบ",
+  },
+};
+
+/** Reveal premium bodies after payment. Mutates a copy, returns unlocked list. */
+export function unlock(sections: ReportSection[], element: Element): ReportSection[] {
+  const bodies = PREMIUM_BY_ELEMENT[element];
+  return sections.map((s) =>
+    s.locked && bodies[s.key]
+      ? { ...s, body: bodies[s.key], locked: false }
+      : s
+  );
 }
 
 export const DISCLAIMER_TH =
