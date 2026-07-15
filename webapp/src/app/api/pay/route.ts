@@ -34,6 +34,6 @@ export async function POST(req: NextRequest) {
   if (!reading) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
   await store.markPaid(body.id);
-  const unlocked = unlock(reading.sections, reading.chart.dayMasterElement);
+  const unlocked = unlock(reading.sections, reading.chart.dayMaster);
   return NextResponse.json({ id: body.id, paid: true, sections: unlocked });
 }

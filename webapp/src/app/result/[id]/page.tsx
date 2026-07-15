@@ -13,7 +13,7 @@ export default async function ResultPage({
   if (!reading) notFound();
 
   const sections = reading.paid
-    ? unlock(reading.sections, reading.chart.dayMasterElement)
+    ? unlock(reading.sections, reading.chart.dayMaster)
     : reading.sections;
 
   const initial: Reading = {

@@ -12,7 +12,7 @@ export async function GET(
   if (!reading) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
   const sections = reading.paid
-    ? unlock(reading.sections, reading.chart.dayMasterElement)
+    ? unlock(reading.sections, reading.chart.dayMaster)
     : reading.sections;
 
   return NextResponse.json({
