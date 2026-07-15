@@ -19,10 +19,20 @@ are blurred behind a DM/PromptPay paywall.
 src/lib/saju.ts        만세력 engine — birth → Four Pillars
                        + true-solar-time (진태양시) longitude correction
                        + five-element (오행) distribution
-src/lib/interpret.ts   Chart → Thai report sections (template layer;
-                       Claude rewrite happens on top in production)
-src/app/api/saju/      POST endpoint: compute + interpret
+src/lib/elements.ts    오행 상생/상극 relations (shared by strength + compat)
+src/lib/strength.ts    Day Master strength (신강/신약) + favorable element (용신)
+src/lib/interpret.ts   Chart → Thai report sections; premium keyed by 일간 (10)
+src/lib/compat.ts      Compatibility (궁합) — 일간 상생/상극 + 일지 육합/충 + 용신
+src/lib/rewrite.ts     Optional Claude Thai rewrite (no-key → templates)
+src/lib/store.ts       Reading persistence (Supabase / in-memory fallback)
+src/lib/promptpay.ts   PromptPay EMVCo QR payload
+src/app/api/saju/      POST: compute + interpret + persist
+src/app/api/compat/    POST: two births → compatibility
+src/app/api/pay/       PromptPay QR + Phase-0 manual unlock
+src/app/api/reading/   GET a stored reading (share)
 src/app/page.tsx       Thai input form + result view with paywall
+src/app/compat/        궁합 two-person form + result
+src/app/result/[id]/   Shareable read-only reading
 src/lib/saju.test.ts   Regression snapshots (confirm vs 천을귀인 → 99%+)
 ```
 

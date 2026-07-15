@@ -48,6 +48,12 @@ export default function Home() {
         <p className="mt-2 text-sm text-ink/70">
           ดูดวงสไตล์เกาหลี (사주) จากวันเดือนปีเกิด — รู้ผลใน 1 นาที
         </p>
+        <a
+          href="/compat"
+          className="mt-3 inline-block rounded-full border border-peach/60 px-4 py-1.5 text-sm text-rosewood"
+        >
+          💞 ดูความเข้ากันกับคนพิเศษ (궁합)
+        </a>
       </header>
 
       <form onSubmit={onSubmit} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-peach/40">

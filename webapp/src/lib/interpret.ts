@@ -9,6 +9,7 @@
 // editor / Claude rewrite. Structure is final; wording is placeholder-quality.
 
 import type { SajuChart, Element } from "./saju";
+import { analyzeStrength } from "./strength";
 
 export interface ReportSection {
   key: string;
@@ -79,7 +80,16 @@ export function interpret(chart: SajuChart): ReportSection[] {
     locked: false,
   });
 
-  // 3. Today's brief note — FREE
+  // 3. Day Master strength (신강/신약) + 용신 — FREE, the depth layer
+  const strength = analyzeStrength(chart);
+  sections.push({
+    key: "strength",
+    title: `พลังธาตุประจำตัว — ${strength.bandTh}`,
+    body: strength.body,
+    locked: false,
+  });
+
+  // 4. Today's brief note — FREE
   sections.push({
     key: "today",
     title: "พลังงานของคุณช่วงนี้",
