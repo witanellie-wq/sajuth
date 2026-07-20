@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { compatStore } from "@/lib/store";
 import { DISCLAIMER_TH } from "@/lib/interpret";
+import { unlockCompat, type Compatibility } from "@/lib/compat";
 import CompatView, { type CompatData } from "@/components/CompatView";
 
 // Shareable read-only 궁합 result (/compat/result/:id).
@@ -14,10 +15,13 @@ export default async function CompatResultPage({
   const rec = await compatStore.get(params.id);
   if (!rec) notFound();
 
+  const result = rec.result as Compatibility;
+  const sections = rec.paid ? unlockCompat(result.sections, result.rel) : result.sections;
+
   const data: CompatData = {
     id: rec.id,
     charts: rec.charts as CompatData["charts"],
-    result: rec.result as CompatData["result"],
+    result: { ...result, sections },
     disclaimer: DISCLAIMER_TH,
   };
 

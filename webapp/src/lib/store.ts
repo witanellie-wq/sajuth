@@ -30,6 +30,7 @@ export interface StoredCompat {
   createdAt: string;
   charts: unknown; // { a, b } summary pillars
   result: unknown; // Compatibility
+  paid: boolean;
 }
 
 const mem = new Map<string, StoredReading>();
@@ -45,6 +46,7 @@ export const compatStore = {
       createdAt: new Date().toISOString(),
       charts,
       result,
+      paid: false,
     };
     const sb = getSupabase();
     if (sb) {
@@ -53,6 +55,7 @@ export const compatStore = {
         created_at: rec.createdAt,
         charts: rec.charts,
         result: rec.result,
+        paid: rec.paid,
       });
       if (error) throw new Error(`supabase insert: ${error.message}`);
     } else {
@@ -69,9 +72,24 @@ export const compatStore = {
         .eq("id", id)
         .single();
       if (error || !data) return null;
-      return { id: data.id, createdAt: data.created_at, charts: data.charts, result: data.result };
+      return {
+        id: data.id,
+        createdAt: data.created_at,
+        charts: data.charts,
+        result: data.result,
+        paid: !!data.paid,
+      };
     }
     return memCompat.get(id) ?? null;
+  },
+  async markPaid(id: string): Promise<void> {
+    const sb = getSupabase();
+    if (sb) {
+      await sb.from("compat_readings").update({ paid: true }).eq("id", id);
+    } else {
+      const rec = memCompat.get(id);
+      if (rec) rec.paid = true;
+    }
   },
 };
 
