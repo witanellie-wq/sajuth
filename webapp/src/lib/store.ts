@@ -25,7 +25,55 @@ interface Store {
   markPaid(id: string): Promise<void>;
 }
 
+export interface StoredCompat {
+  id: string;
+  createdAt: string;
+  charts: unknown; // { a, b } summary pillars
+  result: unknown; // Compatibility
+}
+
 const mem = new Map<string, StoredReading>();
+const memCompat = new Map<string, StoredCompat>();
+
+// Compat results are share-only snapshots; the in-memory fallback mirrors the
+// readings store. Supabase table: compat_readings(id uuid pk, created_at,
+// charts jsonb, result jsonb).
+export const compatStore = {
+  async save(charts: unknown, result: unknown): Promise<StoredCompat> {
+    const rec: StoredCompat = {
+      id: randomUUID(),
+      createdAt: new Date().toISOString(),
+      charts,
+      result,
+    };
+    const sb = getSupabase();
+    if (sb) {
+      const { error } = await sb.from("compat_readings").insert({
+        id: rec.id,
+        created_at: rec.createdAt,
+        charts: rec.charts,
+        result: rec.result,
+      });
+      if (error) throw new Error(`supabase insert: ${error.message}`);
+    } else {
+      memCompat.set(rec.id, rec);
+    }
+    return rec;
+  },
+  async get(id: string): Promise<StoredCompat | null> {
+    const sb = getSupabase();
+    if (sb) {
+      const { data, error } = await sb
+        .from("compat_readings")
+        .select("*")
+        .eq("id", id)
+        .single();
+      if (error || !data) return null;
+      return { id: data.id, createdAt: data.created_at, charts: data.charts, result: data.result };
+    }
+    return memCompat.get(id) ?? null;
+  },
+};
 
 const memStore: Store = {
   async save(r) {
@@ -46,15 +94,28 @@ const memStore: Store = {
   },
 };
 
-function supabaseStore(): Store | null {
+let sbClient: unknown | null | undefined;
+
+/** Lazily created shared Supabase client, or null when unconfigured. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getSupabase(): any {
+  if (sbClient !== undefined) return sbClient;
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_KEY;
-  if (!url || !key) return null;
-
+  if (!url || !key) {
+    sbClient = null;
+    return null;
+  }
   // Lazy require so the dep isn't pulled when unconfigured.
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { createClient } = require("@supabase/supabase-js");
-  const sb = createClient(url, key, { auth: { persistSession: false } });
+  sbClient = createClient(url, key, { auth: { persistSession: false } });
+  return sbClient;
+}
+
+function supabaseStore(): Store | null {
+  const sb = getSupabase();
+  if (!sb) return null;
   const TABLE = "readings"; // columns: id uuid pk, created_at, input jsonb, chart jsonb, sections jsonb, paid bool
 
   return {

@@ -1,9 +1,13 @@
 import { notFound } from "next/navigation";
 import { store } from "@/lib/store";
 import { DISCLAIMER_TH, unlock } from "@/lib/interpret";
+import { todayFortune } from "@/lib/today";
 import ResultView, { type Reading } from "@/components/ResultView";
 
 // Shareable read-only reading page — the viral share target (/result/:id).
+// Force per-request rendering so the daily fortune refreshes on every visit.
+export const dynamic = "force-dynamic";
+
 export default async function ResultPage({
   params,
 }: {
@@ -12,9 +16,17 @@ export default async function ResultPage({
   const reading = await store.get(params.id);
   if (!reading) notFound();
 
-  const sections = reading.paid
+  let sections = reading.paid
     ? unlock(reading.sections, reading.chart.dayMaster)
     : reading.sections;
+
+  // Refresh the daily fortune on every visit (shared links stay alive daily).
+  const today = todayFortune(reading.chart);
+  sections = sections.map((s) =>
+    s.key === "today"
+      ? { ...s, title: `ดวงวันนี้ · ${today.title}`, body: today.body }
+      : s
+  );
 
   const initial: Reading = {
     id: reading.id,

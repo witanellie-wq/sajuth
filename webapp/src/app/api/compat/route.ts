@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { computeSaju, type SajuInput } from "@/lib/saju";
 import { computeCompatibility } from "@/lib/compat";
 import { DISCLAIMER_TH } from "@/lib/interpret";
+import { compatStore } from "@/lib/store";
 
 interface Body {
   a: SajuInput;
@@ -38,13 +39,17 @@ export async function POST(req: NextRequest) {
   const chartA = computeSaju(body.a);
   const chartB = computeSaju(body.b);
   const result = computeCompatibility(chartA, chartB);
+  const charts = {
+    a: { dayMaster: chartA.dayMaster, day: chartA.day },
+    b: { dayMaster: chartB.dayMaster, day: chartB.day },
+  };
+
+  const saved = await compatStore.save(charts, result);
 
   return NextResponse.json({
+    id: saved.id,
     result,
-    charts: {
-      a: { dayMaster: chartA.dayMaster, day: chartA.day },
-      b: { dayMaster: chartB.dayMaster, day: chartB.day },
-    },
+    charts,
     disclaimer: DISCLAIMER_TH,
   });
 }

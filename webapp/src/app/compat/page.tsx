@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import CompatView, { type CompatData } from "@/components/CompatView";
 
 interface Person {
   year: string;
@@ -10,20 +11,6 @@ interface Person {
   unknownTime: boolean;
 }
 const empty: Person = { year: "", month: "", day: "", hour: "", unknownTime: false };
-
-interface CompatResult {
-  result: {
-    score: number;
-    bandTh: string;
-    headline: string;
-    sections: Array<{ title: string; body: string }>;
-  };
-  charts: {
-    a: { dayMaster: string; day: { gan: string; zhi: string } };
-    b: { dayMaster: string; day: { gan: string; zhi: string } };
-  };
-  disclaimer: string;
-}
 
 function toInput(p: Person) {
   const o: Record<string, number> = {
@@ -38,7 +25,7 @@ function toInput(p: Person) {
 export default function Compat() {
   const [a, setA] = useState<Person>(empty);
   const [b, setB] = useState<Person>(empty);
-  const [res, setRes] = useState<CompatResult | null>(null);
+  const [res, setRes] = useState<CompatData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -88,7 +75,7 @@ export default function Compat() {
         {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
       </form>
 
-      {res && <CompatView res={res} />}
+      {res && <CompatView data={res} />}
     </main>
   );
 }
@@ -150,33 +137,5 @@ function Field(props: {
         className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood disabled:opacity-40"
       />
     </label>
-  );
-}
-
-function CompatView({ res }: { res: CompatResult }) {
-  const { result, charts, disclaimer } = res;
-  return (
-    <section className="mt-8">
-      <div className="rounded-2xl bg-white p-6 text-center shadow-sm ring-1 ring-peach/40">
-        <div className="flex items-center justify-center gap-4 text-sm text-ink/60">
-          <span>คุณ · {charts.a.day.gan}{charts.a.day.zhi}</span>
-          <span className="text-rosewood">×</span>
-          <span>อีกฝ่าย · {charts.b.day.gan}{charts.b.day.zhi}</span>
-        </div>
-        <div className="my-2 text-5xl font-bold text-rosewood">{result.score}%</div>
-        <div className="text-lg font-semibold text-ink">{result.bandTh}</div>
-        <p className="mt-1 text-sm text-ink/70">{result.headline}</p>
-      </div>
-
-      <div className="mt-4 space-y-3">
-        {result.sections.slice(1).map((s, i) => (
-          <div key={i} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
-            <p className="text-sm leading-relaxed text-ink/80">{s.body}</p>
-          </div>
-        ))}
-      </div>
-
-      <p className="mt-6 text-center text-xs text-ink/40">{disclaimer}</p>
-    </section>
   );
 }

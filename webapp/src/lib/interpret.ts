@@ -10,6 +10,7 @@
 
 import type { SajuChart, Element } from "./saju";
 import { analyzeStrength } from "./strength";
+import { todayFortune } from "./today";
 
 export interface ReportSection {
   key: string;
@@ -89,11 +90,12 @@ export function interpret(chart: SajuChart): ReportSection[] {
     locked: false,
   });
 
-  // 4. Today's brief note — FREE
+  // 4. Today's fortune — FREE, changes daily (revisit hook)
+  const today = todayFortune(chart);
   sections.push({
     key: "today",
-    title: "พลังงานของคุณช่วงนี้",
-    body: "ช่วงนี้เหมาะกับการเริ่มต้นสิ่งเล็ก ๆ ที่คุณเลื่อนมานาน ฟังสัญชาตญาณตัวเองให้มากขึ้น",
+    title: `ดวงวันนี้ · ${today.title}`,
+    body: today.body,
     locked: false,
   });
 
