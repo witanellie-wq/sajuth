@@ -7,6 +7,7 @@
 
 import type { SajuChart, Element } from "./saju";
 import { relationTo, isSupport, generatedBy, generates, controls, ELEMENT_TH } from "./elements";
+import type { Lang } from "./i18n";
 
 export type Band = "very_strong" | "strong" | "balanced" | "weak" | "very_weak";
 
@@ -14,8 +15,8 @@ export interface Strength {
   band: Band;
   supportRatio: number; // 0..1
   favorable: Element[]; // 용신 candidates
-  bandTh: string;
-  body: string; // Thai free-section text
+  bandLabel: string; // localized
+  body: string; // localized free-section text
 }
 
 const GAN_ELEMENT: Record<string, Element> = {
@@ -28,15 +29,29 @@ const ZHI_ELEMENT: Record<string, Element> = {
   "戌": "earth", "亥": "water",
 };
 
-const BAND_TH: Record<Band, string> = {
-  very_strong: "พลังธาตุแข็งมาก (극신강)",
-  strong: "พลังธาตุแข็ง (신강)",
-  balanced: "พลังธาตุสมดุล (중화)",
-  weak: "พลังธาตุอ่อน (신약)",
-  very_weak: "พลังธาตุอ่อนมาก (극신약)",
+const BAND_LABEL: Record<Lang, Record<Band, string>> = {
+  th: {
+    very_strong: "พลังธาตุแข็งมาก (극신강)",
+    strong: "พลังธาตุแข็ง (신강)",
+    balanced: "พลังธาตุสมดุล (중화)",
+    weak: "พลังธาตุอ่อน (신약)",
+    very_weak: "พลังธาตุอ่อนมาก (극신약)",
+  },
+  en: {
+    very_strong: "Very Strong Day Master (극신강)",
+    strong: "Strong Day Master (신강)",
+    balanced: "Balanced (중화)",
+    weak: "Gentle Day Master (신약)",
+    very_weak: "Very Gentle Day Master (극신약)",
+  },
 };
 
-export function analyzeStrength(chart: SajuChart): Strength {
+const ELEMENT_EN: Record<Element, string> = {
+  wood: "Wood (木)", fire: "Fire (火)", earth: "Earth (土)",
+  metal: "Metal (金)", water: "Water (水)",
+};
+
+export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
   const dm = chart.dayMasterElement;
 
   // (element, weight) contributions from every position except the DM stem.
@@ -73,18 +88,32 @@ export function analyzeStrength(chart: SajuChart): Strength {
     ? [generates(dm), controls(dm)] // 식상 · 재성
     : [generatedBy(dm), dm]; // 인성 · 비겁
 
-  const favTh = favorable.map((e) => ELEMENT_TH[e]).join(" และ ");
-  const body = strongSide
-    ? `พลังธาตุประจำตัวคุณค่อนข้างแข็ง คุณมีพลังในตัวสูงและพึ่งพาตัวเองได้ดี ` +
-      `แต่บางครั้งดันไปข้างหน้าแรงเกินไป ควรเสริมธาตุ ${favTh} ` +
-      `เพื่อปล่อยพลังออกและสร้างสมดุล`
-    : band === "balanced"
-    ? `พลังธาตุของคุณค่อนข้างสมดุล ปรับตัวได้ยืดหยุ่นในหลายสถานการณ์ ` +
-      `ถือเป็นดวงที่กลมกล่อม เพียงประคองจังหวะให้ดีก็ไปได้ไกล`
-    : `พลังธาตุประจำตัวคุณค่อนข้างอ่อน คุณไวต่อสิ่งรอบตัวและร่วมมือกับคนอื่นได้ดี ` +
-      `ควรเสริมธาตุ ${favTh} และหาพันธมิตรที่ไว้ใจได้ เพื่อหนุนพลังให้เต็ม`;
+  const elName = lang === "th" ? ELEMENT_TH : ELEMENT_EN;
+  const favList = favorable.map((e) => elName[e]).join(lang === "th" ? " และ " : " and ");
 
-  return { band, supportRatio: ratio, favorable, bandTh: BAND_TH[band], body };
+  let body: string;
+  if (lang === "th") {
+    body = strongSide
+      ? `พลังธาตุประจำตัวคุณค่อนข้างแข็ง คุณมีพลังในตัวสูงและพึ่งพาตัวเองได้ดี ` +
+        `แต่บางครั้งดันไปข้างหน้าแรงเกินไป ควรเสริมธาตุ ${favList} ` +
+        `เพื่อปล่อยพลังออกและสร้างสมดุล`
+      : band === "balanced"
+      ? `พลังธาตุของคุณค่อนข้างสมดุล ปรับตัวได้ยืดหยุ่นในหลายสถานการณ์ ` +
+        `ถือเป็นดวงที่กลมกล่อม เพียงประคองจังหวะให้ดีก็ไปได้ไกล`
+      : `พลังธาตุประจำตัวคุณค่อนข้างอ่อน คุณไวต่อสิ่งรอบตัวและร่วมมือกับคนอื่นได้ดี ` +
+        `ควรเสริมธาตุ ${favList} และหาพันธมิตรที่ไว้ใจได้ เพื่อหนุนพลังให้เต็ม`;
+  } else {
+    body = strongSide
+      ? `Your day-master energy runs strong — self-reliant and driven, though you can ` +
+        `push too hard at times. Strengthen ${favList} to release that power and stay balanced.`
+      : band === "balanced"
+      ? `Your five elements sit in good balance — you adapt flexibly to most situations. ` +
+        `A well-rounded chart; just keep your own rhythm and you'll go far.`
+      : `Your day-master energy is on the gentle side — sensitive to your surroundings and ` +
+        `great at collaborating. Strengthen ${favList} and keep trusted allies close.`;
+  }
+
+  return { band, supportRatio: ratio, favorable, bandLabel: BAND_LABEL[lang][band], body };
 }
 
 export { GAN_ELEMENT, ZHI_ELEMENT };

@@ -13,7 +13,7 @@ import type { ReportSection } from "./interpret";
 export interface StoredReading {
   id: string;
   createdAt: string;
-  input: { year: number; month: number; day: number; hour: number | null };
+  input: { year: number; month: number; day: number; hour: number | null; lang?: string };
   chart: SajuChart;
   sections: ReportSection[];
   paid: boolean;

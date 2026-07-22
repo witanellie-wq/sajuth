@@ -4,6 +4,7 @@ import { promptPayPayload } from "@/lib/promptpay";
 import { store, compatStore } from "@/lib/store";
 import { unlock } from "@/lib/interpret";
 import { unlockCompat, type Compatibility } from "@/lib/compat";
+import { pickLang } from "@/lib/i18n";
 
 const PRICE_READING_THB = Number(process.env.UNLOCK_PRICE_THB ?? 59);
 const PRICE_COMPAT_THB = Number(process.env.UNLOCK_COMPAT_PRICE_THB ?? 89);
@@ -47,13 +48,14 @@ export async function POST(req: NextRequest) {
     if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
     await compatStore.markPaid(body.id);
     const result = rec.result as Compatibility;
-    const sections = unlockCompat(result.sections, result.rel);
+    const sections = unlockCompat(result.sections, result.rel, pickLang(result.lang));
     return NextResponse.json({ id: body.id, kind, paid: true, sections });
   }
 
   const reading = await store.get(body.id);
   if (!reading) return NextResponse.json({ error: "not_found" }, { status: 404 });
   await store.markPaid(body.id);
-  const unlocked = unlock(reading.sections, reading.chart.dayMaster);
+  const lang = pickLang(reading.input.lang);
+  const unlocked = unlock(reading.sections, reading.chart.dayMaster, lang);
   return NextResponse.json({ id: body.id, kind, paid: true, sections: unlocked });
 }

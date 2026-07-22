@@ -1,14 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { computeSaju, type SajuInput } from "@/lib/saju";
-import { interpret, DISCLAIMER_TH } from "@/lib/interpret";
+import { interpret } from "@/lib/interpret";
 import { rewriteSections } from "@/lib/rewrite";
 import { store } from "@/lib/store";
+import { DISCLAIMER, pickLang } from "@/lib/i18n";
 
-// POST /api/saju — body: { year, month, day, hour?, minute?, longitude?, rewrite? }
-// Computes the chart, interprets it, optionally rewrites free sections with
-// Claude, persists the reading, and returns it with a shareable id.
+// POST /api/saju — body: { year, month, day, hour?, minute?, longitude?, lang?, rewrite? }
+// Computes the chart, interprets it in the requested language, persists the
+// reading, and returns it with a shareable id. Persistence failure is NON-fatal:
+// the reading still returns (id: null) so a storage misconfig never breaks the
+// core product — only share links.
 export async function POST(req: NextRequest) {
-  let input: SajuInput & { rewrite?: boolean };
+  let input: SajuInput & { rewrite?: boolean; lang?: string };
   try {
     input = await req.json();
   } catch {
@@ -24,31 +27,38 @@ export async function POST(req: NextRequest) {
     input.month < 1 ||
     input.month > 12 ||
     input.day < 1 ||
-    input.day > 31
+    input.day > 31 ||
+    (input.hour !== undefined &&
+      (typeof input.hour !== "number" || input.hour < 0 || input.hour > 23)) ||
+    (input.minute !== undefined &&
+      (typeof input.minute !== "number" || input.minute < 0 || input.minute > 59))
   ) {
     return NextResponse.json({ error: "invalid_date" }, { status: 400 });
   }
 
+  const lang = pickLang(input.lang);
   const chart = computeSaju(input);
-  let sections = interpret(chart);
+  let sections = interpret(chart, lang);
   if (input.rewrite) sections = await rewriteSections(chart, sections);
 
-  const reading = await store.save({
-    input: {
-      year: input.year,
-      month: input.month,
-      day: input.day,
-      hour: typeof input.hour === "number" ? input.hour : null,
-    },
-    chart,
-    sections,
-    paid: false,
-  });
+  let id: string | null = null;
+  try {
+    const reading = await store.save({
+      input: {
+        year: input.year,
+        month: input.month,
+        day: input.day,
+        hour: typeof input.hour === "number" ? input.hour : null,
+        lang,
+      },
+      chart,
+      sections,
+      paid: false,
+    });
+    id = reading.id;
+  } catch (err) {
+    console.error("reading save failed (non-fatal):", err);
+  }
 
-  return NextResponse.json({
-    id: reading.id,
-    chart,
-    sections,
-    disclaimer: DISCLAIMER_TH,
-  });
+  return NextResponse.json({ id, chart, sections, lang, disclaimer: DISCLAIMER[lang] });
 }
