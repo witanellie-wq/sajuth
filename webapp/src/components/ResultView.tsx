@@ -24,6 +24,7 @@ export interface Reading {
   };
   sections: Section[];
   paid?: boolean;
+  lang?: string;
   disclaimer: string;
 }
 
@@ -79,10 +80,9 @@ export default function ResultView({ initial }: { initial: Reading }) {
   ];
 
   async function openPayment() {
-    if (!id) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/pay?id=${id}`);
+      const res = await fetch(`/api/pay?kind=reading${id ? `&id=${id}` : ""}`);
       const data = await res.json();
       setPay({ qr: data.qr, amount: data.amount });
     } finally {
@@ -91,14 +91,22 @@ export default function ResultView({ initial }: { initial: Reading }) {
   }
 
   // Phase-0 manual confirm. Phase 1: replaced by a PG webhook.
+  // Falls back to the stateless unlock when the reading has no stored id.
   async function confirmPaid() {
-    if (!id) return;
     setBusy(true);
     try {
+      const body = id
+        ? { id }
+        : {
+            kind: "reading",
+            lang: reading.lang,
+            dayMaster: chart.dayMaster,
+            sections: reading.sections,
+          };
       const res = await fetch("/api/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id }),
+        body: JSON.stringify(body),
       });
       const data = await res.json();
       if (data.sections) {
@@ -186,7 +194,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
             >
               {s.body}
             </p>
-            {s.locked && id && (
+            {s.locked && (
               <button
                 onClick={openPayment}
                 disabled={busy}

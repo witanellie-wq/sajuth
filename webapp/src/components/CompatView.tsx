@@ -46,6 +46,7 @@ export interface CompatData {
     bandTh: string;
     headline: string;
     rel: string;
+    lang?: string;
     sections: CompatSection[];
   };
   charts: {
@@ -72,10 +73,9 @@ export default function CompatView({ data }: { data: CompatData }) {
   }
 
   async function openPayment() {
-    if (!id) return;
     setBusy(true);
     try {
-      const res = await fetch(`/api/pay?id=${id}&kind=compat`);
+      const res = await fetch(`/api/pay?kind=compat${id ? `&id=${id}` : ""}`);
       const d = await res.json();
       setPay({ qr: d.qr, amount: d.amount });
     } finally {
@@ -84,14 +84,22 @@ export default function CompatView({ data }: { data: CompatData }) {
   }
 
   // Phase-0 manual confirm; Phase 1 becomes a PG webhook.
+  // Falls back to the stateless unlock when no stored id exists.
   async function confirmPaid() {
-    if (!id) return;
     setBusy(true);
     try {
+      const body = id
+        ? { id, kind: "compat" }
+        : {
+            kind: "compat",
+            rel: data.result.rel,
+            lang: data.result.lang,
+            sections,
+          };
       const res = await fetch("/api/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, kind: "compat" }),
+        body: JSON.stringify(body),
       });
       const d = await res.json();
       if (d.sections) {
@@ -145,7 +153,7 @@ export default function CompatView({ data }: { data: CompatData }) {
               >
                 {s.body}
               </p>
-              {s.locked && id && (
+              {s.locked && (
                 <button
                   onClick={openPayment}
                   disabled={busy}
