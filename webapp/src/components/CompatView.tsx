@@ -155,6 +155,92 @@ function PersonChart({
   );
 }
 
+type L3 = "th" | "en" | "ko";
+
+const CTXT: Record<L3, Record<string, string>> = {
+  th: {
+    unlockTitle: "💞 อ่านผลวิเคราะห์คู่ฉบับเต็มของคุณสองคน",
+    unlockSub: "ทุกจุดวิเคราะห์ + การแต่งงาน · ข้อควรระวัง · ระยะยาว",
+    unlockBtn: "🔓 ปลดล็อกผลวิเคราะห์ — 89 ฿",
+    dmBtn: "💬 สั่งซื้อทาง DM — 89 ฿",
+    packBtn: "🧿 คุ้มกว่า! ยันต์ 3 ชิ้น — 79 ฿",
+    packHint: "ซาจู 1 ยันต์ · ดวงคู่ 2 ยันต์",
+    codePh: "มียันต์แล้ว? ใส่รหัส",
+    useBtn: "ใช้ยันต์",
+    share: "📤 แชร์ผลคู่นี้",
+    copied: "คัดลอกลิงก์แล้ว ✓",
+    intimateChip: "🔥 เคมีเชิงลึก (속궁합)",
+    scanTitle: "สแกนเพื่อชำระ (PromptPay)",
+    payer: "ชื่อผู้โอน (ชื่อบนสลิป)",
+    email: "อีเมล (ไม่บังคับ)",
+    transferred: "โอนแล้ว แจ้งชำระเงิน",
+    close: "ปิด",
+    claimTitle: "⏳ รอการยืนยัน",
+    packCodeTitle: "🧿 รหัสยันต์ของคุณ",
+    claimBody: "ส่งสลิปโอนเงินพร้อมรหัสอ้างอิงทาง DM แล้วหน้านี้จะปลดล็อกภายในไม่กี่นาที",
+    dmSend: "💬 ส่งสลิปทาง Instagram DM",
+    check: "🔄 ตรวจสอบสถานะ",
+    notYet: "ยังไม่ได้รับการยืนยัน กรุณารอสักครู่",
+    packKeep: "เก็บรหัสนี้ไว้! ใช้ได้หลังยืนยันการโอน (ยันต์ 3 ชิ้น)",
+    amuletErr: "รหัสไม่ถูกต้องหรือยันต์ไม่พอ (ดวงคู่ใช้ 2 ยันต์)",
+    amuletReady: "✅ ยันต์พร้อมใช้แล้ว!",
+  },
+  en: {
+    unlockTitle: "💞 Read the full written analysis for your pair",
+    unlockSub: "every point + marriage · cautions · long-term",
+    unlockBtn: "🔓 Unlock full analysis — 89 ฿",
+    dmBtn: "💬 Order via DM — 89 ฿",
+    packBtn: "🧿 Best value! 3 amulets — 79 ฿",
+    packHint: "saju = 1 amulet · couple reading = 2",
+    codePh: "Have a code? Enter it",
+    useBtn: "Redeem",
+    share: "📤 Share this result",
+    copied: "Link copied ✓",
+    intimateChip: "🔥 Intimate chemistry",
+    scanTitle: "Scan to pay (PromptPay)",
+    payer: "Sender name (on the slip)",
+    email: "Email (optional)",
+    transferred: "I've transferred",
+    close: "Close",
+    claimTitle: "⏳ Awaiting confirmation",
+    packCodeTitle: "🧿 Your amulet code",
+    claimBody: "Send your transfer slip + reference code via DM — this page unlocks within minutes.",
+    dmSend: "💬 Send slip via Instagram DM",
+    check: "🔄 Check status",
+    notYet: "Not confirmed yet — please wait a moment",
+    packKeep: "Save this code! Active after transfer confirmation (3 amulets)",
+    amuletErr: "Invalid code or not enough amulets (couple reading costs 2)",
+    amuletReady: "✅ Amulets ready!",
+  },
+  ko: {
+    unlockTitle: "💞 두 사람의 전체 해석 보기",
+    unlockSub: "모든 분석 포인트 + 결혼운 · 주의점 · 장기 전망",
+    unlockBtn: "🔓 전체 해석 잠금 해제 — 89밧",
+    dmBtn: "💬 DM으로 주문 — 89밧",
+    packBtn: "🧿 알뜰팩! 부적 3개 — 79밧",
+    packHint: "사주 1개 · 궁합 2개 차감",
+    codePh: "부적코드 입력",
+    useBtn: "사용",
+    share: "📤 결과 공유하기",
+    copied: "링크 복사됨 ✓",
+    intimateChip: "🔥 속궁합",
+    scanTitle: "PromptPay QR 스캔 결제",
+    payer: "입금자명 (슬립에 찍힌 이름)",
+    email: "이메일 (선택)",
+    transferred: "이체 완료, 확인 요청",
+    close: "닫기",
+    claimTitle: "⏳ 입금 확인 대기 중",
+    packCodeTitle: "🧿 내 부적코드",
+    claimBody: "이체 슬립과 참조코드를 DM으로 보내주시면 몇 분 안에 이 페이지가 열려요.",
+    dmSend: "💬 인스타 DM으로 슬립 보내기",
+    check: "🔄 상태 확인",
+    notYet: "아직 확인 전이에요 — 잠시만 기다려주세요",
+    packKeep: "이 코드를 꼭 저장하세요! 입금 확인 후 사용 가능 (부적 3개)",
+    amuletErr: "코드가 잘못됐거나 부적이 부족해요 (궁합은 2개 차감)",
+    amuletReady: "✅ 부적 사용 가능!",
+  },
+};
+
 export default function CompatView({ data }: { data: CompatData }) {
   const { id, charts, profiles, relationship, disclaimer } = data;
   const [sections] = useState<CompatSection[]>(data.result.sections);
@@ -168,6 +254,8 @@ export default function CompatView({ data }: { data: CompatData }) {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const { score, intimate, bandTh, headline } = data.result;
+  const uiLang: L3 = data.result.lang === "en" ? "en" : data.result.lang === "ko" ? "ko" : "th";
+  const tt = CTXT[uiLang];
 
   async function redeemAmulet(code: string) {
     if (!id || !code.trim()) return;
@@ -183,7 +271,7 @@ export default function CompatView({ data }: { data: CompatData }) {
       if (d.ok) {
         window.location.href = `/compat/result/${id}`;
       } else {
-        setAmuletMsg("รหัสไม่ถูกต้องหรือยันต์ไม่พอ (ดวงคู่ใช้ 2 ยันต์) · Invalid code or not enough amulets");
+        setAmuletMsg(tt.amuletErr);
       }
     } finally {
       setBusy(false);
@@ -259,9 +347,9 @@ export default function CompatView({ data }: { data: CompatData }) {
         if (d.paid && id) {
           await redeemAmulet(claim.ref);
         } else if (d.paid) {
-          setClaim((c) => (c ? { ...c, msg: "✅ ยันต์พร้อมใช้แล้ว! · Amulets ready" } : c));
+          setClaim((c) => (c ? { ...c, msg: tt.amuletReady } : c));
         } else {
-          setClaim((c) => (c ? { ...c, msg: "ยังไม่ได้รับการยืนยัน · Not confirmed yet" } : c));
+          setClaim((c) => (c ? { ...c, msg: tt.notYet } : c));
         }
         return;
       }
@@ -272,7 +360,7 @@ export default function CompatView({ data }: { data: CompatData }) {
         window.location.href = `/compat/result/${id}`;
       } else {
         setClaim((c) =>
-          c ? { ...c, msg: "ยังไม่ได้รับการยืนยัน · Not confirmed yet — please wait a moment" } : c
+          c ? { ...c, msg: tt.notYet } : c
         );
       }
     } finally {
@@ -296,7 +384,7 @@ export default function CompatView({ data }: { data: CompatData }) {
         <div className="mt-1 text-lg font-semibold text-ink">{bandTh}</div>
         {typeof intimate === "number" && (
           <div className="mt-1 inline-block rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600">
-            🔥 เคมีเชิงลึก (속궁합) {intimate}%
+            {tt.intimateChip} {intimate}%
           </div>
         )}
         <p className="mt-1 text-sm text-ink/70">{headline}</p>
@@ -311,7 +399,7 @@ export default function CompatView({ data }: { data: CompatData }) {
             onClick={share}
             className="mt-4 w-full rounded-xl border border-peach/60 py-2 text-sm text-rosewood transition hover:bg-peach/20"
           >
-            {copied ? "คัดลอกลิงก์แล้ว ✓ Copied" : "📤 แชร์ผลคู่นี้ · Share this result"}
+            {copied ? tt.copied : tt.share}
           </button>
         )}
       </div>
@@ -319,12 +407,8 @@ export default function CompatView({ data }: { data: CompatData }) {
       {/* Full written analysis sits behind ONE 89฿ unlock */}
       {sections.some((s) => s.locked) && (
         <div className="mt-4 rounded-3xl bg-gradient-to-r from-rose-100 via-amber-50 to-yellow-100 p-5 text-center ring-1 ring-amber-200">
-          <p className="text-sm font-semibold text-ink">
-            💞 อ่านผลวิเคราะห์คู่ฉบับเต็มของคุณสองคน
-          </p>
-          <p className="mt-0.5 text-xs text-ink/60">
-            Read the full written analysis for your pair — every point + marriage · cautions · long-term
-          </p>
+          <p className="text-sm font-semibold text-ink">{tt.unlockTitle}</p>
+          <p className="mt-0.5 text-xs text-ink/60">{tt.unlockSub}</p>
           {id ? (
             <>
               <button
@@ -332,7 +416,7 @@ export default function CompatView({ data }: { data: CompatData }) {
                 disabled={busy}
                 className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
               >
-                🔓 ปลดล็อกผลวิเคราะห์ · Unlock full analysis — 89 ฿
+                {tt.unlockBtn}
               </button>
               <div className="mt-3 border-t border-amber-200 pt-3">
                 <button
@@ -340,16 +424,14 @@ export default function CompatView({ data }: { data: CompatData }) {
                   disabled={busy}
                   className="rounded-xl border-2 border-rosewood bg-white px-5 py-2 text-sm font-semibold text-rosewood disabled:opacity-50"
                 >
-                  🧿 คุ้มกว่า! ยันต์ 3 ชิ้น — 79 ฿
+                  {tt.packBtn}
                 </button>
-                <p className="mt-1 text-[10px] text-ink/50">
-                  ซาจู 1 ยันต์ · ดวงคู่ 2 ยันต์ (사주1 · 궁합2)
-                </p>
+                <p className="mt-1 text-[10px] text-ink/50">{tt.packHint}</p>
                 <div className="mx-auto mt-2 flex max-w-xs gap-2">
                   <input
                     value={amuletInput}
                     onChange={(e) => setAmuletInput(e.target.value.toUpperCase())}
-                    placeholder="มียันต์แล้ว? ใส่รหัส"
+                    placeholder={tt.codePh}
                     className="min-w-0 flex-1 rounded-lg border border-peach/60 bg-white px-3 py-1.5 text-center font-mono text-xs outline-none focus:border-rosewood"
                   />
                   <button
@@ -357,7 +439,7 @@ export default function CompatView({ data }: { data: CompatData }) {
                     disabled={busy || !amuletInput.trim()}
                     className="rounded-lg bg-rosewood px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
                   >
-                    ใช้ยันต์
+                    {tt.useBtn}
                   </button>
                 </div>
                 {amuletMsg && <p className="mt-1 text-[10px] text-red-500">{amuletMsg}</p>}
@@ -368,7 +450,7 @@ export default function CompatView({ data }: { data: CompatData }) {
               href="https://instagram.com/duangsaju"
               className="mt-3 inline-block rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white"
             >
-              💬 สั่งซื้อทาง DM · Order via DM — 89 ฿
+              {tt.dmBtn}
             </a>
           )}
         </div>
@@ -396,13 +478,13 @@ export default function CompatView({ data }: { data: CompatData }) {
       {pay && (
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-xs rounded-3xl bg-white p-6 text-center">
-            <h3 className="font-semibold text-rosewood">สแกนเพื่อชำระ · Scan to pay</h3>
+            <h3 className="font-semibold text-rosewood">{tt.scanTitle}</h3>
             <p className="mt-1 text-sm text-ink/70">PromptPay · {pay.amount} THB</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pay.qr} alt="PromptPay QR" className="mx-auto my-3 w-56" />
             <div className="mt-1 space-y-2 text-left">
               <label className="block text-xs text-ink/60">
-                ชื่อผู้โอน · 입금자명 · Sender name
+                {tt.payer}
                 <input
                   value={payerName}
                   onChange={(e) => setPayerName(e.target.value)}
@@ -411,7 +493,7 @@ export default function CompatView({ data }: { data: CompatData }) {
                 />
               </label>
               <label className="block text-xs text-ink/60">
-                อีเมล · Email (ไม่บังคับ · optional)
+                {tt.email}
                 <input
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
@@ -425,10 +507,10 @@ export default function CompatView({ data }: { data: CompatData }) {
               disabled={busy || !payerName.trim()}
               className="mt-3 w-full rounded-xl bg-rosewood py-2.5 font-semibold text-white disabled:opacity-50"
             >
-              โอนแล้ว แจ้งชำระเงิน · I've transferred
+              {tt.transferred}
             </button>
             <button onClick={() => setPay(null)} className="mt-2 text-xs text-ink/40">
-              ปิด · Close
+              {tt.close}
             </button>
           </div>
         </div>
@@ -438,14 +520,10 @@ export default function CompatView({ data }: { data: CompatData }) {
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-xs rounded-3xl bg-white p-6 text-center">
             <h3 className="font-semibold text-rosewood">
-              {claim.isPack ? "🧿 รหัสยันต์ของคุณ · Your amulet code" : "⏳ รอการยืนยัน · Awaiting confirmation"}
+              {claim.isPack ? tt.packCodeTitle : tt.claimTitle}
             </h3>
             <p className="mt-2 text-xs leading-relaxed text-ink/70">
-              ส่งสลิปโอนเงินพร้อมรหัสอ้างอิงด้านล่างทาง DM
-              แล้วหน้านี้จะปลดล็อกภายในไม่กี่นาที
-              <span className="mt-1 block text-ink/50">
-                Send your transfer slip + the reference code via DM — this page unlocks within minutes.
-              </span>
+              {tt.claimBody}
             </p>
             <button
               onClick={() => {
@@ -457,25 +535,25 @@ export default function CompatView({ data }: { data: CompatData }) {
             </button>
             {claim.isPack && (
               <p className="mt-1 text-[10px] text-ink/50">
-                เก็บรหัสนี้ไว้! ใช้ได้หลังยืนยันการโอน (ยันต์ 3 ชิ้น)
+                {tt.packKeep}
               </p>
             )}
             <a
               href="https://instagram.com/duangsaju"
               className="mt-2 block w-full rounded-xl bg-rosewood py-2.5 text-sm font-semibold text-white"
             >
-              💬 ส่งสลิปทาง Instagram DM
+              {tt.dmSend}
             </a>
             <button
               onClick={checkStatus}
               disabled={busy}
               className="mt-2 w-full rounded-xl border border-peach/60 py-2 text-sm text-rosewood disabled:opacity-50"
             >
-              🔄 ตรวจสอบสถานะ · Check status
+              {tt.check}
             </button>
             {claim.msg && <p className="mt-2 text-xs text-amber-600">{claim.msg}</p>}
             <button onClick={() => setClaim(null)} className="mt-2 text-xs text-ink/40">
-              ปิด · Close
+              {tt.close}
             </button>
           </div>
         </div>
