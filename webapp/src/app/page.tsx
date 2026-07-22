@@ -8,6 +8,11 @@ type UiLang = "th" | "en" | "ko";
 
 const L: Record<UiLang, Record<string, string>> = {
   th: {
+    formTitle: "✨ ใส่ข้อมูลวันเกิด",
+    name: "ชื่อเล่น · Name",
+    gender: "เพศ · Gender",
+    female: "หญิง",
+    male: "ชาย",
     tagline: "ดูดวงสไตล์เกาหลี (사주) จากวันเดือนปีเกิด — รู้ผลใน 1 นาที",
     compat: "💞 ดูความเข้ากันกับคนพิเศษ (궁합)",
     year: "ปีเกิด (ค.ศ.) · Year",
@@ -22,6 +27,11 @@ const L: Record<UiLang, Record<string, string>> = {
     error: "คำนวณไม่สำเร็จ กรุณาตรวจสอบวันเกิด",
   },
   en: {
+    formTitle: "✨ Your birth info",
+    name: "Name (optional)",
+    gender: "Gender",
+    female: "F",
+    male: "M",
     tagline: "Korean-style saju (사주) reading from your birth date — results in 1 minute",
     compat: "💞 Couple compatibility (궁합)",
     year: "Birth year",
@@ -36,6 +46,11 @@ const L: Record<UiLang, Record<string, string>> = {
     error: "Calculation failed — please check the birth date",
   },
   ko: {
+    formTitle: "✨ 생년월일 정보 입력",
+    name: "이름 (선택)",
+    gender: "성별",
+    female: "여성",
+    male: "남성",
     tagline: "생년월일로 보는 한국식 사주 — 1분 안에 결과",
     compat: "💞 궁합 보러가기",
     year: "출생연도 (서기)",
@@ -55,6 +70,8 @@ export default function Home() {
   const [lang, setLang] = useState<UiLang>("th");
   const t = L[lang];
   const [form, setForm] = useState({
+    name: "",
+    gender: "",
     year: "",
     month: "",
     day: "",
@@ -77,6 +94,8 @@ export default function Home() {
         month: Number(form.month),
         day: Number(form.day),
         lang: "th", // report content is always Thai
+        name: form.name,
+        gender: form.gender,
       };
       if (!form.unknownTime && form.hour !== "") {
         body.hour = Number(form.hour);
@@ -128,8 +147,42 @@ export default function Home() {
         </a>
       </header>
 
-      <form onSubmit={onSubmit} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-peach/40">
-        <div className="grid grid-cols-3 gap-3">
+      <form
+        onSubmit={onSubmit}
+        className="overflow-hidden rounded-2xl border-2 border-ink/80 bg-white shadow-[5px_5px_0_0_rgba(58,42,51,0.85)]"
+      >
+        <div className="flex items-center justify-between border-b-2 border-ink/80 bg-lavender px-4 py-2.5">
+          <span className="font-bold text-ink">{t.formTitle}</span>
+          <span>🔮</span>
+        </div>
+        <div className="p-5">
+        <div className="grid grid-cols-2 gap-3">
+          <Field label={t.name} placeholder="มายด์" value={form.name} onChange={(v) => setForm({ ...form, name: v })} text />
+          <div className="block text-sm">
+            <span className="mb-1 block text-ink/70">{t.gender}</span>
+            <div className="flex gap-2">
+              {[
+                ["F", "👩 " + t.female],
+                ["M", "👨 " + t.male],
+              ].map(([v, txt]) => (
+                <button
+                  key={v}
+                  type="button"
+                  onClick={() => setForm({ ...form, gender: form.gender === v ? "" : v })}
+                  className={
+                    "flex-1 rounded-lg border-2 py-2 text-sm font-semibold transition " +
+                    (form.gender === v
+                      ? "border-ink/80 bg-peach text-ink"
+                      : "border-ink/20 bg-white text-ink/50")
+                  }
+                >
+                  {txt}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        <div className="mt-4 grid grid-cols-3 gap-3">
           <Field label={t.year} placeholder="1996" value={form.year} onChange={(v) => setForm({ ...form, year: v })} />
           <Field label={t.month} placeholder="5" value={form.month} onChange={(v) => setForm({ ...form, month: v })} />
           <Field label={t.day} placeholder="15" value={form.day} onChange={(v) => setForm({ ...form, day: v })} />
@@ -170,6 +223,7 @@ export default function Home() {
           {loading ? t.loading : t.submit}
         </button>
         {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
+        </div>
       </form>
 
       {result && <ResultView initial={result} />}
@@ -182,13 +236,14 @@ function Field(props: {
   placeholder: string;
   value: string;
   disabled?: boolean;
+  text?: boolean;
   onChange: (v: string) => void;
 }) {
   return (
     <label className="block text-sm">
       <span className="mb-1 block text-ink/70">{props.label}</span>
       <input
-        inputMode="numeric"
+        inputMode={props.text ? "text" : "numeric"}
         placeholder={props.placeholder}
         value={props.value}
         disabled={props.disabled}

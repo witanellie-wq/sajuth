@@ -175,7 +175,7 @@ export default function CompatView({ data }: { data: CompatData }) {
   // Report the transfer → reference code; unlock only after the owner
   // verifies the credit (admin confirm) — then the share page renders open.
   async function submitClaim() {
-    if (!id || !payerName.trim() || !contact.trim()) return;
+    if (!id || !payerName.trim()) return;
     setBusy(true);
     try {
       const res = await fetch("/api/pay", {
@@ -316,18 +316,18 @@ export default function CompatView({ data }: { data: CompatData }) {
                 />
               </label>
               <label className="block text-xs text-ink/60">
-                อีเมล / LINE / IG · Contact (รับผลทางนี้)
+                อีเมล · Email (ไม่บังคับ · optional)
                 <input
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  placeholder="you@email.com หรือ @line_id"
+                  placeholder="you@email.com"
                   className="mt-1 w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 text-sm outline-none focus:border-rosewood"
                 />
               </label>
             </div>
             <button
               onClick={submitClaim}
-              disabled={busy || !payerName.trim() || !contact.trim()}
+              disabled={busy || !payerName.trim()}
               className="mt-3 w-full rounded-xl bg-rosewood py-2.5 font-semibold text-white disabled:opacity-50"
             >
               โอนแล้ว แจ้งชำระเงิน · I've transferred

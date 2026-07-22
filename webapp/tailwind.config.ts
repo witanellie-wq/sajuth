@@ -5,10 +5,11 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        cream: "#FBF7F0",
-        peach: "#F7D9C4",
-        rosewood: "#8C5B5B",
-        ink: "#3A2E2E",
+        cream: "#FFF7FB", // soft pink paper
+        peach: "#F8CFE3", // pink accent surfaces
+        rosewood: "#E85D9E", // main pink
+        lavender: "#CBB9F6", // header bars
+        ink: "#3A2A33",
       },
       fontFamily: {
         thai: ['"Noto Sans Thai"', '"IBM Plex Thai"', "sans-serif"],

@@ -14,6 +14,7 @@ interface Section {
 }
 export interface Reading {
   id: string | null;
+  name?: string;
   chart: {
     year: Pillar;
     month: Pillar;
@@ -97,7 +98,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
   // after the owner verifies the bank credit (admin confirm) — the share page
   // then renders unlocked.
   async function submitClaim() {
-    if (!id || !payerName.trim() || !contact.trim()) return;
+    if (!id || !payerName.trim()) return;
     setBusy(true);
     try {
       const res = await fetch("/api/pay", {
@@ -150,7 +151,8 @@ export default function ResultView({ initial }: { initial: Reading }) {
       {/* Four Pillars grid (사주 원국) — 시일월년 order */}
       <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
         <h2 className="mb-3 text-center text-sm font-semibold text-rosewood">
-          🧧 ผังดวงซาจูของคุณ · Your Four Pillars (원국)
+          🧧 {reading.name ? `ผังดวงซาจูของ ${reading.name}` : "ผังดวงซาจูของคุณ"} · Four
+          Pillars (원국)
         </h2>
         <div className="grid grid-cols-4 gap-2 text-center">
           {pillars.map(({ label, p, isDay }) => (
@@ -266,18 +268,18 @@ export default function ResultView({ initial }: { initial: Reading }) {
                 />
               </label>
               <label className="block text-xs text-ink/60">
-                อีเมล / LINE / IG · Contact (รับผลทางนี้)
+                อีเมล · Email (ไม่บังคับ · optional)
                 <input
                   value={contact}
                   onChange={(e) => setContact(e.target.value)}
-                  placeholder="you@email.com หรือ @line_id"
+                  placeholder="you@email.com"
                   className="mt-1 w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 text-sm outline-none focus:border-rosewood"
                 />
               </label>
             </div>
             <button
               onClick={submitClaim}
-              disabled={busy || !payerName.trim() || !contact.trim()}
+              disabled={busy || !payerName.trim()}
               className="mt-3 w-full rounded-xl bg-rosewood py-2.5 font-semibold text-white disabled:opacity-50"
             >
               โอนแล้ว แจ้งชำระเงิน · I've transferred

@@ -11,7 +11,7 @@ import { DISCLAIMER, pickLang } from "@/lib/i18n";
 // the reading still returns (id: null) so a storage misconfig never breaks the
 // core product — only share links.
 export async function POST(req: NextRequest) {
-  let input: SajuInput & { rewrite?: boolean; lang?: string };
+  let input: SajuInput & { rewrite?: boolean; lang?: string; name?: string; gender?: string };
   try {
     input = await req.json();
   } catch {
@@ -41,6 +41,9 @@ export async function POST(req: NextRequest) {
   let sections = interpret(chart, lang);
   if (input.rewrite) sections = await rewriteSections(chart, sections);
 
+  const name = typeof input.name === "string" ? input.name.slice(0, 40) : "";
+  const gender = input.gender === "F" || input.gender === "M" ? input.gender : "";
+
   let id: string | null = null;
   try {
     const reading = await store.save({
@@ -50,6 +53,8 @@ export async function POST(req: NextRequest) {
         day: input.day,
         hour: typeof input.hour === "number" ? input.hour : null,
         lang,
+        ...(name ? { name } : {}),
+        ...(gender ? { gender } : {}),
       },
       chart,
       sections,
@@ -60,5 +65,5 @@ export async function POST(req: NextRequest) {
     console.error("reading save failed (non-fatal):", err);
   }
 
-  return NextResponse.json({ id, chart, sections, lang, disclaimer: DISCLAIMER[lang] });
+  return NextResponse.json({ id, name, chart, sections, lang, disclaimer: DISCLAIMER[lang] });
 }

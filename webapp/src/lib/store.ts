@@ -19,7 +19,15 @@ export interface Claim {
 export interface StoredReading {
   id: string;
   createdAt: string;
-  input: { year: number; month: number; day: number; hour: number | null; lang?: string };
+  input: {
+    year: number;
+    month: number;
+    day: number;
+    hour: number | null;
+    lang?: string;
+    name?: string;
+    gender?: string;
+  };
   chart: SajuChart;
   sections: ReportSection[];
   paid: boolean;

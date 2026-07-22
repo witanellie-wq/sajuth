@@ -44,10 +44,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
   if (!body.id) return NextResponse.json({ error: "missing_id" }, { status: 400 });
+  // Keep friction minimal: only the bank sender name is required (needed to
+  // match the credit); email is optional.
   const payerName = (body.payerName ?? "").trim().slice(0, 60);
   const contact = (body.contact ?? "").trim().slice(0, 120);
-  if (!payerName || !contact) {
-    return NextResponse.json({ error: "missing_claim_info" }, { status: 400 });
+  if (!payerName) {
+    return NextResponse.json({ error: "missing_payer_name" }, { status: 400 });
   }
   const kind: Kind = body.kind === "compat" ? "compat" : "reading";
 

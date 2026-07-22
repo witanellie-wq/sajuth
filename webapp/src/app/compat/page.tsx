@@ -113,7 +113,17 @@ export default function Compat() {
         </p>
       </header>
 
-      <form onSubmit={onSubmit} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-peach/40">
+      <form
+        onSubmit={onSubmit}
+        className="overflow-hidden rounded-2xl border-2 border-ink/80 bg-white shadow-[5px_5px_0_0_rgba(58,42,51,0.85)]"
+      >
+        <div className="flex items-center justify-between border-b-2 border-ink/80 bg-lavender px-4 py-2.5">
+          <span className="font-bold text-ink">
+            {tr("✨ ใส่ข้อมูลของทั้งคู่", "✨ Both of your birth info", "✨ 두 사람 정보 입력")}
+          </span>
+          <span>💞</span>
+        </div>
+        <div className="p-5">
         {/* Relationship */}
         <label className="block text-sm">
           <span className="mb-1 block text-ink/70">
@@ -156,6 +166,7 @@ export default function Compat() {
           {loading ? tr("กำลังคำนวณ…", "Calculating…", "계산 중…") : tr("ดูความเข้ากัน · Check compatibility", "Check compatibility", "궁합 보기")}
         </button>
         {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
+        </div>
       </form>
 
       {res && <CompatView data={res} />}
