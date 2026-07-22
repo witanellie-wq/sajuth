@@ -9,14 +9,8 @@ import type { SajuChart, Element } from "./saju";
 import { relationTo, isSupport, generatedBy, generates, controls, ELEMENT_TH } from "./elements";
 import type { Lang } from "./i18n";
 
-// Six classical bands: 태약 · 신약 · 중화신약 · 중화신강 · 신강 · 태강.
-export type Band =
-  | "taegang"
-  | "singang"
-  | "junghwa_singang"
-  | "junghwa_sinyak"
-  | "sinyak"
-  | "taeyak";
+// Five classical bands: 극신약 · 신약 · 균형(中和) · 신강 · 태강.
+export type Band = "taegang" | "singang" | "junghwa" | "sinyak" | "geuksinyak";
 
 export interface Strength {
   band: Band;
@@ -41,26 +35,23 @@ const BAND_LABEL: Record<Lang, Record<Band, string>> = {
   th: {
     taegang: "พลังธาตุแข็งแกร่งมาก (태강)",
     singang: "พลังธาตุแข็ง (신강)",
-    junghwa_singang: "สมดุลค่อนไปทางแข็ง (중화신강)",
-    junghwa_sinyak: "สมดุลค่อนไปทางอ่อน (중화신약)",
+    junghwa: "สมดุลพอดี (균형·中和)",
     sinyak: "พลังธาตุอ่อน (신약)",
-    taeyak: "พลังธาตุอ่อนมาก (태약)",
+    geuksinyak: "พลังธาตุอ่อนมาก (극신약)",
   },
   en: {
     taegang: "Very Strong Day Master (태강)",
     singang: "Strong Day Master (신강)",
-    junghwa_singang: "Balanced, Leaning Strong (중화신강)",
-    junghwa_sinyak: "Balanced, Leaning Gentle (중화신약)",
+    junghwa: "Balanced (中和)",
     sinyak: "Gentle Day Master (신약)",
-    taeyak: "Very Gentle Day Master (태약)",
+    geuksinyak: "Very Gentle Day Master (극신약)",
   },
   ko: {
     taegang: "태강 — 일간이 매우 강함",
     singang: "신강 — 일간이 강함",
-    junghwa_singang: "중화신강 — 균형 속 강한 편",
-    junghwa_sinyak: "중화신약 — 균형 속 약한 편",
+    junghwa: "균형(中和) — 강약이 고르게 잡힘",
     sinyak: "신약 — 일간이 약함",
-    taeyak: "태약 — 일간이 매우 약함",
+    geuksinyak: "극신약 — 일간이 매우 약함",
   },
 };
 
@@ -204,14 +195,13 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
     notes.push(NOTE_TEXT.bound[lang]);
   }
 
-  // Six classical bands.
+  // Five classical bands.
   let band: Band;
-  if (ratio >= 0.8) band = "taegang";
-  else if (ratio >= 0.62) band = "singang";
-  else if (ratio >= 0.5) band = "junghwa_singang";
-  else if (ratio >= 0.38) band = "junghwa_sinyak";
+  if (ratio >= 0.78) band = "taegang";
+  else if (ratio >= 0.58) band = "singang";
+  else if (ratio >= 0.42) band = "junghwa";
   else if (ratio >= 0.22) band = "sinyak";
-  else band = "taeyak";
+  else band = "geuksinyak";
 
   // 용신 direction: charts leaning strong want draining elements; charts
   // leaning gentle want supporting ones.
@@ -233,7 +223,7 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
   const favList = favorable.map((e) => elName[e]).join(lang === "th" ? " และ " : lang === "ko" ? "·" : " and ");
 
   const isStrong = band === "taegang" || band === "singang";
-  const isJunghwa = band === "junghwa_singang" || band === "junghwa_sinyak";
+  const isJunghwa = band === "junghwa";
 
   let body: string;
   if (lang === "ko") {
