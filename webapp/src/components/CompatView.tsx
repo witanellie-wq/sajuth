@@ -40,6 +40,7 @@ export interface CompatData {
   charts: { a: FullChart; b: FullChart };
   result: {
     score: number;
+    intimate?: number;
     bandTh: string;
     headline: string;
     rel: string;
@@ -143,11 +144,12 @@ function PersonChart({
 
 export default function CompatView({ data }: { data: CompatData }) {
   const { id, charts, profiles, relationship, disclaimer } = data;
-  const [sections, setSections] = useState<CompatSection[]>(data.result.sections);
+  const [sections] = useState<CompatSection[]>(data.result.sections);
   const [pay, setPay] = useState<{ qr: string; amount: number } | null>(null);
+  const [claim, setClaim] = useState<{ ref: string; msg?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
-  const { score, bandTh, headline } = data.result;
+  const { score, intimate, bandTh, headline } = data.result;
 
   function share() {
     if (!id) return;
@@ -168,23 +170,43 @@ export default function CompatView({ data }: { data: CompatData }) {
     }
   }
 
-  // Phase-0 manual confirm; Phase 1 becomes a PG webhook.
-  // Falls back to the stateless unlock when no stored id exists.
-  async function confirmPaid() {
+  // Report the transfer → reference code; unlock only after the owner
+  // verifies the credit (admin confirm) — then the share page renders open.
+  async function submitClaim() {
+    if (!id) return;
     setBusy(true);
     try {
-      const body = id
-        ? { id, kind: "compat" }
-        : { kind: "compat", rel: data.result.rel, lang: data.result.lang, sections };
       const res = await fetch("/api/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ id, kind: "compat" }),
       });
       const d = await res.json();
-      if (d.sections) {
-        setSections(d.sections);
+      if (d.paid) {
+        window.location.href = `/compat/result/${id}`;
+        return;
+      }
+      if (d.ref) {
         setPay(null);
+        setClaim({ ref: d.ref });
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function checkStatus() {
+    if (!id) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/pay?kind=compat&id=${id}`);
+      const d = await res.json();
+      if (d.paid) {
+        window.location.href = `/compat/result/${id}`;
+      } else {
+        setClaim((c) =>
+          c ? { ...c, msg: "ยังไม่ได้รับการยืนยัน · Not confirmed yet — please wait a moment" } : c
+        );
       }
     } finally {
       setBusy(false);
@@ -205,6 +227,11 @@ export default function CompatView({ data }: { data: CompatData }) {
           <span className="text-3xl">%</span>
         </div>
         <div className="mt-1 text-lg font-semibold text-ink">{bandTh}</div>
+        {typeof intimate === "number" && (
+          <div className="mt-1 inline-block rounded-full bg-rose-100 px-3 py-1 text-xs font-semibold text-rose-600">
+            🔥 เคมีเชิงลึก (속궁합) {intimate}%
+          </div>
+        )}
         <p className="mt-1 text-sm text-ink/70">{headline}</p>
 
         <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -231,13 +258,22 @@ export default function CompatView({ data }: { data: CompatData }) {
           <p className="mt-0.5 text-xs text-ink/60">
             Read the full written analysis for your pair — every point + marriage · cautions · long-term
           </p>
-          <button
-            onClick={openPayment}
-            disabled={busy}
-            className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
-          >
-            🔓 ปลดล็อกผลวิเคราะห์ · Unlock full analysis — 89 ฿
-          </button>
+          {id ? (
+            <button
+              onClick={openPayment}
+              disabled={busy}
+              className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+            >
+              🔓 ปลดล็อกผลวิเคราะห์ · Unlock full analysis — 89 ฿
+            </button>
+          ) : (
+            <a
+              href="https://instagram.com/duangsaju"
+              className="mt-3 inline-block rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white"
+            >
+              💬 สั่งซื้อทาง DM · Order via DM — 89 ฿
+            </a>
+          )}
         </div>
       )}
 
@@ -271,13 +307,53 @@ export default function CompatView({ data }: { data: CompatData }) {
               หลังโอนแล้ว กดปุ่มด้านล่างเพื่อปลดล็อก · After transferring, tap below to unlock
             </p>
             <button
-              onClick={confirmPaid}
+              onClick={submitClaim}
               disabled={busy}
               className="mt-3 w-full rounded-xl bg-rosewood py-2.5 font-semibold text-white disabled:opacity-50"
             >
-              ฉันชำระเงินแล้ว · I've paid
+              โอนแล้ว แจ้งชำระเงิน · I've transferred
             </button>
             <button onClick={() => setPay(null)} className="mt-2 text-xs text-ink/40">
+              ปิด · Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {claim && (
+        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-xs rounded-3xl bg-white p-6 text-center">
+            <h3 className="font-semibold text-rosewood">⏳ รอการยืนยัน · Awaiting confirmation</h3>
+            <p className="mt-2 text-xs leading-relaxed text-ink/70">
+              ส่งสลิปโอนเงินพร้อมรหัสอ้างอิงด้านล่างทาง DM
+              แล้วหน้านี้จะปลดล็อกภายในไม่กี่นาที
+              <span className="mt-1 block text-ink/50">
+                Send your transfer slip + the reference code via DM — this page unlocks within minutes.
+              </span>
+            </p>
+            <button
+              onClick={() => {
+                navigator.clipboard?.writeText(claim.ref);
+              }}
+              className="mt-3 w-full rounded-lg bg-cream px-3 py-2 font-mono text-xs text-ink"
+            >
+              {claim.ref.slice(0, 8).toUpperCase()}… 📋 คัดลอก · Copy
+            </button>
+            <a
+              href="https://instagram.com/duangsaju"
+              className="mt-2 block w-full rounded-xl bg-rosewood py-2.5 text-sm font-semibold text-white"
+            >
+              💬 ส่งสลิปทาง Instagram DM
+            </a>
+            <button
+              onClick={checkStatus}
+              disabled={busy}
+              className="mt-2 w-full rounded-xl border border-peach/60 py-2 text-sm text-rosewood disabled:opacity-50"
+            >
+              🔄 ตรวจสอบสถานะ · Check status
+            </button>
+            {claim.msg && <p className="mt-2 text-xs text-amber-600">{claim.msg}</p>}
+            <button onClick={() => setClaim(null)} className="mt-2 text-xs text-ink/40">
               ปิด · Close
             </button>
           </div>

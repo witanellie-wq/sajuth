@@ -18,7 +18,8 @@ export interface CompatSection {
 }
 
 export interface Compatibility {
-  score: number; // 0..100
+  score: number; // 0..99 overall
+  intimate: number; // 0..99 속궁합 subscore (teaser shown free, details paid)
   bandTh: string; // localized band label (name kept for back-compat)
   headline: string;
   rel: string; // day-master relation key — drives premium content
@@ -107,6 +108,43 @@ const NOTES: Record<string, LText> = {
     th: "มีคู่ ‘암합(暗合)’ ซ่อนอยู่หลายตำแหน่ง — แรงดึงดูดลึก ๆ ที่อธิบายไม่ถูก คนนอกมองไม่เห็น แต่ใจของทั้งคู่รู้ดี",
     en: "Several hidden bonds (암합) run between your charts — a quiet, unexplainable pull that outsiders can't see but you both feel.",
   },
+  onui: {
+    th: "เดือนเกิด (월지) ของทั้งคู่เป็นราศีเดียวกัน — สบายใจเหมือนพี่น้อง (오누이) เข้าใจกันง่ายมาก แต่ประกายโรแมนติกจางเร็ว ต้องตั้งใจเดตกันต่อเนื่อง",
+    en: "You share the same birth-month branch — comfortable like siblings (오누이). Easy understanding, but the romantic spark fades fast; keep dating on purpose.",
+  },
+};
+
+// 속궁합 (intimate chemistry) signal texts — assembled into the paid section.
+const INTIMATE_TEXT = {
+  intro: {
+    th: (n: number) => `คะแนนเคมีเชิงลึก (속궁합) ของคู่คุณคือ ${n}%`,
+    en: (n: number) => `Your intimate-chemistry (속궁합) score is ${n}%.`,
+  },
+  chong: {
+    th: "แรงปะทะระหว่างเสาวัน/เสาเวลา (沖) กลายเป็นแรงดึงดูดทางกายที่รุนแรง — ยิ่งใกล้กันยิ่งร้อนแรง ทะเลาะแล้วยิ่งคิดถึง",
+    en: "The clash (沖) between your day/hour pillars turns into fierce physical chemistry — the closer you get, the hotter it burns; even fights end in longing.",
+  },
+  amhap: {
+    th: "암합 หลายตำแหน่งสร้างเคมีลับที่คนนอกมองไม่เห็น — สบตากันนิดเดียวก็รู้ใจ สัมผัสเดียวก็เข้าใจ",
+    en: "Multiple hidden bonds (암합) create a secret chemistry outsiders can't see — one glance, one touch, and you both know.",
+  },
+  jeongim: {
+    th: "ในดวงมี ‘정임합(丁壬)’ — คู่ธาตุแห่งแรงดึงดูดต้านไม่ได้ตามตำรา เสน่หาลึก เหนียวแน่น และหวานเป็นพิเศษ",
+    en: "Your charts carry the 丁壬 combination — the textbook bond of irresistible attraction. Deep, clinging, unusually sweet.",
+  },
+  water: {
+    th: "เสาวัน/เสาปีของทั้งคู่รวมกันกลายเป็นธาตุน้ำ (합화수) — ธาตุแห่งความใกล้ชิด อารมณ์ และความลึกซึ้งทางกาย คู่แบบนี้เคมีตอนอยู่กันสองคนดีเป็นพิเศษ",
+    en: "Your day/year branches combine into Water (합화수) — the element of closeness, emotion, and physical depth. Alone together, your chemistry peaks.",
+  },
+  base: {
+    th: "เคมีเชิงลึกของคู่คุณอยู่ในระดับอบอุ่น ค่อย ๆ สร้างความไว้ใจ ความใกล้ชิดจะลึกขึ้นตามเวลา",
+    en: "Your intimate chemistry runs warm and steady — build trust and it deepens with time.",
+  },
+};
+
+const INTIMATE_TITLE: Record<Lang, string> = {
+  th: "ความเข้ากันเชิงลึก (속궁합)",
+  en: "Intimate Chemistry (속궁합)",
 };
 
 const BANDS: Array<{ min: number; band: LText; headline: LText }> = [
@@ -377,6 +415,69 @@ export function computeCompatibility(
     notes.push(NOTES.amhap[lang]);
   }
 
+  // 8. 오누이 궁합 — same month branch (월지) reads sibling-like: cozy but
+  // low on romantic spark. Docked from the overall score.
+  if (a.month.zhi === b.month.zhi) {
+    score -= 8;
+    notes.push(NOTES.onui[lang]);
+  }
+
+  // ── 속궁합 (intimate chemistry) subscore ──────────────────────────────
+  let intimate = 50;
+  const intimateReasons: string[] = [];
+
+  // Day/hour pillar clash across the two charts → physical spark UP.
+  const dhA = [a.day.zhi, ...(a.hour ? [a.hour.zhi] : [])];
+  const dhB = [b.day.zhi, ...(b.hour ? [b.hour.zhi] : [])];
+  const crossChong = dhA.some((x) =>
+    dhB.some((y) => LIU_CHONG.has(x + y) || LIU_CHONG.has(y + x))
+  );
+  if (crossChong) {
+    intimate += 15;
+    intimateReasons.push(INTIMATE_TEXT.chong[lang]);
+  }
+
+  // 암합 abundance → secret chemistry.
+  if (amhapPairs.size > 0) {
+    intimate += Math.min(16, amhapPairs.size * 8);
+    intimateReasons.push(INTIMATE_TEXT.amhap[lang]);
+  }
+
+  // 정임합 (丁壬) across the charts — the classic irresistible-attraction pair.
+  const stemsA = [a.year.gan, a.month.gan, a.day.gan, ...(a.hour ? [a.hour.gan] : [])];
+  const stemsB = [b.year.gan, b.month.gan, b.day.gan, ...(b.hour ? [b.hour.gan] : [])];
+  const jeongim =
+    (stemsA.includes("丁") && stemsB.includes("壬")) ||
+    (stemsA.includes("壬") && stemsB.includes("丁"));
+  if (jeongim) {
+    intimate += 15;
+    intimateReasons.push(INTIMATE_TEXT.jeongim[lang]);
+  }
+
+  // 일지/년지 합이 水로 화하는 경우 (巳申합수, 申子辰 수국) → intimacy UP.
+  const dyA = [a.day.zhi, a.year.zhi];
+  const dyB = [b.day.zhi, b.year.zhi];
+  const WATER_TRINE = ["申", "子", "辰"];
+  const waterCombo = dyA.some((x) =>
+    dyB.some(
+      (y) =>
+        x + y === "巳申" ||
+        y + x === "巳申" ||
+        (WATER_TRINE.includes(x) && WATER_TRINE.includes(y) && x !== y)
+    )
+  );
+  if (waterCombo) {
+    intimate += 12;
+    intimateReasons.push(INTIMATE_TEXT.water[lang]);
+  }
+
+  intimate = Math.max(20, Math.min(99, intimate));
+
+  const intimateBody =
+    INTIMATE_TEXT.intro[lang](intimate) +
+    " " +
+    (intimateReasons.length ? intimateReasons.join(" ") : INTIMATE_TEXT.base[lang]);
+
   const s = clamp(score);
   const bandDef = BANDS.find((x) => s >= x.min)!;
 
@@ -391,6 +492,8 @@ export function computeCompatibility(
       body: n,
       locked: true,
     })),
+    // 속궁합 detail — real body (signal-dependent), blurred until paid.
+    { key: "intimate", title: INTIMATE_TITLE[lang], body: intimateBody, locked: true },
     ...PREMIUM_TITLES[lang].map(([key, title]) => ({
       key,
       title,
@@ -401,6 +504,7 @@ export function computeCompatibility(
 
   return {
     score: s,
+    intimate,
     bandTh: bandDef.band[lang],
     headline: bandDef.headline[lang],
     rel,

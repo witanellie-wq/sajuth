@@ -64,8 +64,9 @@ function HanBlock({ ch, style, star }: { ch: string; style?: string; star?: bool
 }
 
 export default function ResultView({ initial }: { initial: Reading }) {
-  const [reading, setReading] = useState<Reading>(initial);
+  const [reading] = useState<Reading>(initial);
   const [pay, setPay] = useState<{ qr: string; amount: number } | null>(null);
+  const [claim, setClaim] = useState<{ ref: string; msg?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -90,28 +91,44 @@ export default function ResultView({ initial }: { initial: Reading }) {
     }
   }
 
-  // Phase-0 manual confirm. Phase 1: replaced by a PG webhook.
-  // Falls back to the stateless unlock when the reading has no stored id.
-  async function confirmPaid() {
+  // Report the transfer → get a reference code. Actual unlock happens only
+  // after the owner verifies the bank credit (admin confirm) — the share page
+  // then renders unlocked.
+  async function submitClaim() {
+    if (!id) return;
     setBusy(true);
     try {
-      const body = id
-        ? { id }
-        : {
-            kind: "reading",
-            lang: reading.lang,
-            dayMaster: chart.dayMaster,
-            sections: reading.sections,
-          };
       const res = await fetch("/api/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({ id, kind: "reading" }),
       });
       const data = await res.json();
-      if (data.sections) {
-        setReading({ ...reading, sections: data.sections, paid: true });
+      if (data.paid) {
+        window.location.href = `/result/${id}`;
+        return;
+      }
+      if (data.ref) {
         setPay(null);
+        setClaim({ ref: data.ref });
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function checkStatus() {
+    if (!id) return;
+    setBusy(true);
+    try {
+      const res = await fetch(`/api/pay?kind=reading&id=${id}`);
+      const data = await res.json();
+      if (data.paid) {
+        window.location.href = `/result/${id}`;
+      } else {
+        setClaim((c) =>
+          c ? { ...c, msg: "ยังไม่ได้รับการยืนยัน · Not confirmed yet — please wait a moment" } : c
+        );
       }
     } finally {
       setBusy(false);
@@ -194,13 +211,22 @@ export default function ResultView({ initial }: { initial: Reading }) {
                   <p className="mt-0.5 text-xs text-ink/60">
                     Unlock all 4 sections at once — love · career · wealth · 10-year luck
                   </p>
-                  <button
-                    onClick={openPayment}
-                    disabled={busy}
-                    className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
-                  >
-                    🔓 ปลดล็อกทั้งหมด · Unlock everything — 49 ฿
-                  </button>
+                  {id ? (
+                    <button
+                      onClick={openPayment}
+                      disabled={busy}
+                      className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                    >
+                      🔓 ปลดล็อกทั้งหมด · Unlock everything — 49 ฿
+                    </button>
+                  ) : (
+                    <a
+                      href="https://instagram.com/duangsaju"
+                      className="mt-3 inline-block rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white"
+                    >
+                      💬 สั่งซื้อทาง DM · Order via DM — 49 ฿
+                    </a>
+                  )}
                 </div>
               )}
               <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
@@ -231,13 +257,53 @@ export default function ResultView({ initial }: { initial: Reading }) {
               หลังโอนแล้ว กดปุ่มด้านล่างเพื่อปลดล็อก · After transferring, tap below to unlock
             </p>
             <button
-              onClick={confirmPaid}
+              onClick={submitClaim}
               disabled={busy}
               className="mt-3 w-full rounded-xl bg-rosewood py-2.5 font-semibold text-white disabled:opacity-50"
             >
-              ฉันชำระเงินแล้ว · I've paid
+              โอนแล้ว แจ้งชำระเงิน · I've transferred
             </button>
             <button onClick={() => setPay(null)} className="mt-2 text-xs text-ink/40">
+              ปิด · Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {claim && (
+        <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-xs rounded-3xl bg-white p-6 text-center">
+            <h3 className="font-semibold text-rosewood">⏳ รอการยืนยัน · Awaiting confirmation</h3>
+            <p className="mt-2 text-xs leading-relaxed text-ink/70">
+              ส่งสลิปโอนเงินพร้อมรหัสอ้างอิงด้านล่างทาง DM
+              แล้วหน้านี้จะปลดล็อกภายในไม่กี่นาที
+              <span className="mt-1 block text-ink/50">
+                Send your transfer slip + the reference code via DM — this page unlocks within minutes.
+              </span>
+            </p>
+            <button
+              onClick={() => {
+                navigator.clipboard?.writeText(claim.ref);
+              }}
+              className="mt-3 w-full rounded-lg bg-cream px-3 py-2 font-mono text-xs text-ink"
+            >
+              {claim.ref.slice(0, 8).toUpperCase()}… 📋 คัดลอก · Copy
+            </button>
+            <a
+              href="https://instagram.com/duangsaju"
+              className="mt-2 block w-full rounded-xl bg-rosewood py-2.5 text-sm font-semibold text-white"
+            >
+              💬 ส่งสลิปทาง Instagram DM
+            </a>
+            <button
+              onClick={checkStatus}
+              disabled={busy}
+              className="mt-2 w-full rounded-xl border border-peach/60 py-2 text-sm text-rosewood disabled:opacity-50"
+            >
+              🔄 ตรวจสอบสถานะ · Check status
+            </button>
+            {claim.msg && <p className="mt-2 text-xs text-amber-600">{claim.msg}</p>}
+            <button onClick={() => setClaim(null)} className="mt-2 text-xs text-ink/40">
               ปิด · Close
             </button>
           </div>
