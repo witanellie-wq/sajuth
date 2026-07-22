@@ -66,6 +66,8 @@ function HanBlock({ ch, style, star }: { ch: string; style?: string; star?: bool
 export default function ResultView({ initial }: { initial: Reading }) {
   const [reading] = useState<Reading>(initial);
   const [pay, setPay] = useState<{ qr: string; amount: number } | null>(null);
+  const [payerName, setPayerName] = useState("");
+  const [contact, setContact] = useState("");
   const [claim, setClaim] = useState<{ ref: string; msg?: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -95,13 +97,13 @@ export default function ResultView({ initial }: { initial: Reading }) {
   // after the owner verifies the bank credit (admin confirm) — the share page
   // then renders unlocked.
   async function submitClaim() {
-    if (!id) return;
+    if (!id || !payerName.trim() || !contact.trim()) return;
     setBusy(true);
     try {
       const res = await fetch("/api/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, kind: "reading" }),
+        body: JSON.stringify({ id, kind: "reading", payerName, contact }),
       });
       const data = await res.json();
       if (data.paid) {
@@ -253,12 +255,29 @@ export default function ResultView({ initial }: { initial: Reading }) {
             <p className="mt-1 text-sm text-ink/70">PromptPay · {pay.amount} THB</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pay.qr} alt="PromptPay QR" className="mx-auto my-3 w-56" />
-            <p className="text-xs text-ink/50">
-              หลังโอนแล้ว กดปุ่มด้านล่างเพื่อปลดล็อก · After transferring, tap below to unlock
-            </p>
+            <div className="mt-1 space-y-2 text-left">
+              <label className="block text-xs text-ink/60">
+                ชื่อผู้โอน · 입금자명 · Sender name
+                <input
+                  value={payerName}
+                  onChange={(e) => setPayerName(e.target.value)}
+                  placeholder="ชื่อบนสลิปโอนเงิน"
+                  className="mt-1 w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 text-sm outline-none focus:border-rosewood"
+                />
+              </label>
+              <label className="block text-xs text-ink/60">
+                อีเมล / LINE / IG · Contact (รับผลทางนี้)
+                <input
+                  value={contact}
+                  onChange={(e) => setContact(e.target.value)}
+                  placeholder="you@email.com หรือ @line_id"
+                  className="mt-1 w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 text-sm outline-none focus:border-rosewood"
+                />
+              </label>
+            </div>
             <button
               onClick={submitClaim}
-              disabled={busy}
+              disabled={busy || !payerName.trim() || !contact.trim()}
               className="mt-3 w-full rounded-xl bg-rosewood py-2.5 font-semibold text-white disabled:opacity-50"
             >
               โอนแล้ว แจ้งชำระเงิน · I've transferred

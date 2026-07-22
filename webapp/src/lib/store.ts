@@ -10,6 +10,12 @@ import { randomUUID } from "crypto";
 import type { SajuChart } from "./saju";
 import type { ReportSection } from "./interpret";
 
+export interface Claim {
+  payerName: string; // 입금자명 shown on the bank transfer
+  contact: string; // email / LINE / IG — where to send the result
+  claimedAt: string;
+}
+
 export interface StoredReading {
   id: string;
   createdAt: string;
@@ -17,20 +23,24 @@ export interface StoredReading {
   chart: SajuChart;
   sections: ReportSection[];
   paid: boolean;
+  claim?: Claim | null;
 }
 
 interface Store {
   save(r: Omit<StoredReading, "id" | "createdAt">): Promise<StoredReading>;
   get(id: string): Promise<StoredReading | null>;
   markPaid(id: string): Promise<void>;
+  saveClaim(id: string, claim: Claim): Promise<void>;
+  listPending(): Promise<StoredReading[]>;
 }
 
 export interface StoredCompat {
   id: string;
   createdAt: string;
-  charts: unknown; // { a, b } summary pillars
+  charts: unknown; // { profiles, relationship, charts:{a,b} }
   result: unknown; // Compatibility
   paid: boolean;
+  claim?: Claim | null;
 }
 
 const mem = new Map<string, StoredReading>();
@@ -91,6 +101,41 @@ export const compatStore = {
       if (rec) rec.paid = true;
     }
   },
+  // Claim lives inside the charts jsonb (charts.claim) — zero-migration.
+  async saveClaim(id: string, claim: Claim): Promise<void> {
+    const sb = getSupabase();
+    if (sb) {
+      const rec = await compatStore.get(id);
+      if (!rec) return;
+      const charts = { ...(rec.charts as Record<string, unknown>), claim };
+      await sb.from("compat_readings").update({ charts }).eq("id", id);
+    } else {
+      const rec = memCompat.get(id);
+      if (rec) rec.claim = claim;
+    }
+  },
+  async listPending(): Promise<StoredCompat[]> {
+    const sb = getSupabase();
+    if (sb) {
+      const { data } = await sb
+        .from("compat_readings")
+        .select("*")
+        .eq("paid", false)
+        .not("charts->claim", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data ?? []).map((d: any) => ({
+        id: d.id,
+        createdAt: d.created_at,
+        charts: d.charts,
+        result: d.result,
+        paid: !!d.paid,
+        claim: d.charts?.claim ?? null,
+      }));
+    }
+    return [...memCompat.values()].filter((r) => !r.paid && r.claim);
+  },
 };
 
 const memStore: Store = {
@@ -109,6 +154,13 @@ const memStore: Store = {
   async markPaid(id) {
     const rec = mem.get(id);
     if (rec) rec.paid = true;
+  },
+  async saveClaim(id, claim) {
+    const rec = mem.get(id);
+    if (rec) rec.claim = claim;
+  },
+  async listPending() {
+    return [...mem.values()].filter((r) => !r.paid && r.claim);
   },
 };
 
@@ -164,10 +216,39 @@ function supabaseStore(): Store | null {
         chart: data.chart,
         sections: data.sections,
         paid: data.paid,
+        claim: data.input?.claim ?? null,
       };
     },
     async markPaid(id) {
       await sb.from(TABLE).update({ paid: true }).eq("id", id);
+    },
+    // Claim lives inside the input jsonb (input.claim) — zero-migration.
+    async saveClaim(id, claim) {
+      const { data } = await sb.from(TABLE).select("input").eq("id", id).single();
+      if (!data) return;
+      await sb
+        .from(TABLE)
+        .update({ input: { ...data.input, claim } })
+        .eq("id", id);
+    },
+    async listPending() {
+      const { data } = await sb
+        .from(TABLE)
+        .select("*")
+        .eq("paid", false)
+        .not("input->claim", "is", null)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data ?? []).map((d: any) => ({
+        id: d.id,
+        createdAt: d.created_at,
+        input: d.input,
+        chart: d.chart,
+        sections: d.sections,
+        paid: !!d.paid,
+        claim: d.input?.claim ?? null,
+      }));
     },
   };
 }

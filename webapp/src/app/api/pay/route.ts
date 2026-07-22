@@ -32,29 +32,42 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({ id, kind, amount, qr, paid });
 }
 
-// POST /api/pay  body: { id, kind? } — payment CLAIM only. This does NOT
-// unlock anything: the buyer reports the transfer, gets a reference code, and
-// the owner verifies the bank credit then confirms via /api/admin/confirm.
-// Unlock happens server-side on the share pages once paid=true.
+// POST /api/pay  body: { id, kind?, payerName, contact } — payment CLAIM only.
+// Records who transferred (bank sender name) and where to send the result
+// (email / LINE / IG). Does NOT unlock: the owner matches the bank credit in
+// the admin dashboard (/admin) and confirms; share pages then render open.
 export async function POST(req: NextRequest) {
-  let body: { id?: string; kind?: Kind };
+  let body: { id?: string; kind?: Kind; payerName?: string; contact?: string };
   try {
     body = await req.json();
   } catch {
     return NextResponse.json({ error: "invalid_json" }, { status: 400 });
   }
   if (!body.id) return NextResponse.json({ error: "missing_id" }, { status: 400 });
+  const payerName = (body.payerName ?? "").trim().slice(0, 60);
+  const contact = (body.contact ?? "").trim().slice(0, 120);
+  if (!payerName || !contact) {
+    return NextResponse.json({ error: "missing_claim_info" }, { status: 400 });
+  }
   const kind: Kind = body.kind === "compat" ? "compat" : "reading";
 
   const rec =
     kind === "compat" ? await compatStore.get(body.id) : await store.get(body.id);
   if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
+  const claim = { payerName, contact, claimedAt: new Date().toISOString() };
+  try {
+    if (kind === "compat") await compatStore.saveClaim(body.id, claim);
+    else await store.saveClaim(body.id, claim);
+  } catch (err) {
+    console.error("claim save failed:", err);
+  }
+
   return NextResponse.json({
     id: body.id,
     kind,
     pending: !rec.paid,
     paid: rec.paid,
-    ref: body.id, // reference the buyer sends with their transfer slip
+    ref: body.id, // reference the buyer can quote in DM
   });
 }

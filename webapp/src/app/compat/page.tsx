@@ -3,7 +3,9 @@
 import { useState } from "react";
 import CompatView, { type CompatData } from "@/components/CompatView";
 
-type Lang = "th" | "en";
+type Lang = "th" | "en" | "ko";
+
+// UI language only — report content is always generated in Thai.
 
 interface Person {
   name: string;
@@ -26,12 +28,12 @@ const empty: Person = {
   unknownTime: false,
 };
 
-const RELATIONSHIPS: Array<{ value: string; th: string; en: string }> = [
-  { value: "lovers", th: "💑 คนรัก", en: "💑 Lovers" },
-  { value: "married", th: "💒 คู่สมรส", en: "💒 Married" },
-  { value: "talking", th: "💌 คนคุย", en: "💌 Talking stage" },
-  { value: "friends", th: "🤝 เพื่อน", en: "🤝 Friends" },
-  { value: "other", th: "✨ อื่น ๆ", en: "✨ Other" },
+const RELATIONSHIPS: Array<{ value: string; th: string; en: string; ko: string }> = [
+  { value: "lovers", th: "💑 คนรัก", en: "💑 Lovers", ko: "💑 연인" },
+  { value: "married", th: "💒 คู่สมรส", en: "💒 Married", ko: "💒 부부" },
+  { value: "talking", th: "💌 คนคุย", en: "💌 Talking stage", ko: "💌 썸" },
+  { value: "friends", th: "🤝 เพื่อน", en: "🤝 Friends", ko: "🤝 친구" },
+  { value: "other", th: "✨ อื่น ๆ", en: "✨ Other", ko: "✨ 기타" },
 ];
 
 function toInput(p: Person) {
@@ -51,6 +53,7 @@ function toInput(p: Person) {
 
 export default function Compat() {
   const [lang, setLang] = useState<Lang>("th");
+  const tr = (th: string, en: string, ko: string) => (lang === "th" ? th : lang === "en" ? en : ko);
   const [relationship, setRelationship] = useState("lovers");
   const [a, setA] = useState<Person>(empty);
   const [b, setB] = useState<Person>(empty);
@@ -67,13 +70,11 @@ export default function Compat() {
       const r = await fetch("/api/compat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ a: toInput(a), b: toInput(b), relationship, lang }),
+        body: JSON.stringify({ a: toInput(a), b: toInput(b), relationship, lang: "th" }),
       });
       if (!r.ok)
         throw new Error(
-          lang === "th"
-            ? "คำนวณไม่สำเร็จ กรุณาตรวจสอบวันเกิดทั้งสองฝ่าย"
-            : "Calculation failed — please check both birth dates"
+          tr("คำนวณไม่สำเร็จ กรุณาตรวจสอบวันเกิดทั้งสองฝ่าย", "Calculation failed — please check both birth dates", "계산 실패 — 두 사람의 생년월일을 확인해주세요")
         );
       setRes(await r.json());
     } catch (err) {
@@ -87,18 +88,15 @@ export default function Compat() {
     <main className="mx-auto max-w-xl px-5 py-10">
       <div className="mb-4 flex justify-end">
         <div className="flex overflow-hidden rounded-full border border-peach/60 text-xs">
-          <button
-            onClick={() => setLang("th")}
-            className={"px-3 py-1 " + (lang === "th" ? "bg-rosewood text-white" : "text-ink/60")}
-          >
-            ไทย
-          </button>
-          <button
-            onClick={() => setLang("en")}
-            className={"px-3 py-1 " + (lang === "en" ? "bg-rosewood text-white" : "text-ink/60")}
-          >
-            EN
-          </button>
+          {(["th", "en", "ko"] as Lang[]).map((v) => (
+            <button
+              key={v}
+              onClick={() => setLang(v)}
+              className={"px-3 py-1 " + (lang === v ? "bg-rosewood text-white" : "text-ink/60")}
+            >
+              {v === "th" ? "ไทย" : v === "en" ? "EN" : "한국어"}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -111,9 +109,7 @@ export default function Compat() {
           ดวงซาจู
         </a>
         <p className="mt-2 text-sm text-ink/70">
-          {lang === "th"
-            ? "ดูดวงความเข้ากัน (궁합) ของคุณสองคน"
-            : "Couple compatibility (궁합) for the two of you"}
+          {tr("ดูดวงความเข้ากัน (궁합) ของคุณสองคน", "Couple compatibility (궁합) for the two of you", "두 사람의 궁합 보기")}
         </p>
       </header>
 
@@ -121,7 +117,7 @@ export default function Compat() {
         {/* Relationship */}
         <label className="block text-sm">
           <span className="mb-1 block text-ink/70">
-            {lang === "th" ? "ความสัมพันธ์ · Relationship" : "Relationship"}
+            {tr("ความสัมพันธ์ · Relationship", "Relationship", "관계")}
           </span>
           <select
             value={relationship}
@@ -130,28 +126,26 @@ export default function Compat() {
           >
             {RELATIONSHIPS.map((r) => (
               <option key={r.value} value={r.value}>
-                {lang === "th" ? r.th : r.en}
+                {lang === "th" ? r.th : lang === "en" ? r.en : r.ko}
               </option>
             ))}
           </select>
         </label>
 
         <div className="my-4 border-t border-peach/30" />
-        <PersonFields label={lang === "th" ? "คุณ · You" : "You"} p={a} onChange={setA} lang={lang} />
+        <PersonFields label={tr("คุณ · You", "You", "나")} p={a} onChange={setA} lang={lang} />
         <div className="my-5 flex items-center justify-center">
           <span className="text-2xl">💞</span>
         </div>
         <PersonFields
-          label={lang === "th" ? "อีกฝ่าย · Partner" : "Partner"}
+          label={tr("อีกฝ่าย · Partner", "Partner", "상대방")}
           p={b}
           onChange={setB}
           lang={lang}
         />
 
         <p className="mt-4 text-center text-[11px] text-ink/50">
-          {lang === "th"
-            ? "* กรอกวันเกิดแบบสุริยคติ (ค.ศ.) · Solar calendar (양력)"
-            : "* Enter SOLAR calendar dates (양력)"}
+          {tr("* กรอกวันเกิดแบบสุริยคติ (ค.ศ.) · Solar calendar (양력)", "* Enter SOLAR calendar dates (양력). Reading text is in Thai.", "* 양력 생일로 입력하세요. 해석은 태국어로 제공됩니다.")}
         </p>
 
         <button
@@ -159,13 +153,7 @@ export default function Compat() {
           disabled={loading}
           className="mt-4 w-full rounded-xl bg-rosewood py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
         >
-          {loading
-            ? lang === "th"
-              ? "กำลังคำนวณ…"
-              : "Calculating…"
-            : lang === "th"
-            ? "ดูความเข้ากัน · Check compatibility"
-            : "Check compatibility"}
+          {loading ? tr("กำลังคำนวณ…", "Calculating…", "계산 중…") : tr("ดูความเข้ากัน · Check compatibility", "Check compatibility", "궁합 보기")}
         </button>
         {error && <p className="mt-3 text-center text-sm text-red-600">{error}</p>}
       </form>
@@ -193,21 +181,21 @@ function PersonFields({
       <div className="grid grid-cols-2 gap-3">
         <label className="block text-sm">
           <span className="mb-1 block text-ink/70">
-            {lang === "th" ? "ชื่อเล่น · Name" : "Name (optional)"}
+            {lang === "th" ? "ชื่อเล่น · Name" : lang === "en" ? "Name (optional)" : "이름 (선택)"}
           </span>
           <input
-            placeholder={lang === "th" ? "มายด์" : "Mind"}
+            placeholder={lang === "ko" ? "서율" : "Mind"}
             value={p.name}
             onChange={(e) => onChange({ ...p, name: e.target.value })}
             className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood"
           />
         </label>
         <div className="block text-sm">
-          <span className="mb-1 block text-ink/70">{lang === "th" ? "เพศ · Gender" : "Gender"}</span>
+          <span className="mb-1 block text-ink/70">{lang === "th" ? "เพศ · Gender" : lang === "en" ? "Gender" : "성별"}</span>
           <div className="flex gap-2">
             {[
-              ["F", "👩 " + (lang === "th" ? "หญิง" : "F")],
-              ["M", "👨 " + (lang === "th" ? "ชาย" : "M")],
+              ["F", "👩 " + (lang === "th" ? "หญิง" : lang === "en" ? "F" : "여")],
+              ["M", "👨 " + (lang === "th" ? "ชาย" : lang === "en" ? "M" : "남")],
             ].map(([v, txt]) => (
               <button
                 key={v}
@@ -229,19 +217,19 @@ function PersonFields({
 
       <div className="mt-3 grid grid-cols-3 gap-3">
         <Field
-          label={lang === "th" ? "ปี (ค.ศ.) · Year" : "Year"}
+          label={lang === "th" ? "ปี (ค.ศ.) · Year" : lang === "en" ? "Year" : "연도(서기)"}
           placeholder="1996"
           value={p.year}
           onChange={(v) => onChange({ ...p, year: v })}
         />
         <Field
-          label={lang === "th" ? "เดือน · Month" : "Month"}
+          label={lang === "th" ? "เดือน · Month" : lang === "en" ? "Month" : "월"}
           placeholder="5"
           value={p.month}
           onChange={(v) => onChange({ ...p, month: v })}
         />
         <Field
-          label={lang === "th" ? "วันที่ · Day" : "Day"}
+          label={lang === "th" ? "วันที่ · Day" : lang === "en" ? "Day" : "일"}
           placeholder="15"
           value={p.day}
           onChange={(v) => onChange({ ...p, day: v })}
@@ -249,14 +237,14 @@ function PersonFields({
       </div>
       <div className="mt-3 grid grid-cols-2 gap-3">
         <Field
-          label={lang === "th" ? "ชั่วโมง (0-23) · Hour" : "Hour (0-23)"}
+          label={lang === "th" ? "ชั่วโมง (0-23) · Hour" : lang === "en" ? "Hour (0-23)" : "시 (0-23)"}
           placeholder="14"
           value={p.hour}
           disabled={p.unknownTime}
           onChange={(v) => onChange({ ...p, hour: v })}
         />
         <Field
-          label={lang === "th" ? "นาที (0-59) · Minute" : "Minute (0-59)"}
+          label={lang === "th" ? "นาที (0-59) · Minute" : lang === "en" ? "Minute (0-59)" : "분 (0-59)"}
           placeholder="30"
           value={p.minute}
           disabled={p.unknownTime}
@@ -269,7 +257,7 @@ function PersonFields({
           checked={p.unknownTime}
           onChange={(e) => onChange({ ...p, unknownTime: e.target.checked })}
         />
-        {lang === "th" ? "ไม่ทราบเวลาเกิด · Unknown time" : "Unknown birth time"}
+        {lang === "th" ? "ไม่ทราบเวลาเกิด · Unknown time" : lang === "en" ? "Unknown birth time" : "태어난 시간 모름"}
       </label>
     </fieldset>
   );

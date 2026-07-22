@@ -39,7 +39,11 @@ const SAN_HE: string[][] = [
   ["巳", "酉", "丑"],
 ];
 // 암합 (hidden combinations) — branches whose hidden stems combine covertly.
-const AMHAP = new Set(["子戌", "丑寅", "卯申", "午亥", "寅未"]);
+// (丑寅 lives in WOOHAP below to avoid double-counting.)
+const AMHAP = new Set(["子戌", "卯申", "午亥", "寅未"]);
+// 우합/隅合 (corner combinations, 모서리합) — adjacent "corner" pairs of the
+// branch square: 丑寅, 辰巳, 未申, 戌亥. A subtle, steady pull.
+const WOOHAP = new Set(["丑寅", "辰巳", "未申", "戌亥"]);
 
 const WINTER = new Set(["亥", "子", "丑"]);
 const SUMMER = new Set(["巳", "午", "未"]);
@@ -111,6 +115,10 @@ const NOTES: Record<string, LText> = {
   onui: {
     th: "เดือนเกิด (월지) ของทั้งคู่เป็นราศีเดียวกัน — สบายใจเหมือนพี่น้อง (오누이) เข้าใจกันง่ายมาก แต่ประกายโรแมนติกจางเร็ว ต้องตั้งใจเดตกันต่อเนื่อง",
     en: "You share the same birth-month branch — comfortable like siblings (오누이). Easy understanding, but the romantic spark fades fast; keep dating on purpose.",
+  },
+  woohap: {
+    th: "มีคู่ ‘우합(隅合)’ ระหว่างดวงของทั้งสอง (เช่น 술해합·축인합) — แรงดึงดูดแบบมุมชนมุม เงียบแต่เหนียวแน่น ยิ่งอยู่ใกล้ยิ่งผูกพันโดยไม่รู้ตัว",
+    en: "A 우합 (corner combination — like 戌亥 or 丑寅) links your charts: a quiet, corner-to-corner pull that binds you more the longer you're close.",
   },
 };
 
@@ -296,8 +304,8 @@ function branchPair(a: string, b: string): "he" | "chong" | "sanhe" | "same" | "
 }
 
 function clamp(n: number): number {
-  // Cap at 99 — a perfect 100 reads as fake.
-  return Math.max(0, Math.min(99, Math.round(n)));
+  // Cap at 97 — even destined pairs keep a little mystery.
+  return Math.max(0, Math.min(97, Math.round(n)));
 }
 
 export function computeCompatibility(
@@ -415,10 +423,19 @@ export function computeCompatibility(
     notes.push(NOTES.amhap[lang]);
   }
 
-  // 8. 오누이 궁합 — same month branch (월지) reads sibling-like: cozy but
-  // low on romantic spark. Docked from the overall score.
+  // 8. 우합/모서리합 — corner pairs across the two charts' branches.
+  const woohapFound = branchesOf(a).some((x) =>
+    branchesOf(b).some((y) => WOOHAP.has(x + y) || WOOHAP.has(y + x))
+  );
+  if (woohapFound) {
+    score += 4;
+    notes.push(NOTES.woohap[lang]);
+  }
+
+  // 9. 오누이 궁합 — same month branch (월지) reads sibling-like: cozy but
+  // low on romantic spark. Docked hard (classically up to -30).
   if (a.month.zhi === b.month.zhi) {
-    score -= 8;
+    score -= 12;
     notes.push(NOTES.onui[lang]);
   }
 

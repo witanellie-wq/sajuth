@@ -28,5 +28,13 @@ export async function GET(req: NextRequest) {
     await store.markPaid(id);
   }
 
+  // From the /admin dashboard → bounce back with a success flag.
+  if (req.nextUrl.searchParams.get("redirect")) {
+    const back = new URL("/admin", req.nextUrl.origin);
+    back.searchParams.set("key", key!);
+    back.searchParams.set("ok", "1");
+    return NextResponse.redirect(back);
+  }
+
   return NextResponse.json({ ok: true, kind, id, paid: true });
 }
