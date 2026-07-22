@@ -109,6 +109,16 @@ export const compatStore = {
       if (rec) rec.paid = true;
     }
   },
+  /** Replace the stored result (e.g. with the generated long-form report). */
+  async updateResult(id: string, result: unknown): Promise<void> {
+    const sb = getSupabase();
+    if (sb) {
+      await sb.from("compat_readings").update({ result }).eq("id", id);
+    } else {
+      const rec = memCompat.get(id);
+      if (rec) rec.result = result;
+    }
+  },
   // Claim lives inside the charts jsonb (charts.claim) — zero-migration.
   async saveClaim(id: string, claim: Claim): Promise<void> {
     const sb = getSupabase();

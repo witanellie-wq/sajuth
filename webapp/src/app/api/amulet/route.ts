@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { amuletStore, store, compatStore } from "@/lib/store";
+import { generateLongCompat } from "@/lib/unlockCompat";
+
+// Long-form report generation on redeem can take a while.
+export const maxDuration = 60;
 
 // Amulet (ยันต์/부적) pack: 3 credits for AMULET_PACK_PRICE_THB.
 // Reading unlock costs 1 amulet, compat costs 2.
@@ -67,8 +71,12 @@ export async function POST(req: NextRequest) {
     if (remaining === null) {
       return NextResponse.json({ error: "amulet_invalid_or_insufficient" }, { status: 400 });
     }
-    if (kind === "compat") await compatStore.markPaid(body.id);
-    else await store.markPaid(body.id);
+    if (kind === "compat") {
+      await compatStore.markPaid(body.id);
+      await generateLongCompat(body.id, target as never);
+    } else {
+      await store.markPaid(body.id);
+    }
 
     return NextResponse.json({ ok: true, balance: remaining });
   }

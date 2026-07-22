@@ -71,6 +71,7 @@ const RELATIONSHIP_LABEL: Record<string, string> = {
   married: "💒 คู่สมรส · Married",
   talking: "💌 คนคุย · Talking stage",
   friends: "🤝 เพื่อน · Friends",
+  coworkers: "💼 เพื่อนร่วมงาน · Coworkers",
   other: "✨ อื่น ๆ · Other",
 };
 

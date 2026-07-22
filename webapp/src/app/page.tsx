@@ -3,7 +3,7 @@
 import { useState } from "react";
 import ResultView, { type Reading } from "@/components/ResultView";
 
-// UI language only — report content is always generated in Thai.
+// UI language — report content follows this selection too.
 type UiLang = "th" | "en" | "ko";
 
 const L: Record<UiLang, Record<string, string>> = {
@@ -40,7 +40,7 @@ const L: Record<UiLang, Record<string, string>> = {
     hour: "Birth hour (0-23)",
     minute: "Minute (0-59)",
     unknown: "I don't know my birth time",
-    solar: "* Enter your SOLAR calendar birth date (양력). Reading text is in Thai.",
+    solar: "* Enter your SOLAR calendar birth date (양력).",
     submit: "Read my saju",
     loading: "Calculating…",
     error: "Calculation failed — please check the birth date",
@@ -59,7 +59,7 @@ const L: Record<UiLang, Record<string, string>> = {
     hour: "태어난 시 (0-23)",
     minute: "분 (0-59)",
     unknown: "태어난 시간 모름",
-    solar: "* 양력 생일로 입력하세요. 해석 결과는 태국어로 제공됩니다.",
+    solar: "* 양력 생일로 입력하세요.",
     submit: "내 사주 보기",
     loading: "계산 중…",
     error: "계산 실패 — 생년월일을 확인해주세요",
@@ -93,7 +93,7 @@ export default function Home() {
         year: Number(form.year),
         month: Number(form.month),
         day: Number(form.day),
-        lang: "th", // report content is always Thai
+        lang, // report content follows the selected language
         name: form.name,
         gender: form.gender,
       };

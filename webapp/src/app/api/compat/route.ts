@@ -60,13 +60,15 @@ export async function POST(req: NextRequest) {
   }
 
   const lang = pickLang(body.lang);
+  const relationship =
+    typeof body.relationship === "string" && body.relationship ? body.relationship : "lovers";
   const chartA = computeSaju(body.a);
   const chartB = computeSaju(body.b);
-  const result = computeCompatibility(chartA, chartB, lang);
+  const result = computeCompatibility(chartA, chartB, lang, relationship);
 
   const payload = {
     profiles: { a: profileOf(body.a), b: profileOf(body.b) },
-    relationship: typeof body.relationship === "string" ? body.relationship : "",
+    relationship,
     charts: { a: chartA, b: chartB },
   };
 

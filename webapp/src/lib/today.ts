@@ -35,6 +35,28 @@ const RELATION_TEXT: Record<Lang, Record<Relation, { title: string; body: string
       body: "วันนี้มีแรงกดดันเข้ามาทดสอบ เหมาะเก็บงาน เคลียร์เอกสาร ทำตามกติกา เลี่ยงการปะทะและการตัดสินใจใหญ่",
     },
   },
+  ko: {
+    same: {
+      title: "기운 충전의 날",
+      body: "오늘의 기운이 당신 오행과 같은 날 — 뭐든 술술 풀려요. 자신감이 필요한 일을 시작하기 좋고, 친구가 힘이 됩니다.",
+    },
+    resource: {
+      title: "에너지 보충의 날",
+      body: "누군가 등을 받쳐주는 듯한 날. 배우고, 조언을 구하고, 쉬며 충전하기 좋아요. 윗사람·멘토가 행운을 줍니다.",
+    },
+    output: {
+      title: "표현의 날",
+      body: "창의력이 솟는 날 — 발표하고, 만든 걸 올리고, 새 프로젝트를 시작하세요. 말이 생각보다 앞서지 않게만 조심.",
+    },
+    wealth: {
+      title: "재물 기회의 날",
+      body: "돈의 문이 열리는 날 — 협상, 계약, 밀린 돈 정리에 좋아요. 충동 지출만 금물.",
+    },
+    officer: {
+      title: "신중의 날",
+      body: "압박이 들어와 시험하는 날. 일을 마무리하고 서류를 정리하고 규칙을 지키세요 — 충돌과 큰 결정은 피하기.",
+    },
+  },
   en: {
     same: {
       title: "Power-Up Day",
@@ -62,6 +84,7 @@ const RELATION_TEXT: Record<Lang, Record<Relation, { title: string; body: string
 const CLASH_NOTE: Record<Lang, string> = {
   th: " วันนี้ยังเป็นวันชง (沖) กับดวงคุณ อารมณ์อาจแกว่งง่าย ใจเย็น ๆ แล้วทุกอย่างจะผ่านไปด้วยดี",
   en: " It's also a clash (沖) day against your chart — emotions may swing; stay calm and it will pass.",
+  ko: " 오늘은 당신 사주와 충(沖)이 드는 날이기도 해요 — 감정이 흔들릴 수 있으니 한 템포 쉬어가면 무사히 지나갑니다.",
 };
 
 // Day-branch clash (六沖) with the user's day branch adds a caution note.
@@ -110,4 +133,4 @@ export function todayFortune(
   };
 }
 
-export const TODAY_PREFIX: Record<Lang, string> = { th: "ดวงวันนี้", en: "Today" };
+export const TODAY_PREFIX: Record<Lang, string> = { th: "ดวงวันนี้", en: "Today", ko: "오늘의 운" };

@@ -54,6 +54,14 @@ const BAND_LABEL: Record<Lang, Record<Band, string>> = {
     sinyak: "Gentle Day Master (신약)",
     taeyak: "Very Gentle Day Master (태약)",
   },
+  ko: {
+    taegang: "태강 — 일간이 매우 강함",
+    singang: "신강 — 일간이 강함",
+    junghwa_singang: "중화신강 — 균형 속 강한 편",
+    junghwa_sinyak: "중화신약 — 균형 속 약한 편",
+    sinyak: "신약 — 일간이 약함",
+    taeyak: "태약 — 일간이 매우 약함",
+  },
 };
 
 // 천간합화 (combination + transformation): when adjacent stems combine, the
@@ -70,6 +78,13 @@ const ELEMENT_EN: Record<Element, string> = {
   wood: "Wood (木)", fire: "Fire (火)", earth: "Earth (土)",
   metal: "Metal (金)", water: "Water (水)",
 };
+const ELEMENT_KO: Record<Element, string> = {
+  wood: "목(木)", fire: "화(火)", earth: "토(土)",
+  metal: "금(金)", water: "수(水)",
+};
+function elementNames(lang: Lang): Record<Element, string> {
+  return lang === "th" ? ELEMENT_TH : lang === "ko" ? ELEMENT_KO : ELEMENT_EN;
+}
 
 // 삼합국 (three-harmony bureaus): when 2-3 of a trine appear among the
 // branches, that element gains extra force in the chart.
@@ -100,22 +115,28 @@ const NOTE_TEXT = {
       `ในดวงมี ‘합화(合化)’ — ธาตุจากสองเสารวมตัวกลายเป็นธาตุ ${el} เสริมพลังใหม่ให้ดวงของคุณอย่างเงียบ ๆ`,
     en: (el: string) =>
       `Your chart carries a 합화 (combining transformation) — two stems merge and turn into ${el}, quietly reshaping your energy.`,
+    ko: (el: string) =>
+      `사주에 합화(合化)가 있어요 — 두 기둥의 기운이 합쳐져 ${el} 기운으로 변하며, 조용히 사주의 판을 바꿔줍니다.`,
   },
   trine: {
     th: (el: string) => `ในดวงมีชุด 三合 รวมพลังธาตุ ${el} ทำให้ธาตุนี้มีอิทธิพลมากเป็นพิเศษ`,
     en: (el: string) => `Your branches form a 三合 trine that amplifies ${el} — this element carries extra influence in your chart.`,
+    ko: (el: string) => `지지에 삼합(三合)이 있어 ${el} 기운이 특히 강하게 작용하는 사주예요.`,
   },
   bound: {
     th: "ธาตุประจำวันของคุณอยู่ใน ‘합(合)’ กับธาตุข้างเคียง ทำให้พลังส่วนตัวถูกดึงไปผูกไว้บ้าง ความสัมพันธ์กับคนรอบข้างจึงมีบทบาทใหญ่ในชีวิตคุณ",
     en: "Your Day Master sits in a 합 (combination) with a neighboring stem — some of its force is bound up, so relationships play an outsized role in your life.",
+    ko: "일간이 옆 기둥과 합(合)을 이뤄 기운이 살짝 묶여 있어요. 그만큼 인간관계가 인생에서 큰 비중을 차지합니다.",
   },
   winter: {
     th: "คุณเกิดฤดูหนาว (조후) ดวงต้องการความอบอุ่นจากธาตุไฟมาเสริม จะทำให้ทุกด้านไหลลื่นขึ้น",
     en: "Born in a winter month (조후 seasonal balance), your chart craves the warmth of Fire — adding it smooths everything.",
+    ko: "겨울에 태어난 사주라(조후) 불의 따뜻함이 필요해요. 화 기운을 보완하면 모든 일이 한결 잘 풀립니다.",
   },
   summer: {
     th: "คุณเกิดฤดูร้อน (조후) ดวงต้องการความเย็นจากธาตุน้ำมาปรับสมดุล จะช่วยให้ตัดสินใจได้นิ่งขึ้น",
     en: "Born in a summer month (조후 seasonal balance), your chart needs cooling Water — it steadies your decisions.",
+    ko: "여름에 태어난 사주라(조후) 물의 서늘함이 필요해요. 수 기운을 보완하면 판단이 차분해집니다.",
   },
 };
 
@@ -125,7 +146,7 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
 
   // 천간합화: year+month stems combining transform BOTH into the new element
   // (e.g. 戊癸合火 turns earth+water into fire support for a 丙 day master).
-  const elName0 = lang === "th" ? ELEMENT_TH : ELEMENT_EN;
+  const elName0 = elementNames(lang);
   const hapwha = HE_RESULT[chart.year.gan + chart.month.gan];
   let yearGanEl = chart.year.ganElement;
   let monthGanEl = chart.month.ganElement;
@@ -155,7 +176,7 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
     chart.day.zhi,
     ...(chart.hour ? [chart.hour.zhi] : []),
   ];
-  const elName = lang === "th" ? ELEMENT_TH : ELEMENT_EN;
+  const elName = elementNames(lang);
   for (const { group, element } of TRINES) {
     const hits = group.filter((b) => branches.includes(b)).length;
     if (hits >= 3) {
@@ -209,13 +230,22 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
     notes.push(NOTE_TEXT.summer[lang]);
   }
 
-  const favList = favorable.map((e) => elName[e]).join(lang === "th" ? " และ " : " and ");
+  const favList = favorable.map((e) => elName[e]).join(lang === "th" ? " และ " : lang === "ko" ? "·" : " and ");
 
   const isStrong = band === "taegang" || band === "singang";
   const isJunghwa = band === "junghwa_singang" || band === "junghwa_sinyak";
 
   let body: string;
-  if (lang === "th") {
+  if (lang === "ko") {
+    body = isStrong
+      ? `일간의 힘이 강한 사주예요. 자립심과 추진력이 뛰어나지만 때로 너무 밀어붙일 수 있어요. ` +
+        `${favList} 기운을 활용해 힘을 흘려보내면 균형이 잡힙니다.`
+      : isJunghwa
+      ? `오행이 균형(중화) 구간에 있는 잘 짜인 사주예요. 상황 적응이 유연하고 무리가 없어요. ` +
+        `${favList} 기운을 조금 더하면 한층 안정됩니다.`
+      : `일간의 힘이 여린 편이에요. 주변에 예민하게 반응하고 협업에 강하죠. ` +
+        `${favList} 기운을 보강하고 믿을 만한 사람을 곁에 두면 힘이 채워집니다.`;
+  } else if (lang === "th") {
     body = isStrong
       ? `พลังธาตุประจำตัวคุณค่อนข้างแข็ง คุณมีพลังในตัวสูงและพึ่งพาตัวเองได้ดี ` +
         `แต่บางครั้งดันไปข้างหน้าแรงเกินไป ควรเสริมธาตุ ${favList} ` +

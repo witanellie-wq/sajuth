@@ -5,7 +5,6 @@ import CompatView, { type CompatData } from "@/components/CompatView";
 
 type Lang = "th" | "en" | "ko";
 
-// UI language only — report content is always generated in Thai.
 
 interface Person {
   name: string;
@@ -33,6 +32,7 @@ const RELATIONSHIPS: Array<{ value: string; th: string; en: string; ko: string }
   { value: "married", th: "💒 คู่สมรส", en: "💒 Married", ko: "💒 부부" },
   { value: "talking", th: "💌 คนคุย", en: "💌 Talking stage", ko: "💌 썸" },
   { value: "friends", th: "🤝 เพื่อน", en: "🤝 Friends", ko: "🤝 친구" },
+  { value: "coworkers", th: "💼 เพื่อนร่วมงาน", en: "💼 Coworkers", ko: "💼 직장동료" },
   { value: "other", th: "✨ อื่น ๆ", en: "✨ Other", ko: "✨ 기타" },
 ];
 
@@ -70,7 +70,7 @@ export default function Compat() {
       const r = await fetch("/api/compat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ a: toInput(a), b: toInput(b), relationship, lang: "th" }),
+        body: JSON.stringify({ a: toInput(a), b: toInput(b), relationship, lang }),
       });
       if (!r.ok)
         throw new Error(
@@ -155,7 +155,7 @@ export default function Compat() {
         />
 
         <p className="mt-4 text-center text-[11px] text-ink/50">
-          {tr("* กรอกวันเกิดแบบสุริยคติ (ค.ศ.) · Solar calendar (양력)", "* Enter SOLAR calendar dates (양력). Reading text is in Thai.", "* 양력 생일로 입력하세요. 해석은 태국어로 제공됩니다.")}
+          {tr("* กรอกวันเกิดแบบสุริยคติ (ค.ศ.) · Solar calendar (양력)", "* Enter SOLAR calendar dates (양력).", "* 양력 생일로 입력하세요.")}
         </p>
 
         <button
