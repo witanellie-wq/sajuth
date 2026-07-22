@@ -6,6 +6,8 @@ import CompatView, { type CompatData } from "@/components/CompatView";
 type Lang = "th" | "en";
 
 interface Person {
+  name: string;
+  gender: string; // "F" | "M" | ""
   year: string;
   month: string;
   day: string;
@@ -13,13 +15,32 @@ interface Person {
   minute: string;
   unknownTime: boolean;
 }
-const empty: Person = { year: "", month: "", day: "", hour: "", minute: "", unknownTime: false };
+const empty: Person = {
+  name: "",
+  gender: "",
+  year: "",
+  month: "",
+  day: "",
+  hour: "",
+  minute: "",
+  unknownTime: false,
+};
+
+const RELATIONSHIPS: Array<{ value: string; th: string; en: string }> = [
+  { value: "lovers", th: "💑 คนรัก", en: "💑 Lovers" },
+  { value: "married", th: "💒 คู่สมรส", en: "💒 Married" },
+  { value: "talking", th: "💌 คนคุย", en: "💌 Talking stage" },
+  { value: "friends", th: "🤝 เพื่อน", en: "🤝 Friends" },
+  { value: "other", th: "✨ อื่น ๆ", en: "✨ Other" },
+];
 
 function toInput(p: Person) {
-  const o: Record<string, number> = {
+  const o: Record<string, unknown> = {
     year: Number(p.year),
     month: Number(p.month),
     day: Number(p.day),
+    name: p.name,
+    gender: p.gender,
   };
   if (!p.unknownTime && p.hour !== "") {
     o.hour = Number(p.hour);
@@ -30,6 +51,7 @@ function toInput(p: Person) {
 
 export default function Compat() {
   const [lang, setLang] = useState<Lang>("th");
+  const [relationship, setRelationship] = useState("lovers");
   const [a, setA] = useState<Person>(empty);
   const [b, setB] = useState<Person>(empty);
   const [res, setRes] = useState<CompatData | null>(null);
@@ -45,7 +67,7 @@ export default function Compat() {
       const r = await fetch("/api/compat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ a: toInput(a), b: toInput(b), lang }),
+        body: JSON.stringify({ a: toInput(a), b: toInput(b), relationship, lang }),
       });
       if (!r.ok)
         throw new Error(
@@ -81,7 +103,11 @@ export default function Compat() {
       </div>
 
       <header className="mb-8 text-center">
-        <a href="/" className="text-3xl font-bold text-rosewood">
+        <div className="mb-1 text-3xl">💞</div>
+        <a
+          href="/"
+          className="bg-gradient-to-r from-rose-500 via-rosewood to-amber-500 bg-clip-text text-3xl font-bold text-transparent"
+        >
           ดวงซาจู
         </a>
         <p className="mt-2 text-sm text-ink/70">
@@ -91,10 +117,29 @@ export default function Compat() {
         </p>
       </header>
 
-      <form onSubmit={onSubmit} className="rounded-2xl bg-white p-6 shadow-sm ring-1 ring-peach/40">
+      <form onSubmit={onSubmit} className="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-peach/40">
+        {/* Relationship */}
+        <label className="block text-sm">
+          <span className="mb-1 block text-ink/70">
+            {lang === "th" ? "ความสัมพันธ์ · Relationship" : "Relationship"}
+          </span>
+          <select
+            value={relationship}
+            onChange={(e) => setRelationship(e.target.value)}
+            className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood"
+          >
+            {RELATIONSHIPS.map((r) => (
+              <option key={r.value} value={r.value}>
+                {lang === "th" ? r.th : r.en}
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <div className="my-4 border-t border-peach/30" />
         <PersonFields label={lang === "th" ? "คุณ · You" : "You"} p={a} onChange={setA} lang={lang} />
         <div className="my-5 flex items-center justify-center">
-          <span className="text-2xl text-rosewood">💞</span>
+          <span className="text-2xl">💞</span>
         </div>
         <PersonFields
           label={lang === "th" ? "อีกฝ่าย · Partner" : "Partner"}
@@ -103,10 +148,16 @@ export default function Compat() {
           lang={lang}
         />
 
+        <p className="mt-4 text-center text-[11px] text-ink/50">
+          {lang === "th"
+            ? "* กรอกวันเกิดแบบสุริยคติ (ค.ศ.) · Solar calendar (양력)"
+            : "* Enter SOLAR calendar dates (양력)"}
+        </p>
+
         <button
           type="submit"
           disabled={loading}
-          className="mt-6 w-full rounded-xl bg-rosewood py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+          className="mt-4 w-full rounded-xl bg-rosewood py-3 font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
         >
           {loading
             ? lang === "th"
@@ -138,7 +189,45 @@ function PersonFields({
   return (
     <fieldset>
       <legend className="mb-2 text-sm font-semibold text-rosewood">{label}</legend>
-      <div className="grid grid-cols-3 gap-3">
+
+      <div className="grid grid-cols-2 gap-3">
+        <label className="block text-sm">
+          <span className="mb-1 block text-ink/70">
+            {lang === "th" ? "ชื่อเล่น · Name" : "Name (optional)"}
+          </span>
+          <input
+            placeholder={lang === "th" ? "มายด์" : "Mind"}
+            value={p.name}
+            onChange={(e) => onChange({ ...p, name: e.target.value })}
+            className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood"
+          />
+        </label>
+        <div className="block text-sm">
+          <span className="mb-1 block text-ink/70">{lang === "th" ? "เพศ · Gender" : "Gender"}</span>
+          <div className="flex gap-2">
+            {[
+              ["F", "👩 " + (lang === "th" ? "หญิง" : "F")],
+              ["M", "👨 " + (lang === "th" ? "ชาย" : "M")],
+            ].map(([v, txt]) => (
+              <button
+                key={v}
+                type="button"
+                onClick={() => onChange({ ...p, gender: p.gender === v ? "" : v })}
+                className={
+                  "flex-1 rounded-lg border py-2 text-sm transition " +
+                  (p.gender === v
+                    ? "border-rosewood bg-rosewood text-white"
+                    : "border-peach/60 bg-cream text-ink/70")
+                }
+              >
+                {txt}
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-3">
         <Field
           label={lang === "th" ? "ปี (ค.ศ.) · Year" : "Year"}
           placeholder="1996"

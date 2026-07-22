@@ -142,6 +142,12 @@ export default function Home() {
           {lang === "th" ? "ไม่ทราบเวลาเกิด · Unknown birth time" : "I don't know my birth time"}
         </label>
 
+        <p className="mt-3 text-center text-[11px] text-ink/50">
+          {lang === "th"
+            ? "* กรอกวันเกิดแบบสุริยคติ (ค.ศ.) · Solar calendar (양력)"
+            : "* Enter your SOLAR calendar birth date (양력)"}
+        </p>
+
         <button
           type="submit"
           disabled={loading}

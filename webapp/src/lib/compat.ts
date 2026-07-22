@@ -37,6 +37,20 @@ const SAN_HE: string[][] = [
   ["寅", "午", "戌"],
   ["巳", "酉", "丑"],
 ];
+// 암합 (hidden combinations) — branches whose hidden stems combine covertly.
+const AMHAP = new Set(["子戌", "丑寅", "卯申", "午亥", "寅未"]);
+
+const WINTER = new Set(["亥", "子", "丑"]);
+const SUMMER = new Set(["巳", "午", "未"]);
+
+// What controls each element (element → its controller).
+const CONTROLLER: Record<string, string> = {
+  water: "earth", fire: "water", metal: "fire", wood: "metal", earth: "wood",
+};
+// What each element generates.
+const GENERATES: Record<string, string> = {
+  wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood",
+};
 
 type LText = Record<Lang, string>;
 
@@ -76,6 +90,22 @@ const NOTES: Record<string, LText> = {
   yongOne: {
     th: "ฝ่ายหนึ่งช่วยเติมธาตุที่อีกฝ่ายต้องการ ประคองกันได้ดี",
     en: "One of you supplies the element the other needs — good mutual support.",
+  },
+  climate: {
+    th: "ดวงของทั้งคู่เติมเต็มอุณหภูมิให้กันอย่างสมบูรณ์ (조후) — ฝ่ายหนึ่งเย็นลึก อีกฝ่ายอบอุ่น เหมือนแสงแดดยามเช้าที่สาดลงทะเลหนาว อยู่ด้วยกันแล้วรู้สึก ‘พอดี’ อย่างประหลาด",
+    en: "Your charts complete each other's temperature (조후 climate balance) — one runs deep and cool, the other warm, like morning sunlight on a winter sea. Together it simply feels right.",
+  },
+  control: {
+    th: "ธาตุที่ล้นเกินของฝ่ายหนึ่งถูกธาตุของอีกฝ่ายโอบรับไว้พอดี (เช่น ดินโอบน้ำ 土克水) ทำให้อารมณ์และจังหวะชีวิตนิ่งขึ้นมากเมื่ออยู่ด้วยกัน",
+    en: "One partner's overflowing element is gently banked by the other's (like earth holding water, 土克水) — life feels far steadier together.",
+  },
+  feed: {
+    th: "มีหลายตำแหน่งในดวงที่ธาตุของฝ่ายหนึ่งคอย ‘หล่อเลี้ยง’ ธาตุของอีกฝ่าย ยิ่งใช้เวลาด้วยกัน อีกฝ่ายยิ่งเบ่งบาน",
+    en: "Many positions in your charts where one partner's energy feeds the other's — the longer you're together, the more you both bloom.",
+  },
+  amhap: {
+    th: "มีคู่ ‘암합(暗合)’ ซ่อนอยู่หลายตำแหน่ง — แรงดึงดูดลึก ๆ ที่อธิบายไม่ถูก คนนอกมองไม่เห็น แต่ใจของทั้งคู่รู้ดี",
+    en: "Several hidden bonds (암합) run between your charts — a quiet, unexplainable pull that outsiders can't see but you both feel.",
   },
 };
 
@@ -228,7 +258,8 @@ function branchPair(a: string, b: string): "he" | "chong" | "sanhe" | "same" | "
 }
 
 function clamp(n: number): number {
-  return Math.max(0, Math.min(100, Math.round(n)));
+  // Cap at 99 — a perfect 100 reads as fake.
+  return Math.max(0, Math.min(99, Math.round(n)));
 }
 
 export function computeCompatibility(
@@ -282,6 +313,68 @@ export function computeCompatibility(
   } else if (aHelpsB || bHelpsA) {
     score += 8;
     notes.push(NOTES.yongOne[lang]);
+  }
+
+  // 4. 조후 상보 — one cold chart (water excess / winter-born) warmed by a
+  // fire-carrying partner, or a hot chart cooled by a watery one.
+  const coldA = a.elementCounts.water >= 3 || WINTER.has(a.month.zhi);
+  const coldB = b.elementCounts.water >= 3 || WINTER.has(b.month.zhi);
+  const warmA = a.elementCounts.fire >= 2 || a.dayMasterElement === "fire";
+  const warmB = b.elementCounts.fire >= 2 || b.dayMasterElement === "fire";
+  const hotA = a.elementCounts.fire >= 3 || SUMMER.has(a.month.zhi);
+  const hotB = b.elementCounts.fire >= 3 || SUMMER.has(b.month.zhi);
+  const wetA = a.elementCounts.water >= 2 || a.dayMasterElement === "water";
+  const wetB = b.elementCounts.water >= 2 || b.dayMasterElement === "water";
+  if ((coldA && warmB) || (coldB && warmA) || (hotA && wetB) || (hotB && wetA)) {
+    score += 10;
+    notes.push(NOTES.climate[lang]);
+  }
+
+  // 5. 과다 제어 — climate-critical excess (flooding water / raging fire)
+  // held by the partner's controller: 토극수 (earth banks water) or
+  // 수극화 (water cools fire). Restricted to water/fire so it stays special.
+  const excessControlled = (x: SajuChart, y: SajuChart): boolean =>
+    (["water", "fire"] as const).some(
+      (el) =>
+        x.elementCounts[el] >= 3 &&
+        (y.elementCounts as Record<string, number>)[CONTROLLER[el]] >= 2
+    );
+  if (excessControlled(a, b) || excessControlled(b, a)) {
+    score += 6;
+    notes.push(NOTES.control[lang]);
+  }
+
+  // 6. 상생 자리 — distinct element pairs where one partner's present element
+  // generates an element the other actually has. More feeding lanes = better.
+  const present = (c: SajuChart): string[] =>
+    (Object.entries(c.elementCounts) as Array<[string, number]>)
+      .filter(([, n]) => n > 0)
+      .map(([el]) => el);
+  const feedLanes = (from: SajuChart, to: SajuChart): number =>
+    present(from).filter((el) => present(to).includes(GENERATES[el])).length;
+  const lanes = Math.max(feedLanes(a, b), feedLanes(b, a));
+  if (lanes >= 4) {
+    score += Math.min(5, lanes);
+    notes.push(NOTES.feed[lang]);
+  }
+
+  // 7. 암합 — hidden combinations across the two charts' branches.
+  const branchesOf = (c: SajuChart): string[] => [
+    c.year.zhi,
+    c.month.zhi,
+    c.day.zhi,
+    ...(c.hour ? [c.hour.zhi] : []),
+  ];
+  const amhapPairs = new Set<string>();
+  for (const ba of branchesOf(a))
+    for (const bb of branchesOf(b)) {
+      if (AMHAP.has(ba + bb) || AMHAP.has(bb + ba)) {
+        amhapPairs.add([ba, bb].sort().join(""));
+      }
+    }
+  if (amhapPairs.size > 0) {
+    score += Math.min(6, amhapPairs.size * 3);
+    notes.push(NOTES.amhap[lang]);
   }
 
   const s = clamp(score);

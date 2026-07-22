@@ -21,9 +21,15 @@ export default async function CompatResultPage({
     ? unlockCompat(result.sections, result.rel, lang)
     : result.sections;
 
+  // New records store { profiles, relationship, charts: {a,b} }; old ones
+  // stored bare { a, b } summaries — fall back gracefully.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload = rec.charts as any;
   const data: CompatData = {
     id: rec.id,
-    charts: rec.charts as CompatData["charts"],
+    profiles: payload?.profiles,
+    relationship: payload?.relationship,
+    charts: (payload?.charts ?? payload) as CompatData["charts"],
     result: { ...result, sections },
     disclaimer: DISCLAIMER[lang],
   };

@@ -4,13 +4,19 @@ import { computeCompatibility } from "@/lib/compat";
 import { compatStore } from "@/lib/store";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
 
+interface PersonInput extends SajuInput {
+  name?: string;
+  gender?: string; // "F" | "M" | ""
+}
+
 interface Body {
-  a: SajuInput;
-  b: SajuInput;
+  a: PersonInput;
+  b: PersonInput;
+  relationship?: string; // lovers | married | talking | friends | other
   lang?: string;
 }
 
-function valid(i: SajuInput | undefined): boolean {
+function valid(i: PersonInput | undefined): boolean {
   return (
     !!i &&
     typeof i.year === "number" &&
@@ -28,8 +34,20 @@ function valid(i: SajuInput | undefined): boolean {
   );
 }
 
-// POST /api/compat — body: { a, b, lang? } → compatibility result (persisted
-// when storage is available; save failure is non-fatal, id comes back null).
+function profileOf(i: PersonInput) {
+  return {
+    name: typeof i.name === "string" ? i.name.slice(0, 40) : "",
+    gender: i.gender === "F" || i.gender === "M" ? i.gender : "",
+    year: i.year,
+    month: i.month,
+    day: i.day,
+    hour: typeof i.hour === "number" ? i.hour : null,
+    minute: typeof i.minute === "number" ? i.minute : null,
+  };
+}
+
+// POST /api/compat — body: { a, b, relationship?, lang? } → full charts +
+// compatibility result. Save failure is non-fatal (id: null).
 export async function POST(req: NextRequest) {
   let body: Body;
   try {
@@ -45,18 +63,25 @@ export async function POST(req: NextRequest) {
   const chartA = computeSaju(body.a);
   const chartB = computeSaju(body.b);
   const result = computeCompatibility(chartA, chartB, lang);
-  const charts = {
-    a: { dayMaster: chartA.dayMaster, day: chartA.day },
-    b: { dayMaster: chartB.dayMaster, day: chartB.day },
+
+  const payload = {
+    profiles: { a: profileOf(body.a), b: profileOf(body.b) },
+    relationship: typeof body.relationship === "string" ? body.relationship : "",
+    charts: { a: chartA, b: chartB },
   };
 
   let id: string | null = null;
   try {
-    const saved = await compatStore.save(charts, result);
+    const saved = await compatStore.save(payload, result);
     id = saved.id;
   } catch (err) {
     console.error("compat save failed (non-fatal):", err);
   }
 
-  return NextResponse.json({ id, result, charts, disclaimer: DISCLAIMER[lang] });
+  return NextResponse.json({
+    id,
+    ...payload,
+    result,
+    disclaimer: DISCLAIMER[lang],
+  });
 }
