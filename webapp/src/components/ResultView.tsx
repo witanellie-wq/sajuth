@@ -69,7 +69,10 @@ export default function ResultView({ initial }: { initial: Reading }) {
   const [pay, setPay] = useState<{ qr: string; amount: number } | null>(null);
   const [payerName, setPayerName] = useState("");
   const [contact, setContact] = useState("");
-  const [claim, setClaim] = useState<{ ref: string; msg?: string } | null>(null);
+  const [claim, setClaim] = useState<{ ref: string; msg?: string; isPack?: boolean } | null>(null);
+  const [payKind, setPayKind] = useState<"reading" | "pack">("reading");
+  const [amuletInput, setAmuletInput] = useState("");
+  const [amuletMsg, setAmuletMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -83,10 +86,12 @@ export default function ResultView({ initial }: { initial: Reading }) {
     { label: ["ปี", "Year"], p: chart.year },
   ];
 
-  async function openPayment() {
+  async function openPayment(kind: "reading" | "pack" = "reading") {
     setBusy(true);
+    setPayKind(kind);
     try {
-      const res = await fetch(`/api/pay?kind=reading${id ? `&id=${id}` : ""}`);
+      const q = kind === "pack" ? "kind=pack" : `kind=reading${id ? `&id=${id}` : ""}`;
+      const res = await fetch(`/api/pay?${q}`);
       const data = await res.json();
       setPay({ qr: data.qr, amount: data.amount });
     } finally {
@@ -98,9 +103,23 @@ export default function ResultView({ initial }: { initial: Reading }) {
   // after the owner verifies the bank credit (admin confirm) — the share page
   // then renders unlocked.
   async function submitClaim() {
-    if (!id || !payerName.trim()) return;
+    if (!payerName.trim()) return;
     setBusy(true);
     try {
+      if (payKind === "pack") {
+        const res = await fetch("/api/amulet", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "buy", payerName, contact }),
+        });
+        const data = await res.json();
+        if (data.code) {
+          setPay(null);
+          setClaim({ ref: data.code, isPack: true });
+        }
+        return;
+      }
+      if (!id) return;
       const res = await fetch("/api/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -121,9 +140,23 @@ export default function ResultView({ initial }: { initial: Reading }) {
   }
 
   async function checkStatus() {
-    if (!id) return;
     setBusy(true);
     try {
+      if (claim?.isPack) {
+        const res = await fetch(`/api/amulet?code=${claim.ref}`);
+        const data = await res.json();
+        if (data.paid && id) {
+          await redeemAmulet(claim.ref);
+        } else if (data.paid) {
+          setClaim((c) => (c ? { ...c, msg: "✅ ยันต์พร้อมใช้แล้ว! · Amulets ready" } : c));
+        } else {
+          setClaim((c) =>
+            c ? { ...c, msg: "ยังไม่ได้รับการยืนยัน · Not confirmed yet" } : c
+          );
+        }
+        return;
+      }
+      if (!id) return;
       const res = await fetch(`/api/pay?kind=reading&id=${id}`);
       const data = await res.json();
       if (data.paid) {
@@ -132,6 +165,27 @@ export default function ResultView({ initial }: { initial: Reading }) {
         setClaim((c) =>
           c ? { ...c, msg: "ยังไม่ได้รับการยืนยัน · Not confirmed yet — please wait a moment" } : c
         );
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function redeemAmulet(code: string) {
+    if (!id || !code.trim()) return;
+    setBusy(true);
+    setAmuletMsg("");
+    try {
+      const res = await fetch("/api/amulet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "redeem", code: code.trim(), id, kind: "reading" }),
+      });
+      const data = await res.json();
+      if (data.ok) {
+        window.location.href = `/result/${id}`;
+      } else {
+        setAmuletMsg("รหัสไม่ถูกต้องหรือยันต์ไม่พอ · Invalid code or not enough amulets");
       }
     } finally {
       setBusy(false);
@@ -216,13 +270,43 @@ export default function ResultView({ initial }: { initial: Reading }) {
                     Unlock all 4 sections at once — love · career · wealth · 10-year luck
                   </p>
                   {id ? (
-                    <button
-                      onClick={openPayment}
-                      disabled={busy}
-                      className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
-                    >
-                      🔓 ปลดล็อกทั้งหมด · Unlock everything — 49 ฿
-                    </button>
+                    <>
+                      <button
+                        onClick={() => openPayment("reading")}
+                        disabled={busy}
+                        className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                      >
+                        🔓 ปลดล็อกทั้งหมด · Unlock everything — 49 ฿
+                      </button>
+                      <div className="mt-3 border-t border-amber-200 pt-3">
+                        <button
+                          onClick={() => openPayment("pack")}
+                          disabled={busy}
+                          className="rounded-xl border-2 border-rosewood bg-white px-5 py-2 text-sm font-semibold text-rosewood disabled:opacity-50"
+                        >
+                          🧿 คุ้มกว่า! ยันต์ 3 ชิ้น — 79 ฿
+                        </button>
+                        <p className="mt-1 text-[10px] text-ink/50">
+                          ซาจู 1 ยันต์ · ดวงคู่ 2 ยันต์ (사주1 · 궁합2)
+                        </p>
+                        <div className="mx-auto mt-2 flex max-w-xs gap-2">
+                          <input
+                            value={amuletInput}
+                            onChange={(e) => setAmuletInput(e.target.value.toUpperCase())}
+                            placeholder="มียันต์แล้ว? ใส่รหัส"
+                            className="min-w-0 flex-1 rounded-lg border border-peach/60 bg-white px-3 py-1.5 text-center font-mono text-xs outline-none focus:border-rosewood"
+                          />
+                          <button
+                            onClick={() => redeemAmulet(amuletInput)}
+                            disabled={busy || !amuletInput.trim()}
+                            className="rounded-lg bg-rosewood px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                          >
+                            ใช้ยันต์
+                          </button>
+                        </div>
+                        {amuletMsg && <p className="mt-1 text-[10px] text-red-500">{amuletMsg}</p>}
+                      </div>
+                    </>
                   ) : (
                     <a
                       href="https://instagram.com/duangsaju"
@@ -294,7 +378,9 @@ export default function ResultView({ initial }: { initial: Reading }) {
       {claim && (
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-xs rounded-3xl bg-white p-6 text-center">
-            <h3 className="font-semibold text-rosewood">⏳ รอการยืนยัน · Awaiting confirmation</h3>
+            <h3 className="font-semibold text-rosewood">
+              {claim.isPack ? "🧿 รหัสยันต์ของคุณ · Your amulet code" : "⏳ รอการยืนยัน · Awaiting confirmation"}
+            </h3>
             <p className="mt-2 text-xs leading-relaxed text-ink/70">
               ส่งสลิปโอนเงินพร้อมรหัสอ้างอิงด้านล่างทาง DM
               แล้วหน้านี้จะปลดล็อกภายในไม่กี่นาที
@@ -306,10 +392,15 @@ export default function ResultView({ initial }: { initial: Reading }) {
               onClick={() => {
                 navigator.clipboard?.writeText(claim.ref);
               }}
-              className="mt-3 w-full rounded-lg bg-cream px-3 py-2 font-mono text-xs text-ink"
+              className="mt-3 w-full rounded-lg bg-cream px-3 py-2 font-mono text-sm font-bold tracking-widest text-ink"
             >
-              {claim.ref.slice(0, 8).toUpperCase()}… 📋 คัดลอก · Copy
+              {claim.isPack ? claim.ref : claim.ref.slice(0, 8).toUpperCase() + "…"} 📋
             </button>
+            {claim.isPack && (
+              <p className="mt-1 text-[10px] text-ink/50">
+                เก็บรหัสนี้ไว้! ใช้ได้หลังยืนยันการโอน (ยันต์ 3 ชิ้น)
+              </p>
+            )}
             <a
               href="https://instagram.com/duangsaju"
               className="mt-2 block w-full rounded-xl bg-rosewood py-2.5 text-sm font-semibold text-white"

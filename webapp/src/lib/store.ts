@@ -6,7 +6,7 @@
 // NOTE: the in-memory fallback does NOT persist across serverless invocations
 // or restarts — set up Supabase before relying on share links in production.
 
-import { randomUUID } from "crypto";
+import { randomUUID, randomBytes } from "crypto";
 import type { SajuChart } from "./saju";
 import type { ReportSection } from "./interpret";
 
@@ -263,3 +263,125 @@ function supabaseStore(): Store | null {
 
 export const store: Store = supabaseStore() ?? memStore;
 export const usingMemoryStore = supabaseStore() === null;
+
+// ── Amulet packs (부적/ยันต์ credits) ───────────────────────────────────
+// 3 amulets per pack; reading costs 1, compat costs 2. Redeemable only after
+// the owner confirms the transfer. Supabase table:
+//   amulets(code text pk, created_at timestamptz, balance int, paid bool,
+//           payer_name text, contact text)
+
+export interface Amulet {
+  code: string;
+  createdAt: string;
+  balance: number;
+  paid: boolean;
+  payerName: string;
+  contact: string;
+}
+
+const memAmulets = new Map<string, Amulet>();
+
+function genCode(): string {
+  // 8 chars, cryptographically random, no ambiguous 0/O/1/I.
+  const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const bytes = randomBytes(8);
+  let out = "";
+  for (let i = 0; i < 8; i++) out += chars[bytes[i] % chars.length];
+  return out;
+}
+
+export const amuletStore = {
+  async create(payerName: string, contact: string): Promise<Amulet> {
+    const rec: Amulet = {
+      code: genCode(),
+      createdAt: new Date().toISOString(),
+      balance: 3,
+      paid: false,
+      payerName,
+      contact,
+    };
+    const sb = getSupabase();
+    if (sb) {
+      const { error } = await sb.from("amulets").insert({
+        code: rec.code,
+        created_at: rec.createdAt,
+        balance: rec.balance,
+        paid: rec.paid,
+        payer_name: rec.payerName,
+        contact: rec.contact,
+      });
+      if (error) throw new Error(`supabase insert: ${error.message}`);
+    } else {
+      memAmulets.set(rec.code, rec);
+    }
+    return rec;
+  },
+  async get(code: string): Promise<Amulet | null> {
+    const sb = getSupabase();
+    if (sb) {
+      const { data, error } = await sb.from("amulets").select("*").eq("code", code).single();
+      if (error || !data) return null;
+      return {
+        code: data.code,
+        createdAt: data.created_at,
+        balance: data.balance,
+        paid: !!data.paid,
+        payerName: data.payer_name ?? "",
+        contact: data.contact ?? "",
+      };
+    }
+    return memAmulets.get(code) ?? null;
+  },
+  async markPaid(code: string): Promise<void> {
+    const sb = getSupabase();
+    if (sb) {
+      await sb.from("amulets").update({ paid: true }).eq("code", code);
+    } else {
+      const rec = memAmulets.get(code);
+      if (rec) rec.paid = true;
+    }
+  },
+  /** Deduct `cost` amulets. Returns remaining balance, or null if not possible. */
+  async redeem(code: string, cost: number): Promise<number | null> {
+    const rec = await amuletStore.get(code);
+    if (!rec || !rec.paid || rec.balance < cost) return null;
+    const next = rec.balance - cost;
+    const sb = getSupabase();
+    if (sb) {
+      // Guard against double-spend with a conditional update.
+      const { data } = await sb
+        .from("amulets")
+        .update({ balance: next })
+        .eq("code", code)
+        .eq("balance", rec.balance)
+        .select("balance");
+      if (!data || data.length === 0) return null;
+    } else {
+      const m = memAmulets.get(code);
+      if (!m || m.balance < cost) return null;
+      m.balance = next;
+    }
+    return next;
+  },
+  async listPending(): Promise<Amulet[]> {
+    const sb = getSupabase();
+    if (sb) {
+      const { data } = await sb
+        .from("amulets")
+        .select("*")
+        .eq("paid", false)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data ?? []).map((d: any) => ({
+        code: d.code,
+        createdAt: d.created_at,
+        balance: d.balance,
+        paid: !!d.paid,
+        payerName: d.payer_name ?? "",
+        contact: d.contact ?? "",
+      }));
+    }
+    return [...memAmulets.values()].filter((a) => !a.paid);
+  },
+};

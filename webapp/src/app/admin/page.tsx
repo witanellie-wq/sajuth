@@ -1,4 +1,4 @@
-import { store, compatStore } from "@/lib/store";
+import { store, compatStore, amuletStore } from "@/lib/store";
 
 // Owner-only payment dashboard (Korean UI).
 // Open: https://<site>/admin?key=<ADMIN_SECRET>
@@ -31,13 +31,15 @@ export default async function AdminPage({
     );
   }
 
-  const [readings, compats] = await Promise.all([
+  const [readings, compats, packs] = await Promise.all([
     store.listPending(),
     compatStore.listPending(),
+    amuletStore.listPending(),
   ]);
 
   const priceReading = Number(process.env.UNLOCK_PRICE_THB ?? 49);
   const priceCompat = Number(process.env.UNLOCK_COMPAT_PRICE_THB ?? 89);
+  const pricePack = Number(process.env.AMULET_PACK_PRICE_THB ?? 79);
 
   const rows = [
     ...readings.map((r) => ({
@@ -53,6 +55,13 @@ export default async function AdminPage({
       claim: r.claim,
       amount: priceCompat,
       created: r.createdAt,
+    })),
+    ...packs.map((p) => ({
+      kind: "pack" as const,
+      id: p.code,
+      claim: { payerName: p.payerName, contact: p.contact, claimedAt: p.createdAt },
+      amount: pricePack,
+      created: p.createdAt,
     })),
   ].sort((a, b) => (b.claim?.claimedAt ?? "").localeCompare(a.claim?.claimedAt ?? ""));
 
@@ -90,14 +99,15 @@ export default async function AdminPage({
                         : "bg-amber-100 text-amber-700")
                     }
                   >
-                    {r.kind === "compat" ? "💞 궁합" : "🔮 사주"} · {r.amount}฿
+                    {r.kind === "compat" ? "💞 궁합" : r.kind === "pack" ? "🧿 부적3팩" : "🔮 사주"} · {r.amount}฿
                   </span>
                   <div className="mt-1 text-sm font-semibold text-ink">
                     입금자명: {r.claim?.payerName || "(미입력)"}
                   </div>
                   <div className="text-xs text-ink/60">연락처: {r.claim?.contact || "-"}</div>
                   <div className="mt-0.5 font-mono text-[10px] text-ink/40">
-                    ref {r.id.slice(0, 8).toUpperCase()} · 신고 {fmt(r.claim?.claimedAt)}
+                    {r.kind === "pack" ? "코드" : "ref"} {r.id.slice(0, 8).toUpperCase()} · 신고{" "}
+                    {fmt(r.claim?.claimedAt)}
                   </div>
                 </div>
                 <a

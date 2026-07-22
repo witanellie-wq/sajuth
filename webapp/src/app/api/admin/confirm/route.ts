@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { store, compatStore } from "@/lib/store";
+import { store, compatStore, amuletStore } from "@/lib/store";
 
 // GET /api/admin/confirm?kind=reading|compat&id=<uuid>&key=<ADMIN_SECRET>
 //
@@ -15,10 +15,16 @@ export async function GET(req: NextRequest) {
   }
 
   const id = req.nextUrl.searchParams.get("id");
-  const kind = req.nextUrl.searchParams.get("kind") === "compat" ? "compat" : "reading";
+  const kindParam = req.nextUrl.searchParams.get("kind");
+  const kind =
+    kindParam === "compat" ? "compat" : kindParam === "pack" ? "pack" : "reading";
   if (!id) return NextResponse.json({ error: "missing_id" }, { status: 400 });
 
-  if (kind === "compat") {
+  if (kind === "pack") {
+    const rec = await amuletStore.get(id.toUpperCase());
+    if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
+    await amuletStore.markPaid(rec.code);
+  } else if (kind === "compat") {
     const rec = await compatStore.get(id);
     if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
     await compatStore.markPaid(id);

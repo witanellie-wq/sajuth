@@ -3,6 +3,16 @@
 import { useState } from "react";
 import { STEM_STYLE, BRANCH_STYLE } from "./hanStyles";
 
+// Korean readings shown under each hanja (like classic 만세력 apps).
+const STEM_KO: Record<string, string> = {
+  "甲": "갑", "乙": "을", "丙": "병", "丁": "정", "戊": "무",
+  "己": "기", "庚": "경", "辛": "신", "壬": "임", "癸": "계",
+};
+const BRANCH_KO: Record<string, string> = {
+  "子": "자", "丑": "축", "寅": "인", "卯": "묘", "辰": "진", "巳": "사",
+  "午": "오", "未": "미", "申": "신", "酉": "유", "戌": "술", "亥": "해",
+};
+
 export interface CompatSection {
   key: string;
   title: string;
@@ -120,19 +130,21 @@ function PersonChart({
             <div className="flex flex-col gap-0.5 p-0.5">
               <span
                 className={
-                  "flex h-8 items-center justify-center rounded-md text-lg font-bold " +
+                  "flex h-10 flex-col items-center justify-center rounded-md leading-none " +
                   (p ? STEM_STYLE[p.gan] : "bg-cream text-ink/30")
                 }
               >
-                {p ? p.gan : "—"}
+                <span className="text-base font-bold">{p ? p.gan : "—"}</span>
+                {p && <span className="text-[8px] opacity-80">{STEM_KO[p.gan]}</span>}
               </span>
               <span
                 className={
-                  "flex h-8 items-center justify-center rounded-md text-lg font-bold " +
+                  "flex h-10 flex-col items-center justify-center rounded-md leading-none " +
                   (p ? BRANCH_STYLE[p.zhi] : "bg-cream text-ink/30")
                 }
               >
-                {p ? p.zhi : "—"}
+                <span className="text-base font-bold">{p ? p.zhi : "—"}</span>
+                {p && <span className="text-[8px] opacity-80">{BRANCH_KO[p.zhi]}</span>}
               </span>
             </div>
           </div>
@@ -148,10 +160,34 @@ export default function CompatView({ data }: { data: CompatData }) {
   const [pay, setPay] = useState<{ qr: string; amount: number } | null>(null);
   const [payerName, setPayerName] = useState("");
   const [contact, setContact] = useState("");
-  const [claim, setClaim] = useState<{ ref: string; msg?: string } | null>(null);
+  const [claim, setClaim] = useState<{ ref: string; msg?: string; isPack?: boolean } | null>(null);
+  const [payKind, setPayKind] = useState<"compat" | "pack">("compat");
+  const [amuletInput, setAmuletInput] = useState("");
+  const [amuletMsg, setAmuletMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const { score, intimate, bandTh, headline } = data.result;
+
+  async function redeemAmulet(code: string) {
+    if (!id || !code.trim()) return;
+    setBusy(true);
+    setAmuletMsg("");
+    try {
+      const res = await fetch("/api/amulet", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "redeem", code: code.trim(), id, kind: "compat" }),
+      });
+      const d = await res.json();
+      if (d.ok) {
+        window.location.href = `/compat/result/${id}`;
+      } else {
+        setAmuletMsg("รหัสไม่ถูกต้องหรือยันต์ไม่พอ (ดวงคู่ใช้ 2 ยันต์) · Invalid code or not enough amulets");
+      }
+    } finally {
+      setBusy(false);
+    }
+  }
 
   function share() {
     if (!id) return;
@@ -161,10 +197,12 @@ export default function CompatView({ data }: { data: CompatData }) {
     setTimeout(() => setCopied(false), 2000);
   }
 
-  async function openPayment() {
+  async function openPayment(kind: "compat" | "pack" = "compat") {
     setBusy(true);
+    setPayKind(kind);
     try {
-      const res = await fetch(`/api/pay?kind=compat${id ? `&id=${id}` : ""}`);
+      const q = kind === "pack" ? "kind=pack" : `kind=compat${id ? `&id=${id}` : ""}`;
+      const res = await fetch(`/api/pay?${q}`);
       const d = await res.json();
       setPay({ qr: d.qr, amount: d.amount });
     } finally {
@@ -175,9 +213,23 @@ export default function CompatView({ data }: { data: CompatData }) {
   // Report the transfer → reference code; unlock only after the owner
   // verifies the credit (admin confirm) — then the share page renders open.
   async function submitClaim() {
-    if (!id || !payerName.trim()) return;
+    if (!payerName.trim()) return;
     setBusy(true);
     try {
+      if (payKind === "pack") {
+        const res = await fetch("/api/amulet", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action: "buy", payerName, contact }),
+        });
+        const d = await res.json();
+        if (d.code) {
+          setPay(null);
+          setClaim({ ref: d.code, isPack: true });
+        }
+        return;
+      }
+      if (!id) return;
       const res = await fetch("/api/pay", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -198,9 +250,21 @@ export default function CompatView({ data }: { data: CompatData }) {
   }
 
   async function checkStatus() {
-    if (!id) return;
     setBusy(true);
     try {
+      if (claim?.isPack) {
+        const res = await fetch(`/api/amulet?code=${claim.ref}`);
+        const d = await res.json();
+        if (d.paid && id) {
+          await redeemAmulet(claim.ref);
+        } else if (d.paid) {
+          setClaim((c) => (c ? { ...c, msg: "✅ ยันต์พร้อมใช้แล้ว! · Amulets ready" } : c));
+        } else {
+          setClaim((c) => (c ? { ...c, msg: "ยังไม่ได้รับการยืนยัน · Not confirmed yet" } : c));
+        }
+        return;
+      }
+      if (!id) return;
       const res = await fetch(`/api/pay?kind=compat&id=${id}`);
       const d = await res.json();
       if (d.paid) {
@@ -236,7 +300,7 @@ export default function CompatView({ data }: { data: CompatData }) {
         )}
         <p className="mt-1 text-sm text-ink/70">{headline}</p>
 
-        <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="mt-4 grid grid-cols-2 gap-2">
           <PersonChart chart={charts.a} profile={profiles?.a} fallbackName="คุณ · You" />
           <PersonChart chart={charts.b} profile={profiles?.b} fallbackName="อีกฝ่าย · Partner" />
         </div>
@@ -261,13 +325,43 @@ export default function CompatView({ data }: { data: CompatData }) {
             Read the full written analysis for your pair — every point + marriage · cautions · long-term
           </p>
           {id ? (
-            <button
-              onClick={openPayment}
-              disabled={busy}
-              className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
-            >
-              🔓 ปลดล็อกผลวิเคราะห์ · Unlock full analysis — 89 ฿
-            </button>
+            <>
+              <button
+                onClick={() => openPayment("compat")}
+                disabled={busy}
+                className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+              >
+                🔓 ปลดล็อกผลวิเคราะห์ · Unlock full analysis — 89 ฿
+              </button>
+              <div className="mt-3 border-t border-amber-200 pt-3">
+                <button
+                  onClick={() => openPayment("pack")}
+                  disabled={busy}
+                  className="rounded-xl border-2 border-rosewood bg-white px-5 py-2 text-sm font-semibold text-rosewood disabled:opacity-50"
+                >
+                  🧿 คุ้มกว่า! ยันต์ 3 ชิ้น — 79 ฿
+                </button>
+                <p className="mt-1 text-[10px] text-ink/50">
+                  ซาจู 1 ยันต์ · ดวงคู่ 2 ยันต์ (사주1 · 궁합2)
+                </p>
+                <div className="mx-auto mt-2 flex max-w-xs gap-2">
+                  <input
+                    value={amuletInput}
+                    onChange={(e) => setAmuletInput(e.target.value.toUpperCase())}
+                    placeholder="มียันต์แล้ว? ใส่รหัส"
+                    className="min-w-0 flex-1 rounded-lg border border-peach/60 bg-white px-3 py-1.5 text-center font-mono text-xs outline-none focus:border-rosewood"
+                  />
+                  <button
+                    onClick={() => redeemAmulet(amuletInput)}
+                    disabled={busy || !amuletInput.trim()}
+                    className="rounded-lg bg-rosewood px-3 py-1.5 text-xs font-semibold text-white disabled:opacity-50"
+                  >
+                    ใช้ยันต์
+                  </button>
+                </div>
+                {amuletMsg && <p className="mt-1 text-[10px] text-red-500">{amuletMsg}</p>}
+              </div>
+            </>
           ) : (
             <a
               href="https://instagram.com/duangsaju"
@@ -342,7 +436,9 @@ export default function CompatView({ data }: { data: CompatData }) {
       {claim && (
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
           <div className="w-full max-w-xs rounded-3xl bg-white p-6 text-center">
-            <h3 className="font-semibold text-rosewood">⏳ รอการยืนยัน · Awaiting confirmation</h3>
+            <h3 className="font-semibold text-rosewood">
+              {claim.isPack ? "🧿 รหัสยันต์ของคุณ · Your amulet code" : "⏳ รอการยืนยัน · Awaiting confirmation"}
+            </h3>
             <p className="mt-2 text-xs leading-relaxed text-ink/70">
               ส่งสลิปโอนเงินพร้อมรหัสอ้างอิงด้านล่างทาง DM
               แล้วหน้านี้จะปลดล็อกภายในไม่กี่นาที
@@ -354,10 +450,15 @@ export default function CompatView({ data }: { data: CompatData }) {
               onClick={() => {
                 navigator.clipboard?.writeText(claim.ref);
               }}
-              className="mt-3 w-full rounded-lg bg-cream px-3 py-2 font-mono text-xs text-ink"
+              className="mt-3 w-full rounded-lg bg-cream px-3 py-2 font-mono text-sm font-bold tracking-widest text-ink"
             >
-              {claim.ref.slice(0, 8).toUpperCase()}… 📋 คัดลอก · Copy
+              {claim.isPack ? claim.ref : claim.ref.slice(0, 8).toUpperCase() + "…"} 📋
             </button>
+            {claim.isPack && (
+              <p className="mt-1 text-[10px] text-ink/50">
+                เก็บรหัสนี้ไว้! ใช้ได้หลังยืนยันการโอน (ยันต์ 3 ชิ้น)
+              </p>
+            )}
             <a
               href="https://instagram.com/duangsaju"
               className="mt-2 block w-full rounded-xl bg-rosewood py-2.5 text-sm font-semibold text-white"

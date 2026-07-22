@@ -43,6 +43,14 @@ create table compat_readings (
   result jsonb not null,
   paid boolean not null default false
 );
+create table amulets (
+  code text primary key,
+  created_at timestamptz not null default now(),
+  balance int not null default 3,
+  paid boolean not null default false,
+  payer_name text,
+  contact text
+);
 ```
 3. Settings → API에서 URL과 `service_role` 키 복사 → Vercel 환경변수에 입력
 
