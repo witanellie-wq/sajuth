@@ -20,7 +20,9 @@ export default function RootLayout({
           rel="stylesheet"
         />
       </head>
-      <body className="font-thai bg-cream text-ink antialiased">{children}</body>
+      <body className="font-thai bg-gradient-to-b from-orange-50 via-cream to-rose-50 text-ink antialiased min-h-screen">
+        {children}
+      </body>
     </html>
   );
 }

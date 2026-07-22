@@ -78,7 +78,10 @@ export default function Home() {
       </div>
 
       <header className="mb-8 text-center">
-        <h1 className="text-3xl font-bold text-rosewood">ดวงซาจู</h1>
+        <div className="mb-1 text-3xl">🔮</div>
+        <h1 className="bg-gradient-to-r from-rose-500 via-rosewood to-amber-500 bg-clip-text text-3xl font-bold text-transparent">
+          ดวงซาจู
+        </h1>
         <p className="mt-2 text-sm text-ink/70">
           {lang === "th"
             ? "ดูดวงสไตล์เกาหลี (사주) จากวันเดือนปีเกิด — รู้ผลใน 1 นาที"

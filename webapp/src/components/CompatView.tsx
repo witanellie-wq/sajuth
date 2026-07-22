@@ -1,6 +1,36 @@
 "use client";
 
 import { useState } from "react";
+import { STEM_STYLE, BRANCH_STYLE } from "./hanStyles";
+
+const COMPAT_EMOJI: Record<string, string> = {
+  marriage: "💍",
+  conflict: "⚠️",
+  longterm: "🌈",
+};
+
+function MiniHan({ gan, zhi }: { gan: string; zhi: string }) {
+  return (
+    <span className="inline-flex gap-0.5 align-middle">
+      <span
+        className={
+          "inline-flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold " +
+          (STEM_STYLE[gan] ?? "bg-cream")
+        }
+      >
+        {gan}
+      </span>
+      <span
+        className={
+          "inline-flex h-7 w-7 items-center justify-center rounded-lg text-sm font-bold " +
+          (BRANCH_STYLE[zhi] ?? "bg-cream")
+        }
+      >
+        {zhi}
+      </span>
+    </span>
+  );
+}
 
 export interface CompatSection {
   key: string;
@@ -77,17 +107,17 @@ export default function CompatView({ data }: { data: CompatData }) {
     <section className="mt-8">
       <div className="rounded-2xl bg-white p-6 text-center shadow-sm ring-1 ring-peach/40">
         <div className="flex items-center justify-center gap-4 text-sm text-ink/60">
-          <span>
-            คุณ·You {charts.a.day.gan}
-            {charts.a.day.zhi}
+          <span className="flex items-center gap-1.5">
+            คุณ·You <MiniHan gan={charts.a.day.gan} zhi={charts.a.day.zhi} />
           </span>
-          <span className="text-rosewood">×</span>
-          <span>
-            อีกฝ่าย·Partner {charts.b.day.gan}
-            {charts.b.day.zhi}
+          <span className="text-xl">💞</span>
+          <span className="flex items-center gap-1.5">
+            อีกฝ่าย·Partner <MiniHan gan={charts.b.day.gan} zhi={charts.b.day.zhi} />
           </span>
         </div>
-        <div className="my-2 text-5xl font-bold text-rosewood">{score}%</div>
+        <div className="my-2 bg-gradient-to-r from-rose-500 via-rosewood to-amber-500 bg-clip-text text-5xl font-bold text-transparent">
+          {score}%
+        </div>
         <div className="text-lg font-semibold text-ink">{bandTh}</div>
         <p className="mt-1 text-sm text-ink/70">{headline}</p>
         {id && (
@@ -105,7 +135,9 @@ export default function CompatView({ data }: { data: CompatData }) {
           .filter((s) => s.key !== "overview")
           .map((s) => (
             <div key={s.key} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
-              <h3 className="text-sm font-semibold text-rosewood">{s.title}</h3>
+              <h3 className="text-sm font-semibold text-rosewood">
+                {COMPAT_EMOJI[s.key] ?? "💡"} {s.title}
+              </h3>
               <p
                 className={
                   "mt-1 text-sm leading-relaxed text-ink/80 " + (s.locked ? "locked-body" : "")

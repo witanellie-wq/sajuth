@@ -27,7 +27,8 @@ export interface Reading {
   disclaimer: string;
 }
 
-// Bilingual element chips — TH · EN together.
+import { STEM_STYLE, BRANCH_STYLE, ELEMENT_CHIP } from "./hanStyles";
+
 const ELEMENT_LABEL: Record<string, string> = {
   wood: "ไม้·Wood",
   fire: "ไฟ·Fire",
@@ -36,12 +37,30 @@ const ELEMENT_LABEL: Record<string, string> = {
   water: "น้ำ·Water",
 };
 
-const PILLAR_LABELS: Array<[string, string]> = [
-  ["ปี", "Year"],
-  ["เดือน", "Month"],
-  ["วัน", "Day"],
-  ["เวลา", "Hour"],
-];
+const SECTION_EMOJI: Record<string, string> = {
+  personality: "✨",
+  elements: "🎨",
+  strength: "⚡",
+  today: "🍀",
+  love: "💖",
+  career: "💼",
+  wealth: "💰",
+  luck10: "🔮",
+};
+
+function HanBlock({ ch, style, star }: { ch: string; style?: string; star?: boolean }) {
+  return (
+    <div
+      className={
+        "relative flex h-12 items-center justify-center rounded-xl text-2xl font-bold shadow-sm " +
+        (style ?? "bg-cream text-ink/40")
+      }
+    >
+      {star && <span className="absolute -top-2 -right-1 text-xs">⭐</span>}
+      {ch}
+    </div>
+  );
+}
 
 export default function ResultView({ initial }: { initial: Reading }) {
   const [reading, setReading] = useState<Reading>(initial);
@@ -50,7 +69,14 @@ export default function ResultView({ initial }: { initial: Reading }) {
   const [copied, setCopied] = useState(false);
 
   const { chart, sections, disclaimer, id } = reading;
-  const pillars: Array<Pillar | null> = [chart.year, chart.month, chart.day, chart.hour];
+
+  // Traditional reading order: 시 → 일 → 월 → 년 (hour, day, month, year).
+  const pillars: Array<{ label: [string, string]; p: Pillar | null; isDay?: boolean }> = [
+    { label: ["เวลา", "Hour"], p: chart.hour },
+    { label: ["วัน", "Day"], p: chart.day, isDay: true },
+    { label: ["เดือน", "Month"], p: chart.month },
+    { label: ["ปี", "Year"], p: chart.year },
+  ];
 
   async function openPayment() {
     if (!id) return;
@@ -94,28 +120,43 @@ export default function ResultView({ initial }: { initial: Reading }) {
 
   return (
     <section className="mt-8">
-      {/* Four Pillars grid (사주 원국) */}
-      <div className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
+      {/* Four Pillars grid (사주 원국) — 시일월년 order */}
+      <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
         <h2 className="mb-3 text-center text-sm font-semibold text-rosewood">
-          ผังดวงซาจูของคุณ · Your Four Pillars (원국)
+          🧧 ผังดวงซาจูของคุณ · Your Four Pillars (원국)
         </h2>
         <div className="grid grid-cols-4 gap-2 text-center">
-          {pillars.map((p, i) => (
-            <div key={i} className="rounded-lg bg-cream py-3">
-              <div className="text-xs text-ink/50">
-                {PILLAR_LABELS[i][0]}
-                <span className="block text-[10px] text-ink/35">{PILLAR_LABELS[i][1]}</span>
+          {pillars.map(({ label, p, isDay }) => (
+            <div
+              key={label[1]}
+              className={
+                "rounded-2xl p-2 " +
+                (isDay ? "bg-amber-50 ring-2 ring-amber-300" : "bg-cream/60")
+              }
+            >
+              <div className="mb-1 text-xs text-ink/50">
+                {label[0]}
+                <span className="block text-[10px] text-ink/35">{label[1]}</span>
               </div>
-              <div className="mt-1 text-2xl font-bold text-ink">{p ? p.gan : "—"}</div>
-              <div className="text-2xl font-bold text-ink/70">{p ? p.zhi : "—"}</div>
+              <div className="flex flex-col gap-1.5">
+                <HanBlock
+                  ch={p ? p.gan : "—"}
+                  style={p ? STEM_STYLE[p.gan] : undefined}
+                  star={isDay}
+                />
+                <HanBlock ch={p ? p.zhi : "—"} style={p ? BRANCH_STYLE[p.zhi] : undefined} />
+              </div>
             </div>
           ))}
         </div>
+        <p className="mt-2 text-center text-[10px] text-ink/40">
+          ⭐ = ธาตุประจำตัวคุณ · your Day Master (일간)
+        </p>
 
         {/* Five-element counts */}
-        <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs">
+        <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
           {Object.entries(chart.elementCounts).map(([el, n]) => (
-            <span key={el} className="rounded-full bg-peach/40 px-2 py-1">
+            <span key={el} className={"rounded-full px-2.5 py-1 font-medium " + ELEMENT_CHIP[el]}>
               {ELEMENT_LABEL[el]} {n}
             </span>
           ))}
@@ -124,7 +165,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
         {id && (
           <button
             onClick={share}
-            className="mt-4 w-full rounded-lg border border-peach/60 py-2 text-sm text-rosewood"
+            className="mt-4 w-full rounded-xl border border-peach/60 py-2 text-sm text-rosewood transition hover:bg-peach/20"
           >
             {copied ? "คัดลอกลิงก์แล้ว ✓ Copied" : "📤 แชร์ผลดวงนี้ · Share this reading"}
           </button>
@@ -134,8 +175,10 @@ export default function ResultView({ initial }: { initial: Reading }) {
       {/* Sections */}
       <div className="mt-4 space-y-3">
         {sections.map((s) => (
-          <div key={s.key} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
-            <h3 className="font-semibold text-rosewood">{s.title}</h3>
+          <div key={s.key} className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
+            <h3 className="font-semibold text-rosewood">
+              {SECTION_EMOJI[s.key] ?? "🌸"} {s.title}
+            </h3>
             <p
               className={
                 "mt-1 text-sm leading-relaxed text-ink/80 " + (s.locked ? "locked-body" : "")
@@ -147,7 +190,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
               <button
                 onClick={openPayment}
                 disabled={busy}
-                className="mt-3 inline-block rounded-lg bg-rosewood px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                className="mt-3 inline-block rounded-xl bg-rosewood px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
               >
                 🔓 ปลดล็อกผลแบบเต็ม · Unlock full reading
               </button>
@@ -158,7 +201,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
 
       {pay && (
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-xs rounded-2xl bg-white p-6 text-center">
+          <div className="w-full max-w-xs rounded-3xl bg-white p-6 text-center">
             <h3 className="font-semibold text-rosewood">สแกนเพื่อชำระ · Scan to pay</h3>
             <p className="mt-1 text-sm text-ink/70">PromptPay · {pay.amount} THB</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
