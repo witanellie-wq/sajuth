@@ -180,31 +180,44 @@ export default function ResultView({ initial }: { initial: Reading }) {
         )}
       </div>
 
-      {/* Sections */}
+      {/* Sections — one 49฿ unlock opens every locked category at once */}
       <div className="mt-4 space-y-3">
-        {sections.map((s) => (
-          <div key={s.key} className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
-            <h3 className="font-semibold text-rosewood">
-              {SECTION_EMOJI[s.key] ?? "🌸"} {s.title}
-            </h3>
-            <p
-              className={
-                "mt-1 text-sm leading-relaxed text-ink/80 " + (s.locked ? "locked-body" : "")
-              }
-            >
-              {s.body}
-            </p>
-            {s.locked && (
-              <button
-                onClick={openPayment}
-                disabled={busy}
-                className="mt-3 inline-block rounded-xl bg-rosewood px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
-              >
-                🔓 ปลดล็อกผลแบบเต็ม · Unlock full reading
-              </button>
-            )}
-          </div>
-        ))}
+        {sections.map((s, i) => {
+          const firstLocked = s.locked && !sections.slice(0, i).some((x) => x.locked);
+          return (
+            <div key={s.key}>
+              {firstLocked && (
+                <div className="mb-3 rounded-3xl bg-gradient-to-r from-rose-100 via-amber-50 to-yellow-100 p-5 text-center ring-1 ring-amber-200">
+                  <p className="text-sm font-semibold text-ink">
+                    💖💼💰🔮 ปลดล็อกครบทุกหมวดในครั้งเดียว
+                  </p>
+                  <p className="mt-0.5 text-xs text-ink/60">
+                    Unlock all 4 sections at once — love · career · wealth · 10-year luck
+                  </p>
+                  <button
+                    onClick={openPayment}
+                    disabled={busy}
+                    className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+                  >
+                    🔓 ปลดล็อกทั้งหมด · Unlock everything — 49 ฿
+                  </button>
+                </div>
+              )}
+              <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
+                <h3 className="font-semibold text-rosewood">
+                  {SECTION_EMOJI[s.key] ?? "🌸"} {s.title}
+                </h3>
+                <p
+                  className={
+                    "mt-1 text-sm leading-relaxed text-ink/80 " + (s.locked ? "locked-body" : "")
+                  }
+                >
+                  {s.body}
+                </p>
+              </div>
+            </div>
+          );
+        })}
       </div>
 
       {pay && (

@@ -287,13 +287,16 @@ export function computeCompatibility(
   const s = clamp(score);
   const bandDef = BANDS.find((x) => s >= x.min)!;
 
+  // The whole written analysis sits behind one 89 THB unlock — only the
+  // score/band/headline are free teasers. Note bodies are real text (blurred
+  // until paid); premium bodies stay placeholder until unlockCompat().
   const sections: CompatSection[] = [
     { key: "overview", title: "", body: bandDef.headline[lang], locked: false },
     ...notes.map((n, i) => ({
       key: `note${i + 1}`,
       title: NOTE_TITLE[lang](i + 1),
       body: n,
-      locked: false,
+      locked: true,
     })),
     ...PREMIUM_TITLES[lang].map(([key, title]) => ({
       key,
@@ -313,14 +316,16 @@ export function computeCompatibility(
   };
 }
 
-/** Reveal premium compat bodies after payment. */
+/** Reveal the full compat analysis after payment (notes + premium bodies). */
 export function unlockCompat(
   sections: CompatSection[],
   rel: string,
   lang: Lang = "th"
 ): CompatSection[] {
   const bodies = PREMIUM_COMPAT[rel] ?? PREMIUM_COMPAT.same;
-  return sections.map((s) =>
-    s.locked && bodies[s.key] ? { ...s, body: bodies[s.key][lang], locked: false } : s
-  );
+  return sections.map((s) => {
+    if (!s.locked) return s;
+    if (bodies[s.key]) return { ...s, body: bodies[s.key][lang], locked: false };
+    return { ...s, locked: false }; // notes — real body, just blurred until paid
+  });
 }

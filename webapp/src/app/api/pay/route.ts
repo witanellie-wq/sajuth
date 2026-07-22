@@ -6,7 +6,7 @@ import { unlock, type ReportSection } from "@/lib/interpret";
 import { unlockCompat, type Compatibility, type CompatSection } from "@/lib/compat";
 import { pickLang } from "@/lib/i18n";
 
-const PRICE_READING_THB = Number(process.env.UNLOCK_PRICE_THB ?? 59);
+const PRICE_READING_THB = Number(process.env.UNLOCK_PRICE_THB ?? 49);
 const PRICE_COMPAT_THB = Number(process.env.UNLOCK_COMPAT_PRICE_THB ?? 89);
 const PROMPTPAY_TARGET = process.env.PROMPTPAY_TARGET ?? "0000000000";
 

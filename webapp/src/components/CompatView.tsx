@@ -138,6 +138,25 @@ export default function CompatView({ data }: { data: CompatData }) {
         )}
       </div>
 
+      {/* Full written analysis sits behind ONE 89฿ unlock */}
+      {sections.some((s) => s.locked) && (
+        <div className="mt-4 rounded-3xl bg-gradient-to-r from-rose-100 via-amber-50 to-yellow-100 p-5 text-center ring-1 ring-amber-200">
+          <p className="text-sm font-semibold text-ink">
+            💞 อ่านผลวิเคราะห์คู่ฉบับเต็มของคุณสองคน
+          </p>
+          <p className="mt-0.5 text-xs text-ink/60">
+            Read the full written analysis for your pair — every point + marriage · cautions · long-term
+          </p>
+          <button
+            onClick={openPayment}
+            disabled={busy}
+            className="mt-3 rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white transition hover:opacity-90 disabled:opacity-50"
+          >
+            🔓 ปลดล็อกผลวิเคราะห์ · Unlock full analysis — 89 ฿
+          </button>
+        </div>
+      )}
+
       <div className="mt-4 space-y-3">
         {sections
           .filter((s) => s.key !== "overview")
@@ -153,15 +172,6 @@ export default function CompatView({ data }: { data: CompatData }) {
               >
                 {s.body}
               </p>
-              {s.locked && (
-                <button
-                  onClick={openPayment}
-                  disabled={busy}
-                  className="mt-3 inline-block rounded-lg bg-rosewood px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
-                >
-                  🔓 ปลดล็อกผลเชิงลึก · Unlock in-depth reading
-                </button>
-              )}
             </div>
           ))}
       </div>
