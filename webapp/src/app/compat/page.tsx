@@ -195,7 +195,7 @@ function PersonFields({
             {lang === "th" ? "ชื่อเล่น · Name" : lang === "en" ? "Name (optional)" : "이름 (선택)"}
           </span>
           <input
-            placeholder={lang === "ko" ? "서율" : "Mind"}
+            placeholder={lang === "ko" ? "이름" : "Mind"}
             value={p.name}
             onChange={(e) => onChange({ ...p, name: e.target.value })}
             className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood"

@@ -9,7 +9,14 @@ import type { SajuChart, Element } from "./saju";
 import { relationTo, isSupport, generatedBy, generates, controls, ELEMENT_TH } from "./elements";
 import type { Lang } from "./i18n";
 
-export type Band = "very_strong" | "strong" | "balanced" | "weak" | "very_weak";
+// Six classical bands: 태약 · 신약 · 중화신약 · 중화신강 · 신강 · 태강.
+export type Band =
+  | "taegang"
+  | "singang"
+  | "junghwa_singang"
+  | "junghwa_sinyak"
+  | "sinyak"
+  | "taeyak";
 
 export interface Strength {
   band: Band;
@@ -32,19 +39,31 @@ const ZHI_ELEMENT: Record<string, Element> = {
 
 const BAND_LABEL: Record<Lang, Record<Band, string>> = {
   th: {
-    very_strong: "พลังธาตุแข็งมาก (극신강)",
-    strong: "พลังธาตุแข็ง (신강)",
-    balanced: "พลังธาตุสมดุล (중화)",
-    weak: "พลังธาตุอ่อน (신약)",
-    very_weak: "พลังธาตุอ่อนมาก (극신약)",
+    taegang: "พลังธาตุแข็งแกร่งมาก (태강)",
+    singang: "พลังธาตุแข็ง (신강)",
+    junghwa_singang: "สมดุลค่อนไปทางแข็ง (중화신강)",
+    junghwa_sinyak: "สมดุลค่อนไปทางอ่อน (중화신약)",
+    sinyak: "พลังธาตุอ่อน (신약)",
+    taeyak: "พลังธาตุอ่อนมาก (태약)",
   },
   en: {
-    very_strong: "Very Strong Day Master (극신강)",
-    strong: "Strong Day Master (신강)",
-    balanced: "Balanced (중화)",
-    weak: "Gentle Day Master (신약)",
-    very_weak: "Very Gentle Day Master (극신약)",
+    taegang: "Very Strong Day Master (태강)",
+    singang: "Strong Day Master (신강)",
+    junghwa_singang: "Balanced, Leaning Strong (중화신강)",
+    junghwa_sinyak: "Balanced, Leaning Gentle (중화신약)",
+    sinyak: "Gentle Day Master (신약)",
+    taeyak: "Very Gentle Day Master (태약)",
   },
+};
+
+// 천간합화 (combination + transformation): when adjacent stems combine, the
+// pair's energy transforms into a new element (e.g. 戊癸合火).
+const HE_RESULT: Record<string, Element> = {
+  "甲己": "earth", "己甲": "earth",
+  "乙庚": "metal", "庚乙": "metal",
+  "丙辛": "water", "辛丙": "water",
+  "丁壬": "wood", "壬丁": "wood",
+  "戊癸": "fire", "癸戊": "fire",
 };
 
 const ELEMENT_EN: Record<Element, string> = {
@@ -76,6 +95,12 @@ const WINTER = new Set(["亥", "子", "丑"]);
 const SUMMER = new Set(["巳", "午", "未"]);
 
 const NOTE_TEXT = {
+  hapwha: {
+    th: (el: string) =>
+      `ในดวงมี ‘합화(合化)’ — ธาตุจากสองเสารวมตัวกลายเป็นธาตุ ${el} เสริมพลังใหม่ให้ดวงของคุณอย่างเงียบ ๆ`,
+    en: (el: string) =>
+      `Your chart carries a 합화 (combining transformation) — two stems merge and turn into ${el}, quietly reshaping your energy.`,
+  },
   trine: {
     th: (el: string) => `ในดวงมีชุด 三合 รวมพลังธาตุ ${el} ทำให้ธาตุนี้มีอิทธิพลมากเป็นพิเศษ`,
     en: (el: string) => `Your branches form a 三合 trine that amplifies ${el} — this element carries extra influence in your chart.`,
@@ -98,11 +123,23 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
   const dm = chart.dayMasterElement;
   const notes: string[] = [];
 
+  // 천간합화: year+month stems combining transform BOTH into the new element
+  // (e.g. 戊癸合火 turns earth+water into fire support for a 丙 day master).
+  const elName0 = lang === "th" ? ELEMENT_TH : ELEMENT_EN;
+  const hapwha = HE_RESULT[chart.year.gan + chart.month.gan];
+  let yearGanEl = chart.year.ganElement;
+  let monthGanEl = chart.month.ganElement;
+  if (hapwha) {
+    yearGanEl = hapwha;
+    monthGanEl = hapwha;
+    notes.push(NOTE_TEXT.hapwha[lang](elName0[hapwha]));
+  }
+
   // (element, weight) contributions from every position except the DM stem.
   const items: Array<[Element, number]> = [];
-  items.push([chart.year.ganElement, 1]);
+  items.push([yearGanEl, 1]);
   items.push([chart.year.zhiElement, 1]);
-  items.push([chart.month.ganElement, 1]);
+  items.push([monthGanEl, 1]);
   items.push([chart.month.zhiElement, 3]); // 월령 dominates
   // day.gan is the Day Master itself — skip.
   items.push([chart.day.zhiElement, 2]); // 일지 = DM's seat
@@ -146,15 +183,18 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
     notes.push(NOTE_TEXT.bound[lang]);
   }
 
+  // Six classical bands.
   let band: Band;
-  if (ratio >= 0.7) band = "very_strong";
-  else if (ratio >= 0.55) band = "strong";
-  else if (ratio >= 0.45) band = "balanced";
-  else if (ratio >= 0.3) band = "weak";
-  else band = "very_weak";
+  if (ratio >= 0.8) band = "taegang";
+  else if (ratio >= 0.62) band = "singang";
+  else if (ratio >= 0.5) band = "junghwa_singang";
+  else if (ratio >= 0.38) band = "junghwa_sinyak";
+  else if (ratio >= 0.22) band = "sinyak";
+  else band = "taeyak";
 
-  const strongSide = band === "very_strong" || band === "strong";
-  // 용신: strong DM wants draining elements; weak DM wants supporting ones.
+  // 용신 direction: charts leaning strong want draining elements; charts
+  // leaning gentle want supporting ones.
+  const strongSide = ratio >= 0.5;
   const favorable: Element[] = strongSide
     ? [generates(dm), controls(dm)] // 식상 · 재성
     : [generatedBy(dm), dm]; // 인성 · 비겁
@@ -171,24 +211,27 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
 
   const favList = favorable.map((e) => elName[e]).join(lang === "th" ? " และ " : " and ");
 
+  const isStrong = band === "taegang" || band === "singang";
+  const isJunghwa = band === "junghwa_singang" || band === "junghwa_sinyak";
+
   let body: string;
   if (lang === "th") {
-    body = strongSide
+    body = isStrong
       ? `พลังธาตุประจำตัวคุณค่อนข้างแข็ง คุณมีพลังในตัวสูงและพึ่งพาตัวเองได้ดี ` +
         `แต่บางครั้งดันไปข้างหน้าแรงเกินไป ควรเสริมธาตุ ${favList} ` +
         `เพื่อปล่อยพลังออกและสร้างสมดุล`
-      : band === "balanced"
-      ? `พลังธาตุของคุณค่อนข้างสมดุล ปรับตัวได้ยืดหยุ่นในหลายสถานการณ์ ` +
-        `ถือเป็นดวงที่กลมกล่อม เพียงประคองจังหวะให้ดีก็ไปได้ไกล`
+      : isJunghwa
+      ? `พลังธาตุของคุณอยู่ในโซนสมดุล (중화) ปรับตัวได้ยืดหยุ่นในหลายสถานการณ์ ` +
+        `ถือเป็นดวงที่กลมกล่อม เสริมธาตุ ${favList} อีกนิดจะยิ่งลงตัว`
       : `พลังธาตุประจำตัวคุณค่อนข้างอ่อน คุณไวต่อสิ่งรอบตัวและร่วมมือกับคนอื่นได้ดี ` +
         `ควรเสริมธาตุ ${favList} และหาพันธมิตรที่ไว้ใจได้ เพื่อหนุนพลังให้เต็ม`;
   } else {
-    body = strongSide
+    body = isStrong
       ? `Your day-master energy runs strong — self-reliant and driven, though you can ` +
         `push too hard at times. Strengthen ${favList} to release that power and stay balanced.`
-      : band === "balanced"
-      ? `Your five elements sit in good balance — you adapt flexibly to most situations. ` +
-        `A well-rounded chart; just keep your own rhythm and you'll go far.`
+      : isJunghwa
+      ? `Your five elements sit in the balanced (중화) zone — you adapt flexibly to most ` +
+        `situations. A well-rounded chart; a touch more ${favList} makes it click.`
       : `Your day-master energy is on the gentle side — sensitive to your surroundings and ` +
         `great at collaborating. Strengthen ${favList} and keep trusted allies close.`;
   }
