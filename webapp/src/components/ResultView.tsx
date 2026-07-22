@@ -31,6 +31,8 @@ export interface Reading {
 
 import { STEM_STYLE, BRANCH_STYLE, ELEMENT_CHIP } from "./hanStyles";
 
+const IG_URL = process.env.NEXT_PUBLIC_IG_URL ?? "https://instagram.com/duangsaju";
+
 const ELEMENT_LABEL: Record<string, string> = {
   wood: "ไม้·Wood",
   fire: "ไฟ·Fire",
@@ -391,7 +393,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
                     </>
                   ) : (
                     <a
-                      href="https://instagram.com/duangsaju"
+                      href={IG_URL}
                       className="mt-3 inline-block rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white"
                     >
                       {tt.dmBtn}
@@ -480,7 +482,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
               </p>
             )}
             <a
-              href="https://instagram.com/duangsaju"
+              href={IG_URL}
               className="mt-2 block w-full rounded-xl bg-rosewood py-2.5 text-sm font-semibold text-white"
             >
               {tt.dmSend}

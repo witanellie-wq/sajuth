@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { STEM_STYLE, BRANCH_STYLE } from "./hanStyles";
 
+const IG_URL = process.env.NEXT_PUBLIC_IG_URL ?? "https://instagram.com/duangsaju";
+
 // Korean readings shown under each hanja (like classic 만세력 apps).
 const STEM_KO: Record<string, string> = {
   "甲": "갑", "乙": "을", "丙": "병", "丁": "정", "戊": "무",
@@ -447,7 +449,7 @@ export default function CompatView({ data }: { data: CompatData }) {
             </>
           ) : (
             <a
-              href="https://instagram.com/duangsaju"
+              href={IG_URL}
               className="mt-3 inline-block rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white"
             >
               {tt.dmBtn}
@@ -539,7 +541,7 @@ export default function CompatView({ data }: { data: CompatData }) {
               </p>
             )}
             <a
-              href="https://instagram.com/duangsaju"
+              href={IG_URL}
               className="mt-2 block w-full rounded-xl bg-rosewood py-2.5 text-sm font-semibold text-white"
             >
               {tt.dmSend}

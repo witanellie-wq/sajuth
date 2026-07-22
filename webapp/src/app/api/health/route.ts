@@ -20,6 +20,7 @@ export async function GET() {
   };
 
   const tables: Record<string, string> = {};
+  let writeTest = "skipped (no supabase env)";
   if (url && key) {
     // eslint-disable-next-line @typescript-eslint/no-var-requires
     const { createClient } = require("@supabase/supabase-js");
@@ -34,9 +35,32 @@ export async function GET() {
         tables[t] = `ERROR: ${err instanceof Error ? err.message : String(err)}`;
       }
     }
+
+    // Real INSERT probe — reads can succeed while writes fail (RLS, grants…).
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-var-requires
+      const { randomUUID } = require("crypto");
+      const probeId = randomUUID();
+      const { error: insErr } = await sb.from("readings").insert({
+        id: probeId,
+        created_at: new Date().toISOString(),
+        input: { probe: true },
+        chart: {},
+        sections: [],
+        paid: false,
+      });
+      if (insErr) {
+        writeTest = `INSERT ERROR: ${insErr.message}`;
+      } else {
+        await sb.from("readings").delete().eq("id", probeId);
+        writeTest = "ok — inserts work ✅";
+      }
+    } catch (err) {
+      writeTest = `INSERT ERROR: ${err instanceof Error ? err.message : String(err)}`;
+    }
   } else {
     tables.note = "supabase env missing → in-memory fallback (share links & payments won't persist)";
   }
 
-  return NextResponse.json({ env, tables });
+  return NextResponse.json({ env, tables, writeTest });
 }
