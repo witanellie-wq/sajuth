@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { STEM_STYLE, BRANCH_STYLE, HIDDEN_STEMS } from "./hanStyles";
+import { runReportGeneration } from "./genReport";
 
 const IG_URL = process.env.NEXT_PUBLIC_IG_URL ?? "https://www.instagram.com/duangsaju";
 
@@ -47,6 +48,7 @@ export interface Profile {
 
 export interface CompatData {
   id?: string | null;
+  paid?: boolean;
   profiles?: { a: Profile; b: Profile };
   relationship?: string;
   charts: { a: FullChart; b: FullChart };
@@ -287,6 +289,31 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
     }
   }
 
+  // Paid but the long report isn't stored yet → generate it from the client,
+  // one part per serverless call, with visible progress. Reload when done.
+  const needsGen =
+    !!id && !!data.paid && !sections.some((s) => s.key.startsWith("gen"));
+  const [genProg, setGenProg] = useState("");
+  useEffect(() => {
+    if (!needsGen || !id) return;
+    let cancelled = false;
+    setGenProg("0/…");
+    runReportGeneration(id, "compat", (d, t) => {
+      if (!cancelled) setGenProg(`${d}/${t}`);
+    })
+      .then((ok) => {
+        if (!cancelled && ok) window.location.href = `/compat/result/${id}`;
+        else if (!cancelled) setGenProg("");
+      })
+      .catch(() => {
+        if (!cancelled) setGenProg("");
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [needsGen, id]);
+
   // Auto-unlock: while sections are locked, poll the payment status so the
   // page opens by itself the moment the owner approves the transfer.
   const hasLocked = sections.some((s) => s.locked);
@@ -520,6 +547,18 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
               {tt.dmBtn}
             </a>
           )}
+        </div>
+      )}
+
+      {needsGen && genProg && (
+        <div className="mt-4 animate-pulse rounded-2xl bg-violet-50 px-4 py-3 text-center text-sm font-semibold text-violet-700 ring-1 ring-violet-200">
+          {uiLang === "th"
+            ? "🪄 AI กำลังเขียนรายงานฉบับเต็มของคุณ… "
+            : uiLang === "en"
+            ? "🪄 AI is writing your full report… "
+            : "🪄 AI가 상세 리포트를 작성하는 중이에요… "}
+          {genProg}
+          {uiLang === "th" ? " (ประมาณ 1 นาที)" : uiLang === "en" ? " (about a minute)" : " (약 1분)"}
         </div>
       )}
 

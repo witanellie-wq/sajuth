@@ -68,6 +68,7 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     id: rec.id,
+    paid: rec.paid,
     profiles: payload?.profiles,
     relationship,
     charts: payload?.charts ?? payload,

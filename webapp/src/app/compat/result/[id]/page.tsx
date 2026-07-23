@@ -27,6 +27,7 @@ export default async function CompatResultPage({
   const payload = rec.charts as any;
   const data: CompatData = {
     id: rec.id,
+    paid: rec.paid,
     profiles: payload?.profiles,
     relationship: payload?.relationship,
     charts: (payload?.charts ?? payload) as CompatData["charts"],

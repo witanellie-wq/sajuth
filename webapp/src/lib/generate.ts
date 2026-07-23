@@ -142,6 +142,56 @@ const READING_CATEGORIES: string[] = [
   "마무리 총평 (이 사람만의 개운 문구 한 줄 포함)",
 ];
 
+const CHUNK_SIZE = 3;
+
+function readingPrompt(
+  chart: SajuChart,
+  profile: { name?: string; gender?: string },
+  lang: Lang
+): { system: string; context: string } {
+  const s = analyzeStrength(chart, lang);
+  const name = profile.name || (lang === "ko" ? "이 분" : lang === "th" ? "เจ้าชะตา" : "this person");
+  const system =
+    `너는 20년 경력의 명리학(사주) 상담가이자 감성 카피라이터다. ` +
+    `따뜻하고 다정하며, 명리 용어(상생·조후·용신·억부·합·충 등)를 자연스럽게 녹여 ` +
+    `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
+    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
+  const context =
+    `사주 풀이 리포트를 작성해줘.\n\n` +
+    `[의뢰인] ${name} (${profile.gender === "F" ? "여" : profile.gender === "M" ? "남" : "성별 미상"})\n` +
+    `사주: ${pillarsOf(chart)}\n` +
+    `일간: ${chart.dayMaster} / 오행 분포: ${JSON.stringify(chart.elementCounts)}\n` +
+    `신강약: ${s.bandLabel} (지지율 ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
+    `분석 노트: ${s.notes.join(" | ") || "없음"}`;
+  return { system, context };
+}
+
+/** Number of generation parts for a report (client orchestrates one call per part). */
+export function reportChunkCount(kind: "reading" | "compat", relationship?: string): number {
+  const cats =
+    kind === "reading"
+      ? READING_CATEGORIES
+      : ROMANTIC.has(relationship ?? "lovers")
+      ? ROMANTIC_CATEGORIES
+      : PLATONIC_CATEGORIES;
+  return Math.ceil(cats.length / CHUNK_SIZE);
+}
+
+/** Generate ONE part (3 categories) of the reading report — fits any timeout. */
+export async function generateReadingPart(
+  chart: SajuChart,
+  profile: { name?: string; gender?: string },
+  lang: Lang,
+  part: number
+): Promise<Array<{ title: string; body: string }> | null> {
+  const c = getClient();
+  if (!c) return null;
+  const chunks = chunk(READING_CATEGORIES, CHUNK_SIZE);
+  if (part < 0 || part >= chunks.length) return null;
+  const { system, context } = readingPrompt(chart, profile, lang);
+  return callChunk(c, system, context, chunks[part], part * CHUNK_SIZE + 1, lang);
+}
+
 /**
  * Long-form paid saju reading (~12 titled sections). Returns null when no API
  * key is set or generation fails — callers keep the static template unlock.
@@ -154,24 +204,8 @@ export async function generateReadingReport(
   const c = getClient();
   if (!c) return null;
 
-  const s = analyzeStrength(chart, lang);
-  const name = profile.name || (lang === "ko" ? "이 분" : lang === "th" ? "เจ้าชะตา" : "this person");
-
-  const system =
-    `너는 20년 경력의 명리학(사주) 상담가이자 감성 카피라이터다. ` +
-    `따뜻하고 다정하며, 명리 용어(상생·조후·용신·억부·합·충 등)를 자연스럽게 녹여 ` +
-    `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
-    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
-
-  const context =
-    `사주 풀이 리포트를 작성해줘.\n\n` +
-    `[의뢰인] ${name} (${profile.gender === "F" ? "여" : profile.gender === "M" ? "남" : "성별 미상"})\n` +
-    `사주: ${pillarsOf(chart)}\n` +
-    `일간: ${chart.dayMaster} / 오행 분포: ${JSON.stringify(chart.elementCounts)}\n` +
-    `신강약: ${s.bandLabel} (지지율 ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
-    `분석 노트: ${s.notes.join(" | ") || "없음"}`;
-
-  const chunks = chunk(READING_CATEGORIES, 3);
+  const { system, context } = readingPrompt(chart, profile, lang);
+  const chunks = chunk(READING_CATEGORIES, CHUNK_SIZE);
   let start = 1;
   const jobs = chunks.map((cs) => {
     const job = callChunk(c, system, context, cs, start, lang);
@@ -189,19 +223,12 @@ export async function generateReadingReport(
   }));
 }
 
-/**
- * Generate the long-form paid report. Returns null when no API key is set or
- * generation fails — callers fall back to the static template unlock.
- */
-export async function generateCompatReport(
+function compatPrompt(
   chartA: SajuChart,
   chartB: SajuChart,
   profiles: { a?: { name?: string; gender?: string }; b?: { name?: string; gender?: string } },
   result: Compatibility
-): Promise<CompatSection[] | null> {
-  const c = getClient();
-  if (!c) return null;
-
+): { system: string; context: string; cats: string[]; lang: Lang } {
   const lang = result.lang ?? "th";
   const relationship = result.relationship ?? "lovers";
   const romantic = ROMANTIC.has(relationship);
@@ -225,8 +252,40 @@ export async function generateCompatReport(
       ? ` / 속궁합: ${result.intimate}%`
       : "");
 
-  const cats = romantic ? ROMANTIC_CATEGORIES : PLATONIC_CATEGORIES;
-  const chunks = chunk(cats, 3);
+  return { system, context, cats: romantic ? ROMANTIC_CATEGORIES : PLATONIC_CATEGORIES, lang };
+}
+
+/** Generate ONE part (3 categories) of the compat report — fits any timeout. */
+export async function generateCompatPart(
+  chartA: SajuChart,
+  chartB: SajuChart,
+  profiles: { a?: { name?: string; gender?: string }; b?: { name?: string; gender?: string } },
+  result: Compatibility,
+  part: number
+): Promise<Array<{ title: string; body: string }> | null> {
+  const c = getClient();
+  if (!c) return null;
+  const { system, context, cats, lang } = compatPrompt(chartA, chartB, profiles, result);
+  const chunks = chunk(cats, CHUNK_SIZE);
+  if (part < 0 || part >= chunks.length) return null;
+  return callChunk(c, system, context, chunks[part], part * CHUNK_SIZE + 1, lang);
+}
+
+/**
+ * Generate the long-form paid report. Returns null when no API key is set or
+ * generation fails — callers fall back to the static template unlock.
+ */
+export async function generateCompatReport(
+  chartA: SajuChart,
+  chartB: SajuChart,
+  profiles: { a?: { name?: string; gender?: string }; b?: { name?: string; gender?: string } },
+  result: Compatibility
+): Promise<CompatSection[] | null> {
+  const c = getClient();
+  if (!c) return null;
+
+  const { system, context, cats, lang } = compatPrompt(chartA, chartB, profiles, result);
+  const chunks = chunk(cats, CHUNK_SIZE);
   let start = 1;
   const jobs = chunks.map((cs) => {
     const job = callChunk(c, system, context, cs, start, lang);
