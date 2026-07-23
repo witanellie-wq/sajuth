@@ -40,6 +40,7 @@ interface Store {
   markPaid(id: string): Promise<void>;
   saveClaim(id: string, claim: Claim): Promise<void>;
   listPending(): Promise<StoredReading[]>;
+  listApproved(): Promise<StoredReading[]>;
 }
 
 export interface StoredCompat {
@@ -159,6 +160,32 @@ export const compatStore = {
     }
     return [...memCompat.values()].filter((r) => !r.paid && r.claim);
   },
+  /** Approved (paid) claims — the admin's permanent 승인 내역. */
+  async listApproved(): Promise<StoredCompat[]> {
+    const sb = getSupabase();
+    if (sb) {
+      const { data, error } = await sb
+        .from("compat_readings")
+        .select("*")
+        .eq("paid", true)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) {
+        console.error("compat listApproved:", error.message);
+        return [];
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data ?? []).filter((d: any) => d.charts?.claim).map((d: any) => ({
+        id: d.id,
+        createdAt: d.created_at,
+        charts: d.charts,
+        result: d.result,
+        paid: true,
+        claim: d.charts?.claim ?? null,
+      }));
+    }
+    return [...memCompat.values()].filter((r) => r.paid && r.claim);
+  },
 };
 
 const memStore: Store = {
@@ -184,6 +211,9 @@ const memStore: Store = {
   },
   async listPending() {
     return [...mem.values()].filter((r) => !r.paid && r.claim);
+  },
+  async listApproved() {
+    return [...mem.values()].filter((r) => r.paid && r.claim);
   },
 };
 
@@ -284,6 +314,28 @@ function supabaseStore(): Store | null {
         chart: d.chart,
         sections: d.sections,
         paid: !!d.paid,
+        claim: d.input?.claim ?? null,
+      }));
+    },
+    async listApproved() {
+      const { data, error } = await sb
+        .from(TABLE)
+        .select("*")
+        .eq("paid", true)
+        .order("created_at", { ascending: false })
+        .limit(100);
+      if (error) {
+        console.error("readings listApproved:", error.message);
+        return [];
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data ?? []).filter((d: any) => d.input?.claim).map((d: any) => ({
+        id: d.id,
+        createdAt: d.created_at,
+        input: d.input,
+        chart: d.chart,
+        sections: d.sections,
+        paid: true,
         claim: d.input?.claim ?? null,
       }));
     },
@@ -412,5 +464,26 @@ export const amuletStore = {
       }));
     }
     return [...memAmulets.values()].filter((a) => !a.paid);
+  },
+  async listApproved(): Promise<Amulet[]> {
+    const sb = getSupabase();
+    if (sb) {
+      const { data } = await sb
+        .from("amulets")
+        .select("*")
+        .eq("paid", true)
+        .order("created_at", { ascending: false })
+        .limit(50);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return (data ?? []).map((d: any) => ({
+        code: d.code,
+        createdAt: d.created_at,
+        balance: d.balance,
+        paid: true,
+        payerName: d.payer_name ?? "",
+        contact: d.contact ?? "",
+      }));
+    }
+    return [...memAmulets.values()].filter((a) => a.paid);
   },
 };

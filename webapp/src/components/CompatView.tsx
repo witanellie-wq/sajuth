@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { STEM_STYLE, BRANCH_STYLE } from "./hanStyles";
 
 const IG_URL = process.env.NEXT_PUBLIC_IG_URL ?? "https://instagram.com/duangsaju";
@@ -265,6 +265,24 @@ export default function CompatView({ data }: { data: CompatData }) {
   const { score, intimate, bandTh, headline } = data.result;
   const uiLang: L3 = data.result.lang === "en" ? "en" : data.result.lang === "ko" ? "ko" : "th";
   const tt = CTXT[uiLang];
+
+  // Auto-unlock: while sections are locked, poll the payment status so the
+  // page opens by itself the moment the owner approves the transfer.
+  const hasLocked = sections.some((s) => s.locked);
+  useEffect(() => {
+    if (!id || !hasLocked) return;
+    const timer = setInterval(async () => {
+      if (document.visibilityState === "hidden") return;
+      try {
+        const res = await fetch(`/api/pay?kind=compat&id=${id}&status=1`);
+        const d = await res.json();
+        if (d.paid) window.location.href = `/compat/result/${id}`;
+      } catch {
+        /* transient network error — keep polling */
+      }
+    }, 7000);
+    return () => clearInterval(timer);
+  }, [id, hasLocked]);
 
   async function redeemAmulet(code: string) {
     if (!id || !code.trim()) return;

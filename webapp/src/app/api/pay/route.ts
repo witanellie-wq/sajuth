@@ -16,7 +16,8 @@ function priceFor(kind: Kind): number {
 }
 
 // GET /api/pay?kind=reading|compat&id=... → PromptPay QR (data URL) + amount
-// + current paid state.
+// + current paid state. With &status=1 returns { paid } only (no QR) — used
+// by the client-side unlock poller.
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
   const kind = (req.nextUrl.searchParams.get("kind") ?? "reading") as Kind;
@@ -26,6 +27,10 @@ export async function GET(req: NextRequest) {
     const rec = kind === "compat" ? await compatStore.get(id) : await store.get(id);
     if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
     paid = rec.paid;
+  }
+
+  if (req.nextUrl.searchParams.get("status")) {
+    return NextResponse.json({ id, kind, paid });
   }
 
   const amount = priceFor(kind);

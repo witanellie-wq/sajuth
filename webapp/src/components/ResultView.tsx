@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface Pillar {
   gan: string;
@@ -174,6 +174,24 @@ export default function ResultView({ initial }: { initial: Reading }) {
   const { chart, sections, disclaimer, id } = reading;
   const uiLang: L3 = reading.lang === "en" ? "en" : reading.lang === "ko" ? "ko" : "th";
   const tt = TXT[uiLang];
+
+  // Auto-unlock: while sections are locked, poll the payment status so the
+  // page opens by itself the moment the owner approves the transfer.
+  const hasLocked = sections.some((s) => s.locked);
+  useEffect(() => {
+    if (!id || !hasLocked) return;
+    const timer = setInterval(async () => {
+      if (document.visibilityState === "hidden") return;
+      try {
+        const res = await fetch(`/api/pay?kind=reading&id=${id}&status=1`);
+        const d = await res.json();
+        if (d.paid) window.location.href = `/result/${id}`;
+      } catch {
+        /* transient network error — keep polling */
+      }
+    }, 7000);
+    return () => clearInterval(timer);
+  }, [id, hasLocked]);
 
   // Traditional reading order: 시 → 일 → 월 → 년 (hour, day, month, year).
   const pillars: Array<{ label: [string, string]; p: Pillar | null; isDay?: boolean }> = [

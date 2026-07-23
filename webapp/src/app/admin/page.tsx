@@ -37,11 +37,15 @@ export default async function AdminPage({
   const proto = h.get("x-forwarded-proto") ?? "https";
   const base = host ? `${proto}://${host}` : "";
 
-  const [readings, compats, packs] = await Promise.all([
-    store.listPending(),
-    compatStore.listPending(),
-    amuletStore.listPending(),
-  ]);
+  const [readings, compats, packs, doneReadings, doneCompats, donePacks] =
+    await Promise.all([
+      store.listPending(),
+      compatStore.listPending(),
+      amuletStore.listPending(),
+      store.listApproved(),
+      compatStore.listApproved(),
+      amuletStore.listApproved(),
+    ]);
 
   const priceReading = Number(process.env.UNLOCK_PRICE_THB ?? 49);
   const priceCompat = Number(process.env.UNLOCK_COMPAT_PRICE_THB ?? 89);
@@ -68,6 +72,27 @@ export default async function AdminPage({
       claim: { payerName: p.payerName, contact: p.contact, claimedAt: p.createdAt },
       amount: pricePack,
       created: p.createdAt,
+    })),
+  ].sort((a, b) => (b.claim?.claimedAt ?? "").localeCompare(a.claim?.claimedAt ?? ""));
+
+  const doneRows = [
+    ...doneReadings.map((r) => ({
+      kind: "reading" as const,
+      id: r.id,
+      claim: r.claim,
+      amount: priceReading,
+    })),
+    ...doneCompats.map((r) => ({
+      kind: "compat" as const,
+      id: r.id,
+      claim: r.claim,
+      amount: priceCompat,
+    })),
+    ...donePacks.map((p) => ({
+      kind: "pack" as const,
+      id: p.code,
+      claim: { payerName: p.payerName, contact: p.contact, claimedAt: p.createdAt },
+      amount: pricePack,
     })),
   ].sort((a, b) => (b.claim?.claimedAt ?? "").localeCompare(a.claim?.claimedAt ?? ""));
 
@@ -136,6 +161,49 @@ export default async function AdminPage({
                   ✅ 승인
                 </a>
               </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <h2 className="mt-10 text-xl font-bold text-emerald-700">✅ 승인 내역</h2>
+      <p className="mt-1 text-sm text-ink/60">
+        이미 승인한 건들이에요 (최근 순). 손님이 창을 잃어버렸다면 여기서 🔗 링크를
+        복사해서 다시 보내주면 됩니다.
+      </p>
+      {doneRows.length === 0 ? (
+        <p className="mt-4 rounded-2xl bg-white p-5 text-center text-sm text-ink/50 ring-1 ring-peach/40">
+          아직 승인한 내역이 없습니다.
+        </p>
+      ) : (
+        <div className="mt-4 space-y-2">
+          {doneRows.map((r) => (
+            <div
+              key={r.id}
+              className="rounded-2xl bg-white/70 p-4 ring-1 ring-emerald-200"
+            >
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                {r.kind === "compat" ? "💞 궁합" : r.kind === "pack" ? "🧿 부적3팩" : "🔮 사주"} · {r.amount}฿ · 승인됨
+              </span>
+              <div className="mt-1 text-sm font-semibold text-ink">
+                입금자명: {r.claim?.payerName || "(미입력)"}
+              </div>
+              <div className="text-xs text-ink/60">연락처: {r.claim?.contact || "-"}</div>
+              <div className="mt-0.5 font-mono text-[10px] text-ink/40">
+                {r.kind === "pack" ? "코드" : "ref"} {r.id.slice(0, 8).toUpperCase()} · 신고{" "}
+                {fmt(r.claim?.claimedAt)}
+              </div>
+              {r.kind !== "pack" && (
+                <a
+                  href={`${r.kind === "compat" ? "/compat/result/" : "/result/"}${r.id}`}
+                  target="_blank"
+                  className="mt-1 block break-all font-mono text-[10px] text-sky-600 underline"
+                >
+                  🔗 {base}
+                  {r.kind === "compat" ? "/compat/result/" : "/result/"}
+                  {r.id}
+                </a>
+              )}
             </div>
           ))}
         </div>
