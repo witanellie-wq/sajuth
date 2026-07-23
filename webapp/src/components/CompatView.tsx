@@ -298,30 +298,46 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
   const [genFailed, setGenFailed] = useState(false);
   const [genPct, setGenPct] = useState(0);
   const genStartRef = useRef(0);
+  const genRanRef = useRef(false); // run at most once per page view — never loop
   useEffect(() => {
-    if (!needsGen || !id) return;
+    if (!needsGen || !id || genRanRef.current) return;
+    genRanRef.current = true;
     let cancelled = false;
     genStartRef.current = Date.now();
     setGenState({ done: 0, total: 0 });
-    runReportGeneration(id, "compat", (d, t) => {
-      if (!cancelled) setGenState({ done: d, total: t });
-    })
-      .then((ok) => {
+    (async () => {
+      try {
+        const outcome = await runReportGeneration(id, "compat", (d, t) => {
+          if (!cancelled) setGenState({ done: d, total: t });
+        });
         if (cancelled) return;
-        if (ok) {
-          setGenPct(100);
-          window.location.href = `/compat/result/${id}`;
+        if (outcome === "failed") {
+          setGenState(null);
+          setGenFailed(true);
+          return;
+        }
+        setGenPct(100);
+        // Swap the finished report in place — no page reload (reloads can
+        // loop on stale caches). Fetch the fresh record and update state.
+        const res = await fetch(`/api/compat?id=${id}&lang=${uiLang}`);
+        const fresh = res.ok ? await res.json() : null;
+        if (cancelled) return;
+        if (
+          fresh?.result?.sections?.some((s: CompatSection) => s.key.startsWith("gen"))
+        ) {
+          setData(fresh);
+          setGenState(null);
         } else {
           setGenState(null);
           setGenFailed(true);
         }
-      })
-      .catch(() => {
+      } catch {
         if (!cancelled) {
           setGenState(null);
           setGenFailed(true);
         }
-      });
+      }
+    })();
     return () => {
       cancelled = true;
     };

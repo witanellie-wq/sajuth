@@ -2,8 +2,7 @@
 
 import { useState } from "react";
 import ResultView, { type Reading } from "@/components/ResultView";
-import { saveHistory, loadHistory, type HistoryEntry } from "@/components/history";
-import { useEffect } from "react";
+import { saveHistory } from "@/components/history";
 
 // UI language — report content follows this selection too.
 type UiLang = "th" | "en" | "ko";
@@ -97,8 +96,6 @@ export default function Home() {
   const [result, setResult] = useState<Reading | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  useEffect(() => setHistory(loadHistory()), []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -128,13 +125,14 @@ export default function Home() {
       const data = await res.json();
       setResult(data);
       if (data.id) {
+        // Saved to THIS browser's localStorage only (recovery aid) — not
+        // shown in the UI and never shared between visitors.
         saveHistory({
           id: data.id,
           kind: "reading",
           label: `🔮 ${form.name || ""} ${form.year}.${form.month}.${form.day}`.trim(),
           url: `/result/${data.id}`,
         });
-        setHistory(loadHistory());
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
@@ -267,25 +265,6 @@ export default function Home() {
       </form>
 
       {result && <ResultView initial={result} />}
-
-      {!result && history.length > 0 && (
-        <section className="mt-6">
-          <h2 className="mb-2 text-center text-xs font-semibold text-ink/50">
-            🕘 {lang === "th" ? "ผลล่าสุดของฉัน" : lang === "en" ? "My recent results" : "내 최근 결과"}
-          </h2>
-          <div className="flex flex-wrap justify-center gap-2">
-            {history.map((h) => (
-              <a
-                key={h.id}
-                href={h.url}
-                className="rounded-full border border-peach/60 bg-white px-3 py-1.5 text-xs text-ink/70 hover:border-rosewood"
-              >
-                {h.label}
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
     </main>
   );
 }

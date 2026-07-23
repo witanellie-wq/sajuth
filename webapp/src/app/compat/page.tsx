@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import CompatView, { type CompatData } from "@/components/CompatView";
-import { saveHistory, loadHistory, type HistoryEntry } from "@/components/history";
+import { saveHistory } from "@/components/history";
 import { useEffect } from "react";
 
 type Lang = "th" | "en" | "ko";
@@ -65,8 +65,6 @@ export default function Compat() {
   const [res, setRes] = useState<CompatData | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [history, setHistory] = useState<HistoryEntry[]>([]);
-  useEffect(() => setHistory(loadHistory()), []);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -86,13 +84,14 @@ export default function Compat() {
       const data = await r.json();
       setRes(data);
       if (data.id) {
+        // Saved to THIS browser's localStorage only (recovery aid) — not
+        // shown in the UI and never shared between visitors.
         saveHistory({
           id: data.id,
           kind: "compat",
           label: `💞 ${a.name || "A"} × ${b.name || "B"}`,
           url: `/compat/result/${data.id}`,
         });
-        setHistory(loadHistory());
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error");
@@ -187,25 +186,6 @@ export default function Compat() {
       </form>
 
       {res && <CompatView data={res} />}
-
-      {!res && history.length > 0 && (
-        <section className="mt-6">
-          <h2 className="mb-2 text-center text-xs font-semibold text-ink/50">
-            🕘 {tr("ผลล่าสุดของฉัน", "My recent results", "내 최근 결과")}
-          </h2>
-          <div className="flex flex-wrap justify-center gap-2">
-            {history.map((h) => (
-              <a
-                key={h.id}
-                href={h.url}
-                className="rounded-full border border-peach/60 bg-white px-3 py-1.5 text-xs text-ink/70 hover:border-rosewood"
-              >
-                {h.label}
-              </a>
-            ))}
-          </div>
-        </section>
-      )}
     </main>
   );
 }
