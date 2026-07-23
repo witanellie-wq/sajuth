@@ -100,6 +100,16 @@ const STEM_HE: Record<string, string> = {
 const WINTER = new Set(["亥", "子", "丑"]);
 const SUMMER = new Set(["巳", "午", "未"]);
 
+// 상극의 역방향: element → the element that controls (극) it. Used to pick the
+// remedy (약) for an excessive element — e.g. flooding water is dammed by earth.
+const CONTROLLER: Record<Element, Element> = {
+  wood: "metal", fire: "water", earth: "wood", metal: "fire", water: "earth",
+};
+
+// 과다 threshold: an element occupying 3+ of the 8 visible characters is
+// excessive (과다) — it is the chart's 병(病) and can never be the 용신.
+const EXCESS_RAW = 3;
+
 const NOTE_TEXT = {
   hapwha: {
     th: (el: string) =>
@@ -128,6 +138,32 @@ const NOTE_TEXT = {
     th: "คุณเกิดฤดูร้อน (조후) ดวงต้องการความเย็นจากธาตุน้ำมาปรับสมดุล จะช่วยให้ตัดสินใจได้นิ่งขึ้น",
     en: "Born in a summer month (조후 seasonal balance), your chart needs cooling Water — it steadies your decisions.",
     ko: "여름에 태어난 사주라(조후) 물의 서늘함이 필요해요. 수 기운을 보완하면 판단이 차분해집니다.",
+  },
+  excess: {
+    th: (el: string, n: number, dam: string) =>
+      `ธาตุ ${el} มีมากถึง ${n} ตัวในดวง (과다) — ธาตุที่ล้นเกินจะกลายเป็นโทษ ไม่ควรเสริมอีก แต่ควรใช้ธาตุ ${dam} มาควบคุมให้อยู่ในสมดุล (억부)`,
+    en: (el: string, n: number, dam: string) =>
+      `${el} appears ${n} times — an excessive element turns harmful, so adding more is off the table. The remedy is ${dam}, which reins it in (억부).`,
+    ko: (el: string, n: number, dam: string) =>
+      `${el} 기운이 ${n}개로 넘치는 사주예요(과다). 넘치는 오행은 더 보태면 독이 되니, ${dam} 기운으로 눌러 다스리는 것이 처방입니다(억부).`,
+  },
+  floodedResource: {
+    th: (res: string, dm: string) =>
+      `อินซอง(印星·ธาตุแม่)ที่มากเกินไปกลับทำร้ายตัวเรา (모자멸자) — ธาตุ ${res} ที่ท่วมดวงทำให้ธาตุประจำตัว ${dm} ลอย ไม่มั่นคง`,
+    en: (res: string, dm: string) =>
+      `Too much of the resource element backfires (모자멸자): the flood of ${res} leaves your ${dm} day master afloat and unrooted.`,
+    ko: (res: string, dm: string) =>
+      `인성이 지나치면 오히려 일간을 해쳐요(모자멸자) — 넘치는 ${res} 위에 ${dm} 일간이 뿌리 없이 떠 있는 형국입니다.`,
+  },
+  cold: {
+    th: "องค์ประกอบโดยรวมของดวงค่อนข้างเย็นและชื้น (한습) ต้องการความอบอุ่นจากธาตุไฟเป็นอันดับแรก (조후)",
+    en: "The chart runs cold and damp overall (한습) — Fire's warmth comes first (조후).",
+    ko: "원국 전체가 차고 습한 편이라(한습) 무엇보다 화(火)의 온기가 먼저 필요합니다(조후).",
+  },
+  hot: {
+    th: "องค์ประกอบโดยรวมของดวงค่อนข้างร้อนและแห้ง (조열) ต้องการความเย็นจากธาตุน้ำเป็นอันดับแรก (조후)",
+    en: "The chart runs hot and dry overall (조열) — cooling Water comes first (조후).",
+    ko: "원국 전체가 덥고 건조한 편이라(조열) 무엇보다 수(水)의 서늘함이 먼저 필요합니다(조후).",
   },
 };
 
@@ -178,13 +214,34 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
     }
   }
 
-  let support = 0;
+  // Raw visible-character counts (incl. the DM stem) — drive 과다 detection.
+  const rawCounts: Record<Element, number> = {
+    wood: 0, fire: 0, earth: 0, metal: 0, water: 0,
+  };
+  const allChars: Element[] = [
+    chart.year.ganElement, chart.year.zhiElement,
+    chart.month.ganElement, chart.month.zhiElement,
+    dm, chart.day.zhiElement,
+    ...(chart.hour ? [chart.hour.ganElement, chart.hour.zhiElement] : []),
+  ];
+  for (const el of allChars) rawCounts[el]++;
+
+  const resourceEl = generatedBy(dm); // 인성
+  const resourceExcess = rawCounts[resourceEl] >= EXCESS_RAW;
+
+  let supRes = 0; // support from 인성
+  let supPeer = 0; // support from 비겁
   let total = 0;
   for (const [el, w] of items) {
     total += w;
-    if (isSupport(relationTo(dm, el))) support += w;
+    if (!isSupport(relationTo(dm, el))) continue;
+    if (el === resourceEl) supRes += w;
+    else supPeer += w;
   }
-  let ratio = total > 0 ? support / total : 0.5;
+  // 모자멸자: an excessive resource stops truly supporting the Day Master —
+  // 수다목부(water-flooded wood floats) and its siblings. Cap its contribution.
+  if (resourceExcess) supRes = Math.min(supRes, total * 0.35);
+  let ratio = total > 0 ? (supRes + supPeer) / total : 0.5;
 
   // 천간합: Day Master combined with an adjacent stem (month or hour gan)
   // is partially bound → slightly weaker in practice.
@@ -203,21 +260,65 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
   else if (ratio >= 0.22) band = "sinyak";
   else band = "geuksinyak";
 
-  // 용신 direction: charts leaning strong want draining elements; charts
-  // leaning gentle want supporting ones.
+  // ── 용신 selection (억부 + 병약 + 조후) ────────────────────────────────
+  // Principle: an excessive (과다) element is the chart's 병 — it is NEVER
+  // recommended; its controller is the 약. Direction follows strength as usual.
+  const isExcess = (el: Element) => rawCounts[el] >= EXCESS_RAW;
   const strongSide = ratio >= 0.5;
-  const favorable: Element[] = strongSide
-    ? [generates(dm), controls(dm)] // 식상 · 재성
-    : [generatedBy(dm), dm]; // 인성 · 비겁
 
-  // 조후 overlay: season's craved element takes priority in 용신.
+  let favorable: Element[];
+  if (!strongSide && resourceExcess) {
+    // Weak DM drowning in its own resource (수다목부 등): root the DM with
+    // peers and dam the flood with the resource's controller — never add more.
+    favorable = [dm, CONTROLLER[resourceEl]];
+    notes.push(
+      NOTE_TEXT.floodedResource[lang](elName[resourceEl], elName[dm])
+    );
+    notes.push(
+      NOTE_TEXT.excess[lang](
+        elName[resourceEl], rawCounts[resourceEl], elName[CONTROLLER[resourceEl]]
+      )
+    );
+  } else {
+    favorable = strongSide
+      ? [generates(dm), controls(dm)] // 식상 · 재성
+      : [resourceEl, dm]; // 인성 · 비겁
+    // Filter out any candidate that is itself excessive; prescribe its
+    // controller instead so the remedy suppresses the 병.
+    const filtered: Element[] = [];
+    for (const el of favorable) {
+      if (isExcess(el)) {
+        notes.push(
+          NOTE_TEXT.excess[lang](elName[el], rawCounts[el], elName[CONTROLLER[el]])
+        );
+        if (!filtered.includes(CONTROLLER[el]) && !isExcess(CONTROLLER[el])) {
+          filtered.push(CONTROLLER[el]);
+        }
+      } else {
+        filtered.push(el);
+      }
+    }
+    if (filtered.length === 0) filtered.push(CONTROLLER[dm]); // 관성 fallback
+    favorable = filtered;
+  }
+
+  // 조후 overlay: the season's (or the chart composition's) craved element
+  // takes priority — but never an element that is already excessive.
   const monthZhi = chart.month.zhi;
+  const coldChart = rawCounts.water >= EXCESS_RAW && rawCounts.fire <= 1;
+  const hotChart = rawCounts.fire >= EXCESS_RAW && rawCounts.water <= 1;
   if (WINTER.has(monthZhi)) {
-    if (!favorable.includes("fire")) favorable.unshift("fire");
+    if (!favorable.includes("fire") && !isExcess("fire")) favorable.unshift("fire");
     notes.push(NOTE_TEXT.winter[lang]);
   } else if (SUMMER.has(monthZhi)) {
-    if (!favorable.includes("water")) favorable.unshift("water");
+    if (!favorable.includes("water") && !isExcess("water")) favorable.unshift("water");
     notes.push(NOTE_TEXT.summer[lang]);
+  } else if (coldChart) {
+    if (!favorable.includes("fire")) favorable.unshift("fire");
+    notes.push(NOTE_TEXT.cold[lang]);
+  } else if (hotChart) {
+    if (!favorable.includes("water")) favorable.unshift("water");
+    notes.push(NOTE_TEXT.hot[lang]);
   }
 
   const favList = favorable.map((e) => elName[e]).join(lang === "th" ? " และ " : lang === "ko" ? "·" : " and ");
