@@ -184,6 +184,8 @@ const CTXT: Record<L3, Record<string, string>> = {
     check: "🔄 ตรวจสอบสถานะ",
     notYet: "ยังไม่ได้รับการยืนยัน กรุณารอสักครู่",
     packKeep: "เก็บรหัสนี้ไว้! ใช้ได้หลังยืนยันการโอน (ยันต์ 3 ชิ้น)",
+    claimWarn: "⚠️ ก่อนปิดหน้านี้ กรุณาแตะเพื่อคัดลอกรหัสอ้างอิงด้านล่าง แล้วส่งทาง DM — รหัสนี้ใช้ตามหาผลของคุณได้",
+    refCopied: "คัดลอกรหัสแล้ว ✓",
     amuletErr: "รหัสไม่ถูกต้องหรือยันต์ไม่พอ (ดวงคู่ใช้ 2 ยันต์)",
     amuletReady: "✅ ยันต์พร้อมใช้แล้ว!",
   },
@@ -211,6 +213,8 @@ const CTXT: Record<L3, Record<string, string>> = {
     check: "🔄 Check status",
     notYet: "Not confirmed yet — please wait a moment",
     packKeep: "Save this code! Active after transfer confirmation (3 amulets)",
+    claimWarn: "⚠️ Before closing this page, tap to copy the reference code below and send it via DM — it's how we find your reading again.",
+    refCopied: "Code copied ✓",
     amuletErr: "Invalid code or not enough amulets (couple reading costs 2)",
     amuletReady: "✅ Amulets ready!",
   },
@@ -238,6 +242,8 @@ const CTXT: Record<L3, Record<string, string>> = {
     check: "🔄 상태 확인",
     notYet: "아직 확인 전이에요 — 잠시만 기다려주세요",
     packKeep: "이 코드를 꼭 저장하세요! 입금 확인 후 사용 가능 (부적 3개)",
+    claimWarn: "⚠️ 이 창을 닫으실 거라면 아래 참조코드를 눌러 복사한 뒤 꼭 DM으로 보내주세요 — 이 코드로 결과를 다시 찾아드려요.",
+    refCopied: "코드 복사됨 ✓",
     amuletErr: "코드가 잘못됐거나 부적이 부족해요 (궁합은 2개 차감)",
     amuletReady: "✅ 부적 사용 가능!",
   },
@@ -255,6 +261,7 @@ export default function CompatView({ data }: { data: CompatData }) {
   const [amuletMsg, setAmuletMsg] = useState("");
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [refCopied, setRefCopied] = useState(false);
   const { score, intimate, bandTh, headline } = data.result;
   const uiLang: L3 = data.result.lang === "en" ? "en" : data.result.lang === "ko" ? "ko" : "th";
   const tt = CTXT[uiLang];
@@ -527,14 +534,20 @@ export default function CompatView({ data }: { data: CompatData }) {
             <p className="mt-2 text-xs leading-relaxed text-ink/70">
               {tt.claimBody}
             </p>
+            <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-[11px] leading-relaxed text-amber-700">
+              {tt.claimWarn}
+            </p>
             <button
               onClick={() => {
                 navigator.clipboard?.writeText(claim.ref);
+                setRefCopied(true);
+                setTimeout(() => setRefCopied(false), 2000);
               }}
               className="mt-3 w-full rounded-lg bg-cream px-3 py-2 font-mono text-sm font-bold tracking-widest text-ink"
             >
               {claim.isPack ? claim.ref : claim.ref.slice(0, 8).toUpperCase() + "…"} 📋
             </button>
+            {refCopied && <p className="mt-1 text-[10px] text-emerald-600">{tt.refCopied}</p>}
             {claim.isPack && (
               <p className="mt-1 text-[10px] text-ink/50">
                 {tt.packKeep}

@@ -1,3 +1,4 @@
+import { headers } from "next/headers";
 import { store, compatStore, amuletStore } from "@/lib/store";
 
 // Owner-only payment dashboard (Korean UI).
@@ -30,6 +31,11 @@ export default async function AdminPage({
       </main>
     );
   }
+
+  const h = headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host") ?? "";
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  const base = host ? `${proto}://${host}` : "";
 
   const [readings, compats, packs] = await Promise.all([
     store.listPending(),
@@ -109,6 +115,17 @@ export default async function AdminPage({
                     {r.kind === "pack" ? "코드" : "ref"} {r.id.slice(0, 8).toUpperCase()} · 신고{" "}
                     {fmt(r.claim?.claimedAt)}
                   </div>
+                  {r.kind !== "pack" && (
+                    <a
+                      href={`${r.kind === "compat" ? "/compat/result/" : "/result/"}${r.id}`}
+                      target="_blank"
+                      className="mt-1 block break-all font-mono text-[10px] text-sky-600 underline"
+                    >
+                      🔗 {base}
+                      {r.kind === "compat" ? "/compat/result/" : "/result/"}
+                      {r.id}
+                    </a>
+                  )}
                 </div>
                 <a
                   href={`/api/admin/confirm?kind=${r.kind}&id=${r.id}&key=${encodeURIComponent(
@@ -125,8 +142,8 @@ export default async function AdminPage({
       )}
 
       <p className="mt-8 text-center text-xs text-ink/40">
-        새 신고는 새로고침하면 나타납니다 · 승인 후 손님에게 링크(
-        <span className="font-mono">/result/…</span>)를 이메일·LINE·IG로 보내주세요
+        새 신고는 새로고침하면 나타납니다 · 각 카드의 🔗 링크가 손님 결과 페이지예요 —
+        손님이 창을 닫았더라도 승인 후 이 링크를 DM·이메일·LINE으로 보내주면 됩니다
       </p>
     </main>
   );
