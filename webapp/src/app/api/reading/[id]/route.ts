@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { store } from "@/lib/store";
 import { unlock, interpret } from "@/lib/interpret";
+import { generateReadingReport } from "@/lib/generate";
 import { todayFortune, TODAY_PREFIX } from "@/lib/today";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
+
+// Language-switch on a paid record may generate the long report on demand.
+export const maxDuration = 60;
 
 // GET /api/reading/:id → a stored reading (for shareable /result/:id links).
 // Premium sections are revealed only if the reading is paid.
@@ -26,6 +30,30 @@ export async function GET(
   let sections = reading.paid
     ? unlock(base, reading.chart.dayMaster, lang)
     : base;
+
+  // Paid + generated long report exists, but viewer switched language →
+  // serve the cached translation, or generate + cache it now.
+  if (reading.paid && lang !== storedLang && reading.input.generated) {
+    const free = interpret(reading.chart, lang).filter((s) => !s.locked);
+    const cached = reading.input.genByLang?.[lang];
+    if (cached && cached.length > 0) {
+      sections = [...free, ...cached];
+    } else {
+      const gen = await generateReadingReport(
+        reading.chart,
+        { name: reading.input.name, gender: reading.input.gender },
+        lang
+      );
+      if (gen) {
+        sections = [...free, ...gen];
+        try {
+          await store.cacheGenLang(params.id, lang, gen);
+        } catch (err) {
+          console.error("genByLang cache save failed (non-fatal):", err);
+        }
+      }
+    }
+  }
 
   // Refresh the daily fortune so a stored reading stays alive day to day.
   const today = todayFortune(reading.chart, new Date(), lang);

@@ -190,13 +190,18 @@ export default function ResultView({ initial }: { initial: Reading }) {
   const tt = TXT[uiLang];
 
   // Language switch: re-render the whole report in the selected language.
+  // First switch on a paid record generates the long report → can take ~40s.
+  const [langBusy, setLangBusy] = useState(false);
   async function switchLang(v: L3) {
-    if (!id || v === uiLang) return;
+    if (!id || v === uiLang || langBusy) return;
+    setLangBusy(true);
     try {
       const res = await fetch(`/api/reading/${id}?lang=${v}`);
       if (res.ok) setReading(await res.json());
     } catch {
       /* keep current language on failure */
+    } finally {
+      setLangBusy(false);
     }
   }
 
@@ -344,7 +349,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
     <section className="mt-8">
       {id && (
         <div className="mb-3 flex justify-center">
-          <div className="flex overflow-hidden rounded-full border-2 border-rosewood/40 bg-white text-sm font-semibold shadow-sm">
+          <div className={"flex overflow-hidden rounded-full border-2 border-rosewood/40 bg-white text-sm font-semibold shadow-sm" + (langBusy ? " animate-pulse opacity-50" : "")}>
             {(["th", "en", "ko"] as L3[]).map((v) => (
               <button
                 key={v}

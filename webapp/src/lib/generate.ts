@@ -109,7 +109,7 @@ async function callChunk(
   try {
     const res = await c.messages.create({
       model: MODEL,
-      max_tokens: 9000,
+      max_tokens: 6000,
       system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: prompt }],
     });
@@ -171,7 +171,7 @@ export async function generateReadingReport(
     `신강약: ${s.bandLabel} (지지율 ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
     `분석 노트: ${s.notes.join(" | ") || "없음"}`;
 
-  const chunks = chunk(READING_CATEGORIES, 4);
+  const chunks = chunk(READING_CATEGORIES, 3);
   let start = 1;
   const jobs = chunks.map((cs) => {
     const job = callChunk(c, system, context, cs, start, lang);
@@ -226,7 +226,7 @@ export async function generateCompatReport(
       : "");
 
   const cats = romantic ? ROMANTIC_CATEGORIES : PLATONIC_CATEGORIES;
-  const chunks = chunk(cats, 5);
+  const chunks = chunk(cats, 3);
   let start = 1;
   const jobs = chunks.map((cs) => {
     const job = callChunk(c, system, context, cs, start, lang);

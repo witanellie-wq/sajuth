@@ -308,6 +308,30 @@ const NOTE_TITLE: Record<Lang, (i: number) => string> = {
   ko: (i) => `포인트 ${i}`,
 };
 
+// Category titles for each analysis point — shown instead of "포인트 N" so
+// readers immediately know which layer (일간/배우자궁/용신/조후/암합…) it is.
+const NOTE_CAT: Record<string, LText> = {
+  dmResource: { th: "💞 การเติมพลังให้กัน (일간 상생)", en: "💞 How you recharge each other", ko: "💞 기운의 흐름 — 서로를 채워주는 사이" },
+  dmSame: { th: "👯 ธาตุเดียวกัน (비견)", en: "👯 Same day master (비견)", ko: "👯 비견 — 닮은 두 사람" },
+  dmSameRomantic: { th: "👯 ธาตุเดียวกัน (비견)", en: "👯 Same day master (비견)", ko: "👯 비견 — 닮은 두 사람" },
+  dmOpposite: { th: "⚡ แรงดึงดูดขั้วตรงข้าม (상극)", en: "⚡ Opposites attract (상극)", ko: "⚡ 상극의 끌림" },
+  earthWater: { th: "⛰️🌊 ดินโอบน้ำ (토와 수)", en: "⛰️🌊 Earth embraces Water", ko: "⛰️🌊 토와 수 — 흙이 물을 품다" },
+  branchHe: { th: "💍 เรือนคู่ครอง (일지)", en: "💍 Spouse palace (일지)", ko: "💍 배우자궁 — 일지의 합" },
+  branchSanhe: { th: "💍 เรือนคู่ครอง (일지)", en: "💍 Spouse palace (일지)", ko: "💍 배우자궁 — 일지 삼합" },
+  branchSame: { th: "💍 เรือนคู่ครอง (일지)", en: "💍 Spouse palace (일지)", ko: "💍 배우자궁 — 같은 기운" },
+  branchChong: { th: "💥 เรือนคู่ครองชนกัน (충)", en: "💥 Spouse-palace clash (충)", ko: "💥 배우자궁 — 충의 긴장" },
+  yongBoth: { th: "🔑 เติมธาตุที่ขาด (용신)", en: "🔑 Yongsin complement", ko: "🔑 용신 보완 — 서로의 약" },
+  yongOne: { th: "🔑 เติมธาตุที่ขาด (용신)", en: "🔑 Yongsin complement", ko: "🔑 용신 보완 — 한쪽의 지원" },
+  climate: { th: "🌡️ สมดุลอุณหภูมิ (조후)", en: "🌡️ Climate balance (조후)", ko: "🌡️ 조후 — 온도 궁합" },
+  control: { th: "🧘 ความนิ่งทางอารมณ์ (오행 조절)", en: "🧘 Emotional steadiness", ko: "🧘 감정 안정 — 오행의 조절" },
+  feed: { th: "🌱 สายหล่อเลี้ยง (상생 라인)", en: "🌱 Feeding lanes (상생)", ko: "🌱 상생 라인 — 살려주는 자리" },
+  amhap: { th: "🤫 암합 — แรงดึงดูดที่ซ่อนอยู่", en: "🤫 Hidden bonds (암합)", ko: "🤫 암합 — 숨은 끌림" },
+  onui: { th: "🧸 ดวงพี่น้อง (오누이) — ข้อควรระวัง", en: "🧸 Sibling-like match (오누이)", ko: "🧸 오누이 궁합 — 주의 포인트" },
+  myeonghap: { th: "🌟 명합 — คู่ที่มองเห็นได้", en: "🌟 Visible combos (명합)", ko: "🌟 명합 — 드러난 합" },
+  branchHeAll: { th: "🔗 จุดเชื่อม 육합", en: "🔗 육합 connection points", ko: "🔗 육합 — 인연의 고리" },
+  woohap: { th: "📐 우합 — มุมพิเศษ", en: "📐 Corner bond (우합)", ko: "📐 우합 — 모서리 인연" },
+};
+
 // Premium bodies keyed by the day-master relation.
 const PREMIUM_COMPAT: Record<string, Record<string, LText>> = {
   same: {
@@ -418,32 +442,32 @@ export function computeCompatibility(
 ): Compatibility {
   const romantic = ROMANTIC.has(relationship);
   let score = 40; // base
-  const notes: string[] = [];
+  const notes: Array<{ k: string; text: string }> = [];
 
   // 1. Day master element relation.
   const rel = relationTo(a.dayMasterElement, b.dayMasterElement);
   const relBack = relationTo(b.dayMasterElement, a.dayMasterElement);
   if (rel === "resource" || relBack === "resource") {
     score += 25;
-    notes.push(NOTES.dmResource[lang]);
+    notes.push({ k: "dmResource", text: NOTES.dmResource[lang] });
   } else if (rel === "same") {
     // 비견 — great as friends/colleagues, contentious as spouses.
     if (romantic) {
       score -= 4;
-      notes.push(NOTES.dmSameRomantic[lang]);
+      notes.push({ k: "dmSameRomantic", text: NOTES.dmSameRomantic[lang] });
     } else {
       score += 10;
-      notes.push(NOTES.dmSame[lang]);
+      notes.push({ k: "dmSame", text: NOTES.dmSame[lang] });
     }
   } else if (rel === "wealth" || rel === "officer") {
     const pairSet = [a.dayMasterElement, b.dayMasterElement].sort().join("-");
     if (pairSet === "earth-water") {
       // 토×수 — 재성/관성 중에서도 특히 좋은 짝 (제방과 물의 상)
       score += 10;
-      notes.push(NOTES.earthWater[lang]);
+      notes.push({ k: "earthWater", text: NOTES.earthWater[lang] });
     } else {
       score += 6;
-      notes.push(NOTES.dmOpposite[lang]);
+      notes.push({ k: "dmOpposite", text: NOTES.dmOpposite[lang] });
     }
   }
 
@@ -451,16 +475,16 @@ export function computeCompatibility(
   const bp = branchPair(a.day.zhi, b.day.zhi);
   if (bp === "he") {
     score += 30;
-    notes.push(NOTES.branchHe[lang]);
+    notes.push({ k: "branchHe", text: NOTES.branchHe[lang] });
   } else if (bp === "sanhe") {
     score += 24;
-    notes.push(NOTES.branchSanhe[lang]);
+    notes.push({ k: "branchSanhe", text: NOTES.branchSanhe[lang] });
   } else if (bp === "same") {
     score += 12;
-    notes.push(NOTES.branchSame[lang]);
+    notes.push({ k: "branchSame", text: NOTES.branchSame[lang] });
   } else if (bp === "chong") {
     score -= 18;
-    notes.push(NOTES.branchChong[lang]);
+    notes.push({ k: "branchChong", text: NOTES.branchChong[lang] });
   } else {
     score += 6;
   }
@@ -472,10 +496,10 @@ export function computeCompatibility(
   const bHelpsA = sa.favorable.includes(b.dayMasterElement);
   if (aHelpsB && bHelpsA) {
     score += 16;
-    notes.push(NOTES.yongBoth[lang]);
+    notes.push({ k: "yongBoth", text: NOTES.yongBoth[lang] });
   } else if (aHelpsB || bHelpsA) {
     score += 8;
-    notes.push(NOTES.yongOne[lang]);
+    notes.push({ k: "yongOne", text: NOTES.yongOne[lang] });
   }
 
   // 4. 조후 상보 — one cold chart (water excess / winter-born) warmed by a
@@ -490,7 +514,7 @@ export function computeCompatibility(
   const wetB = b.elementCounts.water >= 2 || b.dayMasterElement === "water";
   if ((coldA && warmB) || (coldB && warmA) || (hotA && wetB) || (hotB && wetA)) {
     score += 8;
-    notes.push(NOTES.climate[lang]);
+    notes.push({ k: "climate", text: NOTES.climate[lang] });
   }
 
   // 5. 과다 제어 — climate-critical excess (flooding water / raging fire)
@@ -502,10 +526,10 @@ export function computeCompatibility(
   if (excessControlled(a, b, "water") || excessControlled(b, a, "water")) {
     // 토극수 — the dam-and-water pairing, extra favorable.
     score += 9;
-    notes.push(NOTES.control[lang]);
+    notes.push({ k: "control", text: NOTES.control[lang] });
   } else if (excessControlled(a, b, "fire") || excessControlled(b, a, "fire")) {
     score += 6;
-    notes.push(NOTES.control[lang]);
+    notes.push({ k: "control", text: NOTES.control[lang] });
   }
 
   // 6. 상생 자리 — distinct element pairs where one partner's present element
@@ -519,7 +543,7 @@ export function computeCompatibility(
   const lanes = Math.max(feedLanes(a, b), feedLanes(b, a));
   if (lanes >= 4) {
     score += Math.min(5, lanes);
-    notes.push(NOTES.feed[lang]);
+    notes.push({ k: "feed", text: NOTES.feed[lang] });
   }
 
   // Position rule for ALL cross-chart combinations (합·암합·명합): a pair only
@@ -552,7 +576,7 @@ export function computeCompatibility(
   const amhapSum = [...amhapFound.values()].reduce((x, y) => x + y, 0);
   if (amhapSum > 0) {
     score += Math.min(6, amhapSum);
-    notes.push(NOTES.amhap[lang]);
+    notes.push({ k: "amhap", text: NOTES.amhap[lang] });
   }
 
   // 명합 — VISIBLE stem combinations (천간합) across the two charts.
@@ -569,7 +593,7 @@ export function computeCompatibility(
         myeongStem.add([sA[i], sB[j]].sort().join(""));
   if (myeongStem.size > 0) {
     score += Math.min(4, myeongStem.size * 2);
-    notes.push(NOTES.myeonghap[lang]);
+    notes.push({ k: "myeonghap", text: NOTES.myeonghap[lang] });
   }
 
   // 육합 — visible branch harmony across positions (beyond day-day).
@@ -581,7 +605,7 @@ export function computeCompatibility(
   branchHe.delete([a.day.zhi, b.day.zhi].sort().join("")); // day-day already scored
   if (branchHe.size > 0) {
     score += Math.min(4, branchHe.size * 2);
-    notes.push(NOTES.branchHeAll[lang]);
+    notes.push({ k: "branchHeAll", text: NOTES.branchHeAll[lang] });
   }
 
   // 8. 우합/모서리합 — corner pairs across the two charts' branches.
@@ -594,14 +618,14 @@ export function computeCompatibility(
       }
   if (woohapFound) {
     score += 4;
-    notes.push(NOTES.woohap[lang]);
+    notes.push({ k: "woohap", text: NOTES.woohap[lang] });
   }
 
   // 9. 오누이 궁합 — same month branch (월지) reads sibling-like: cozy but
   // low on romantic spark. Docked hard (-30, per classical practice).
   if (a.month.zhi === b.month.zhi) {
     score -= 30;
-    notes.push(NOTES.onui[lang]);
+    notes.push({ k: "onui", text: NOTES.onui[lang] });
   }
 
   // ── 속궁합 (intimate chemistry) subscore ──────────────────────────────
@@ -697,8 +721,8 @@ export function computeCompatibility(
     { key: "overview", title: "", body: bandDef.headline[lang], locked: false },
     ...notes.map((n, i) => ({
       key: `note${i + 1}`,
-      title: NOTE_TITLE[lang](i + 1),
-      body: n,
+      title: NOTE_CAT[n.k]?.[lang] ?? NOTE_TITLE[lang](i + 1),
+      body: n.text,
       locked: true,
     })),
     // 속궁합 detail — romantic relationships only.

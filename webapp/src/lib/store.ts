@@ -28,6 +28,7 @@ export interface StoredReading {
     name?: string;
     gender?: string;
     generated?: boolean; // long-form report already generated
+    genByLang?: Record<string, ReportSection[]>; // per-language long reports
   };
   chart: SajuChart;
   sections: ReportSection[];
@@ -42,6 +43,8 @@ interface Store {
   saveClaim(id: string, claim: Claim): Promise<void>;
   /** Replace sections (e.g. with the generated long report) + mark generated. */
   updateSections(id: string, sections: ReportSection[]): Promise<void>;
+  /** Cache a generated long report translated into another language. */
+  cacheGenLang(id: string, lang: string, sections: ReportSection[]): Promise<void>;
   listPending(): Promise<StoredReading[]>;
   listApproved(): Promise<StoredReading[]>;
 }
@@ -219,6 +222,10 @@ const memStore: Store = {
       rec.input.generated = true;
     }
   },
+  async cacheGenLang(id, lang, sections) {
+    const rec = mem.get(id);
+    if (rec) rec.input.genByLang = { ...(rec.input.genByLang ?? {}), [lang]: sections };
+  },
   async listPending() {
     return [...mem.values()].filter((r) => !r.paid && r.claim);
   },
@@ -310,6 +317,16 @@ function supabaseStore(): Store | null {
       await sb
         .from(TABLE)
         .update({ sections, input: { ...(data?.input ?? {}), generated: true } })
+        .eq("id", id);
+    },
+    async cacheGenLang(id, lang, sections) {
+      const { data } = await sb.from(TABLE).select("input").eq("id", id).single();
+      const input = data?.input ?? {};
+      await sb
+        .from(TABLE)
+        .update({
+          input: { ...input, genByLang: { ...(input.genByLang ?? {}), [lang]: sections } },
+        })
         .eq("id", id);
     },
     async listPending() {

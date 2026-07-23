@@ -2,18 +2,26 @@ import { NextRequest, NextResponse } from "next/server";
 import { computeSaju, placeCoords, type SajuInput } from "@/lib/saju";
 import { computeCompatibility, unlockCompat, type Compatibility } from "@/lib/compat";
 import { compatStore } from "@/lib/store";
+import { generateCompatReport } from "@/lib/generate";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
+
+// Language-switch on a paid record may generate the long report on demand.
+export const maxDuration = 60;
 
 // GET /api/compat?id=...&lang=th|en|ko → a stored compat result re-rendered in
 // the requested language. Same language → stored result (may include the
-// generated long report); different language → recompute from stored charts.
+// generated long report); different language → recompute from stored charts,
+// and for PAID records generate (then cache) the long report in that language.
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id");
   if (!id) return NextResponse.json({ error: "missing_id" }, { status: 400 });
   const rec = await compatStore.get(id);
   if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
 
-  const stored = rec.result as Compatibility;
+  const stored = rec.result as Compatibility & {
+    generated?: boolean;
+    genByLang?: Record<string, Compatibility["sections"]>;
+  };
   const storedLang = pickLang(stored.lang);
   const langParam = req.nextUrl.searchParams.get("lang");
   const lang = langParam ? pickLang(langParam) : storedLang;
@@ -22,13 +30,41 @@ export async function GET(req: NextRequest) {
   const payload = rec.charts as any;
   const relationship: string = payload?.relationship ?? "lovers";
 
-  let result = stored;
+  let result = stored as Compatibility;
   if (lang !== storedLang && payload?.charts?.a?.year && payload?.charts?.b?.year) {
     result = computeCompatibility(payload.charts.a, payload.charts.b, lang, relationship);
   }
-  const sections = rec.paid
+
+  let sections = rec.paid
     ? unlockCompat(result.sections, result.rel, lang)
     : result.sections;
+
+  // Paid + generated long report exists, but viewer switched language →
+  // serve the cached translation, or generate + cache it now.
+  if (rec.paid && lang !== storedLang && stored.generated) {
+    const cached = stored.genByLang?.[lang];
+    if (cached && cached.length > 0) {
+      sections = [result.sections[0], ...cached];
+    } else if (payload?.charts?.a?.year && payload?.charts?.b?.year) {
+      const gen = await generateCompatReport(
+        payload.charts.a,
+        payload.charts.b,
+        payload?.profiles ?? {},
+        result
+      );
+      if (gen) {
+        sections = [result.sections[0], ...gen];
+        try {
+          await compatStore.updateResult(id, {
+            ...stored,
+            genByLang: { ...(stored.genByLang ?? {}), [lang]: gen },
+          });
+        } catch (err) {
+          console.error("genByLang cache save failed (non-fatal):", err);
+        }
+      }
+    }
+  }
 
   return NextResponse.json({
     id: rec.id,
