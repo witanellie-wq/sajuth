@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { computeSaju, type SajuInput } from "@/lib/saju";
+import { computeSaju, placeCoords, type SajuInput } from "@/lib/saju";
 import { interpret } from "@/lib/interpret";
 import { rewriteSections } from "@/lib/rewrite";
 import { store } from "@/lib/store";
@@ -11,7 +11,13 @@ import { DISCLAIMER, pickLang } from "@/lib/i18n";
 // the reading still returns (id: null) so a storage misconfig never breaks the
 // core product — only share links.
 export async function POST(req: NextRequest) {
-  let input: SajuInput & { rewrite?: boolean; lang?: string; name?: string; gender?: string };
+  let input: SajuInput & {
+    rewrite?: boolean;
+    lang?: string;
+    name?: string;
+    gender?: string;
+    place?: string;
+  };
   try {
     input = await req.json();
   } catch {
@@ -37,7 +43,7 @@ export async function POST(req: NextRequest) {
   }
 
   const lang = pickLang(input.lang);
-  const chart = computeSaju(input);
+  const chart = computeSaju({ ...input, ...placeCoords(input.place) });
   let sections = interpret(chart, lang);
   if (input.rewrite) sections = await rewriteSections(chart, sections);
 

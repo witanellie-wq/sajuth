@@ -9,6 +9,7 @@ type Lang = "th" | "en" | "ko";
 interface Person {
   name: string;
   gender: string; // "F" | "M" | ""
+  place: string; // "th" | "kr" | "none"
   year: string;
   month: string;
   day: string;
@@ -19,6 +20,7 @@ interface Person {
 const empty: Person = {
   name: "",
   gender: "",
+  place: "th",
   year: "",
   month: "",
   day: "",
@@ -43,6 +45,7 @@ function toInput(p: Person) {
     day: Number(p.day),
     name: p.name,
     gender: p.gender,
+    place: p.place,
   };
   if (!p.unknownTime && p.hour !== "") {
     o.hour = Number(p.hour);
@@ -226,6 +229,20 @@ function PersonFields({
         </div>
       </div>
 
+      <label className="mt-3 block text-sm">
+        <span className="mb-1 block text-ink/70">
+          {lang === "th" ? "ที่เกิด · Birthplace" : lang === "en" ? "Birthplace" : "출생지"}
+        </span>
+        <select
+          value={p.place}
+          onChange={(e) => onChange({ ...p, place: e.target.value })}
+          className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood"
+        >
+          <option value="th">{lang === "th" ? "🇹🇭 ประเทศไทย" : lang === "en" ? "🇹🇭 Thailand" : "🇹🇭 태국"}</option>
+          <option value="kr">{lang === "th" ? "🇰🇷 เกาหลี" : lang === "en" ? "🇰🇷 Korea" : "🇰🇷 한국"}</option>
+          <option value="none">{lang === "th" ? "🌍 อื่น ๆ" : lang === "en" ? "🌍 Other" : "🌍 기타"}</option>
+        </select>
+      </label>
       <div className="mt-3 grid grid-cols-3 gap-3">
         <Field
           label={lang === "th" ? "ปี (ค.ศ.) · Year" : lang === "en" ? "Year" : "연도(서기)"}

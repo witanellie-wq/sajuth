@@ -39,9 +39,22 @@ const SAN_HE: string[][] = [
   ["寅", "午", "戌"],
   ["巳", "酉", "丑"],
 ];
-// 암합 (hidden combinations) — branches whose hidden stems combine covertly.
-// (丑寅 lives in WOOHAP below to avoid double-counting.)
-const AMHAP = new Set(["子戌", "卯申", "午亥", "寅未"]);
+// 암합 (hidden combinations) — derived from 지장간 (hidden stems) forming
+// 천간합 pairs. Value = number of hidden combos (丑寅 triple is strongest).
+// 子午 (a CLASH pair!) hides 壬丁 — why clash couples still burn for each
+// other. 辰酉/巳申 excluded (already visible 육합).
+const AMHAP_COMBOS: Record<string, number> = {
+  "丑寅": 3, "寅丑": 3,
+  "子戌": 2, "戌子": 2,
+  "午亥": 2, "亥午": 2,
+  "子午": 1, "午子": 1,
+  "子巳": 1, "巳子": 1,
+  "寅未": 1, "未寅": 1,
+  "卯申": 1, "申卯": 1,
+  "戌亥": 1, "亥戌": 1,
+};
+// Pairs whose hidden combo is 丁壬 (정임) — feeds the intimate boost.
+const AMHAP_JEONGIM = new Set(["子午", "午子", "子戌", "戌子", "午亥", "亥午", "戌亥", "亥戌"]);
 // 우합/隅合 (corner combinations, 모서리합) — adjacent "corner" pairs of the
 // branch square: 丑寅, 辰巳, 未申, 戌亥. A subtle, steady pull.
 const WOOHAP = new Set(["丑寅", "辰巳", "未申", "戌亥"]);
@@ -135,6 +148,21 @@ const NOTES: Record<string, LText> = {
     th: "เดือนเกิด (월지) ของทั้งคู่เป็นราศีเดียวกัน — สบายใจเหมือนพี่น้อง (오누이) เข้าใจกันง่ายมาก แต่ประกายโรแมนติกจางเร็ว ต้องตั้งใจเดตกันต่อเนื่อง",
     en: "You share the same birth-month branch — comfortable like siblings (오누이). Easy understanding, but the romantic spark fades fast; keep dating on purpose.",
     ko: "월지가 같은 오누이 궁합이에요 — 남매처럼 편하고 잘 통하지만, 설렘이 빨리 무뎌질 수 있어 의식적으로 데이트를 챙겨야 해요.",
+  },
+  myeonghap: {
+    th: "มีธาตุฟ้า (천간) ของทั้งคู่จับคู่กันแบบเปิดเผย (명합) — ความเข้ากันที่มองเห็นได้ชัด คนรอบข้างก็สัมผัสได้",
+    en: "Your visible heavenly stems form open combinations (명합) — a compatibility even people around you can feel.",
+    ko: "두 사주의 천간이 겉으로 드러나게 합(명합)을 이뤄요 — 주변 사람들도 느낄 만큼 잘 어울리는 조합입니다.",
+  },
+  branchHeAll: {
+    th: "มีคู่ 육합 ระหว่างเสาต่าง ๆ ของทั้งสองดวง — จุดเชื่อมที่ทำให้ชีวิตประสานกันได้หลายด้าน",
+    en: "육합 harmonies link various pillars across your charts — connection points that sync your lives on several fronts.",
+    ko: "두 사주의 여러 기둥 사이에 육합이 걸려 있어요 — 삶의 여러 방면이 자연스럽게 맞물리는 연결고리입니다.",
+  },
+  earthWater: {
+    th: "คู่ธาตุดิน×น้ำ — เหมือนเขื่อนกับสายน้ำ ฝ่ายหนึ่งให้ทิศทาง อีกฝ่ายให้ความลึกและความยืดหยุ่น ตำราถือว่าเป็นคู่ครองที่เกื้อกูลกันเป็นพิเศษ",
+    en: "An Earth × Water pairing — like a dam and its river: one gives direction, the other depth and flow. Classically an especially nourishing match.",
+    ko: "토×수 조합 — 제방과 강물처럼 한쪽은 방향을, 한쪽은 깊이와 유연함을 줘요. 명리에서 특히 서로를 살리는 배필로 보는 짝입니다.",
   },
   woohap: {
     th: "มีคู่ ‘우합(隅合)’ ระหว่างดวงของทั้งสอง (เช่น 술해합·축인합) — แรงดึงดูดแบบมุมชนมุม เงียบแต่เหนียวแน่น ยิ่งอยู่ใกล้ยิ่งผูกพันโดยไม่รู้ตัว",
@@ -408,8 +436,15 @@ export function computeCompatibility(
       notes.push(NOTES.dmSame[lang]);
     }
   } else if (rel === "wealth" || rel === "officer") {
-    score += 6;
-    notes.push(NOTES.dmOpposite[lang]);
+    const pairSet = [a.dayMasterElement, b.dayMasterElement].sort().join("-");
+    if (pairSet === "earth-water") {
+      // 토×수 — 재성/관성 중에서도 특히 좋은 짝 (제방과 물의 상)
+      score += 10;
+      notes.push(NOTES.earthWater[lang]);
+    } else {
+      score += 6;
+      notes.push(NOTES.dmOpposite[lang]);
+    }
   }
 
   // 2. Day-branch (spouse palace) relation.
@@ -461,13 +496,14 @@ export function computeCompatibility(
   // 5. 과다 제어 — climate-critical excess (flooding water / raging fire)
   // held by the partner's controller: 토극수 (earth banks water) or
   // 수극화 (water cools fire). Restricted to water/fire so it stays special.
-  const excessControlled = (x: SajuChart, y: SajuChart): boolean =>
-    (["water", "fire"] as const).some(
-      (el) =>
-        x.elementCounts[el] >= 3 &&
-        (y.elementCounts as Record<string, number>)[CONTROLLER[el]] >= 2
-    );
-  if (excessControlled(a, b) || excessControlled(b, a)) {
+  const excessControlled = (x: SajuChart, y: SajuChart, el: "water" | "fire"): boolean =>
+    x.elementCounts[el] >= 3 &&
+    (y.elementCounts as Record<string, number>)[CONTROLLER[el]] >= 2;
+  if (excessControlled(a, b, "water") || excessControlled(b, a, "water")) {
+    // 토극수 — the dam-and-water pairing, extra favorable.
+    score += 9;
+    notes.push(NOTES.control[lang]);
+  } else if (excessControlled(a, b, "fire") || excessControlled(b, a, "fire")) {
     score += 6;
     notes.push(NOTES.control[lang]);
   }
@@ -493,16 +529,45 @@ export function computeCompatibility(
     c.day.zhi,
     ...(c.hour ? [c.hour.zhi] : []),
   ];
-  const amhapPairs = new Set<string>();
+  const amhapFound = new Map<string, number>(); // canonical pair → combo count
+  let hiddenJeongim = false;
   for (const ba of branchesOf(a))
     for (const bb of branchesOf(b)) {
-      if (AMHAP.has(ba + bb) || AMHAP.has(bb + ba)) {
-        amhapPairs.add([ba, bb].sort().join(""));
+      const n = AMHAP_COMBOS[ba + bb];
+      if (n) {
+        amhapFound.set([ba, bb].sort().join(""), n);
+        if (AMHAP_JEONGIM.has(ba + bb)) hiddenJeongim = true;
       }
     }
-  if (amhapPairs.size > 0) {
-    score += Math.min(6, amhapPairs.size * 3);
+  const amhapSum = [...amhapFound.values()].reduce((x, y) => x + y, 0);
+  if (amhapSum > 0) {
+    score += Math.min(6, amhapSum);
     notes.push(NOTES.amhap[lang]);
+  }
+
+  // 명합 — VISIBLE stem combinations (천간합) across the two charts.
+  const stemsOf = (c: SajuChart): string[] => [
+    c.year.gan, c.month.gan, c.day.gan, ...(c.hour ? [c.hour.gan] : []),
+  ];
+  const STEM_HE_PAIRS = new Set(["甲己", "己甲", "乙庚", "庚乙", "丙辛", "辛丙", "丁壬", "壬丁", "戊癸", "癸戊"]);
+  const myeongStem = new Set<string>();
+  for (const ga of stemsOf(a))
+    for (const gb of stemsOf(b))
+      if (STEM_HE_PAIRS.has(ga + gb)) myeongStem.add([ga, gb].sort().join(""));
+  if (myeongStem.size > 0) {
+    score += Math.min(4, myeongStem.size * 2);
+    notes.push(NOTES.myeonghap[lang]);
+  }
+
+  // 육합 — visible branch harmony across ALL positions (beyond day-day).
+  const branchHe = new Set<string>();
+  for (const ba of branchesOf(a))
+    for (const bb of branchesOf(b))
+      if (LIU_HE.has(ba + bb) || LIU_HE.has(bb + ba)) branchHe.add([ba, bb].sort().join(""));
+  branchHe.delete([a.day.zhi, b.day.zhi].sort().join("")); // day-day already scored
+  if (branchHe.size > 0) {
+    score += Math.min(4, branchHe.size * 2);
+    notes.push(NOTES.branchHeAll[lang]);
   }
 
   // 8. 우합/모서리합 — corner pairs across the two charts' branches.
@@ -536,20 +601,24 @@ export function computeCompatibility(
     intimateReasons.push(INTIMATE_TEXT.chong[lang]);
   }
 
-  // 암합 abundance → secret chemistry.
-  if (amhapPairs.size > 0) {
-    intimate += Math.min(16, amhapPairs.size * 8);
+  // 암합 abundance → secret chemistry (weighted by hidden-combo count).
+  if (amhapSum > 0) {
+    intimate += Math.min(12, amhapSum * 2);
     intimateReasons.push(INTIMATE_TEXT.amhap[lang]);
   }
 
   // 정임합 (丁壬) across the charts — the classic irresistible-attraction pair.
   const stemsA = [a.year.gan, a.month.gan, a.day.gan, ...(a.hour ? [a.hour.gan] : [])];
   const stemsB = [b.year.gan, b.month.gan, b.day.gan, ...(b.hour ? [b.hour.gan] : [])];
-  const jeongim =
+  const visibleJeongim =
     (stemsA.includes("丁") && stemsB.includes("壬")) ||
     (stemsA.includes("壬") && stemsB.includes("丁"));
-  if (jeongim) {
+  if (visibleJeongim) {
     intimate += 15;
+    intimateReasons.push(INTIMATE_TEXT.jeongim[lang]);
+  } else if (hiddenJeongim) {
+    // 자오충 등 지장간 속 丁壬 — 드러난 정임보다는 약하게
+    intimate += 8;
     intimateReasons.push(INTIMATE_TEXT.jeongim[lang]);
   }
 

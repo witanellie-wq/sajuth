@@ -9,6 +9,10 @@ type UiLang = "th" | "en" | "ko";
 const L: Record<UiLang, Record<string, string>> = {
   th: {
     formTitle: "✨ ใส่ข้อมูลวันเกิด",
+    place: "ที่เกิด · Birthplace",
+    placeTh: "🇹🇭 ประเทศไทย",
+    placeKr: "🇰🇷 เกาหลี",
+    placeNone: "🌍 อื่น ๆ",
     name: "ชื่อเล่น · Name",
     gender: "เพศ · Gender",
     female: "หญิง",
@@ -28,6 +32,10 @@ const L: Record<UiLang, Record<string, string>> = {
   },
   en: {
     formTitle: "✨ Your birth info",
+    place: "Birthplace",
+    placeTh: "🇹🇭 Thailand",
+    placeKr: "🇰🇷 Korea",
+    placeNone: "🌍 Other",
     name: "Name (optional)",
     gender: "Gender",
     female: "F",
@@ -47,6 +55,10 @@ const L: Record<UiLang, Record<string, string>> = {
   },
   ko: {
     formTitle: "✨ 생년월일 정보 입력",
+    place: "출생지",
+    placeTh: "🇹🇭 태국",
+    placeKr: "🇰🇷 한국",
+    placeNone: "🌍 기타",
     name: "이름 (선택)",
     gender: "성별",
     female: "여성",
@@ -72,6 +84,7 @@ export default function Home() {
   const [form, setForm] = useState({
     name: "",
     gender: "",
+    place: "th",
     year: "",
     month: "",
     day: "",
@@ -96,6 +109,7 @@ export default function Home() {
         lang, // report content follows the selected language
         name: form.name,
         gender: form.gender,
+        place: form.place,
       };
       if (!form.unknownTime && form.hour !== "") {
         body.hour = Number(form.hour);
@@ -182,6 +196,18 @@ export default function Home() {
             </div>
           </div>
         </div>
+        <label className="mt-4 block text-sm">
+          <span className="mb-1 block text-ink/70">{t.place}</span>
+          <select
+            value={form.place}
+            onChange={(e) => setForm({ ...form, place: e.target.value })}
+            className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood"
+          >
+            <option value="th">{t.placeTh}</option>
+            <option value="kr">{t.placeKr}</option>
+            <option value="none">{t.placeNone}</option>
+          </select>
+        </label>
         <div className="mt-4 grid grid-cols-3 gap-3">
           <Field label={t.year} placeholder="1996" value={form.year} onChange={(v) => setForm({ ...form, year: v })} />
           <Field label={t.month} placeholder="5" value={form.month} onChange={(v) => setForm({ ...form, month: v })} />

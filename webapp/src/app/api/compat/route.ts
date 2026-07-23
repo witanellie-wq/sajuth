@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { computeSaju, type SajuInput } from "@/lib/saju";
+import { computeSaju, placeCoords, type SajuInput } from "@/lib/saju";
 import { computeCompatibility } from "@/lib/compat";
 import { compatStore } from "@/lib/store";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
@@ -7,6 +7,7 @@ import { DISCLAIMER, pickLang } from "@/lib/i18n";
 interface PersonInput extends SajuInput {
   name?: string;
   gender?: string; // "F" | "M" | ""
+  place?: string; // "th" | "kr" | "none"
 }
 
 interface Body {
@@ -62,8 +63,8 @@ export async function POST(req: NextRequest) {
   const lang = pickLang(body.lang);
   const relationship =
     typeof body.relationship === "string" && body.relationship ? body.relationship : "lovers";
-  const chartA = computeSaju(body.a);
-  const chartB = computeSaju(body.b);
+  const chartA = computeSaju({ ...body.a, ...placeCoords(body.a.place) });
+  const chartB = computeSaju({ ...body.b, ...placeCoords(body.b.place) });
   const result = computeCompatibility(chartA, chartB, lang, relationship);
 
   const payload = {

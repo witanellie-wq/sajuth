@@ -94,6 +94,18 @@ export function trueSolarCorrectionMinutes(longitude: number, tzMeridian: number
   return Math.round((longitude - tzMeridian) * 4);
 }
 
+/**
+ * Birthplace → true-solar-time parameters.
+ * Thailand: Bangkok 100.5°E vs ICT meridian 105°E (−18 min).
+ * Korea: Seoul 127.0°E vs KST meridian 135°E (−32 min) — e.g. 01:30 born in
+ * Korea lands in 자시, giving 丙子時 instead of 丁丑時.
+ */
+export function placeCoords(place?: string): Partial<SajuInput> {
+  if (place === "kr") return { longitude: 127.0, tzMeridian: 135 };
+  if (place === "none") return { trueSolarTime: false };
+  return { longitude: 100.5, tzMeridian: 105 }; // default: Thailand
+}
+
 export function computeSaju(input: SajuInput): SajuChart {
   const {
     year, month, day,
