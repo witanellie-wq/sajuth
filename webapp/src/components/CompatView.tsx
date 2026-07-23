@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { STEM_STYLE, BRANCH_STYLE } from "./hanStyles";
+import { STEM_STYLE, BRANCH_STYLE, HIDDEN_STEMS } from "./hanStyles";
 
-const IG_URL = process.env.NEXT_PUBLIC_IG_URL ?? "https://instagram.com/duangsaju";
+const IG_URL = process.env.NEXT_PUBLIC_IG_URL ?? "https://www.instagram.com/duangsaju";
 
 // Korean readings shown under each hanja (like classic 만세력 apps).
 const STEM_KO: Record<string, string> = {
@@ -148,6 +148,10 @@ function PersonChart({
               >
                 <span className="text-base font-bold">{p ? p.zhi : "—"}</span>
                 {p && <span className="text-[8px] opacity-80">{BRANCH_KO[p.zhi]}</span>}
+              </span>
+              {/* 지장간 — hidden stems, so 암합 can be read off the chart */}
+              <span className="text-[8px] leading-tight text-ink/45">
+                {p ? HIDDEN_STEMS[p.zhi]?.split("").join("·") : " "}
               </span>
             </div>
           </div>
@@ -411,7 +415,7 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
     <section className="mt-8">
       {id && (
         <div className="mb-3 flex justify-center">
-          <div className="flex overflow-hidden rounded-full border border-peach/60 bg-white text-[11px]">
+          <div className="flex overflow-hidden rounded-full border-2 border-rosewood/40 bg-white text-sm font-semibold shadow-sm">
             {(["th", "en", "ko"] as L3[]).map((v) => (
               <button
                 key={v}
@@ -504,6 +508,8 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
           ) : (
             <a
               href={IG_URL}
+              target="_blank"
+              rel="noreferrer"
               className="mt-3 inline-block rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white"
             >
               {tt.dmBtn}
@@ -604,6 +610,8 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
             )}
             <a
               href={IG_URL}
+              target="_blank"
+              rel="noreferrer"
               className="mt-2 block w-full rounded-xl bg-rosewood py-2.5 text-sm font-semibold text-white"
             >
               {tt.dmSend}

@@ -29,9 +29,9 @@ export interface Reading {
   disclaimer: string;
 }
 
-import { STEM_STYLE, BRANCH_STYLE, ELEMENT_CHIP } from "./hanStyles";
+import { STEM_STYLE, BRANCH_STYLE, ELEMENT_CHIP, HIDDEN_STEMS } from "./hanStyles";
 
-const IG_URL = process.env.NEXT_PUBLIC_IG_URL ?? "https://instagram.com/duangsaju";
+const IG_URL = process.env.NEXT_PUBLIC_IG_URL ?? "https://www.instagram.com/duangsaju";
 
 const ELEMENT_LABEL: Record<string, string> = {
   wood: "ไม้·Wood",
@@ -344,7 +344,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
     <section className="mt-8">
       {id && (
         <div className="mb-3 flex justify-center">
-          <div className="flex overflow-hidden rounded-full border border-peach/60 bg-white text-[11px]">
+          <div className="flex overflow-hidden rounded-full border-2 border-rosewood/40 bg-white text-sm font-semibold shadow-sm">
             {(["th", "en", "ko"] as L3[]).map((v) => (
               <button
                 key={v}
@@ -385,12 +385,16 @@ export default function ResultView({ initial }: { initial: Reading }) {
                   star={isDay}
                 />
                 <HanBlock ch={p ? p.zhi : "—"} style={p ? BRANCH_STYLE[p.zhi] : undefined} />
+                {/* 지장간 — hidden stems, so 암합 can be read off the chart */}
+                <div className="text-[9px] leading-tight text-ink/45">
+                  {p ? HIDDEN_STEMS[p.zhi]?.split("").join("·") : " "}
+                </div>
               </div>
             </div>
           ))}
         </div>
         <p className="mt-2 text-center text-[10px] text-ink/40">
-          ⭐ = ธาตุประจำตัวคุณ · your Day Master (일간)
+          ⭐ = ธาตุประจำตัวคุณ · your Day Master (일간) · ตัวอักษรเล็ก = 지장간 (hidden stems)
         </p>
 
         {/* Dominant element visual + five-element balance bars */}
@@ -488,6 +492,8 @@ export default function ResultView({ initial }: { initial: Reading }) {
                   ) : (
                     <a
                       href={IG_URL}
+              target="_blank"
+              rel="noreferrer"
                       className="mt-3 inline-block rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white"
                     >
                       {tt.dmBtn}
@@ -585,6 +591,8 @@ export default function ResultView({ initial }: { initial: Reading }) {
             )}
             <a
               href={IG_URL}
+              target="_blank"
+              rel="noreferrer"
               className="mt-2 block w-full rounded-xl bg-rosewood py-2.5 text-sm font-semibold text-white"
             >
               {tt.dmSend}

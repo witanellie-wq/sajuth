@@ -45,45 +45,102 @@ function pillarsOf(c: SajuChart): string {
 
 const ROMANTIC = new Set(["lovers", "married", "talking"]);
 
-const ROMANTIC_CATEGORIES = `1. 전체 형국 총평 (조후·오행 흐름의 큰 그림, 시적인 비유 포함)
-2. 첫인상과 끌림의 이유
-3. 서로가 서로를 바라보는 시선 (각자 상대를 어떻게 느끼는지)
-4. 상대의 속마음 (겉으로 말하지 않는 진심)
-5. 서로에게 바라는 것 (이상형과 현실의 갭)
-6. 소통 방식과 갈등 패턴 (싸울 때 어떻게 다른지, 화해법)
-7. 속궁합 (육체적·정서적 친밀감의 케미)
-8. 결혼운 (결혼했을 때의 모습, 적기)
-9. 재물운과 노후 (함께일 때의 경제 흐름)
-10. 자녀운 (아이를 낳는다면 어떤 기운의 아이인지)
-11. 양가 가족과의 인연
-12. 관계를 지키는 결정적 지침 (구체적 액션 플랜 포함)
-13. 마무리 총평 (두 사람만의 개운 문구 한 줄 포함)`;
+const ROMANTIC_CATEGORIES: string[] = [
+  "전체 형국 총평 (조후·오행 흐름의 큰 그림, 시적인 비유 포함)",
+  "첫인상과 끌림의 이유",
+  "서로가 서로를 바라보는 시선 (각자 상대를 어떻게 느끼는지)",
+  "상대의 속마음 (겉으로 말하지 않는 진심)",
+  "서로에게 바라는 것 (이상형과 현실의 갭)",
+  "소통 방식과 갈등 패턴 (싸울 때 어떻게 다른지, 화해법)",
+  "속궁합 (육체적·정서적 친밀감의 케미 — 암합·충·합의 근거를 들어 아주 구체적으로)",
+  "결혼운 (결혼했을 때의 모습, 적기, 경제적 안정도)",
+  "재물운과 노후 (함께일 때의 경제 흐름)",
+  "자녀운 (아이를 낳는다면 어떤 기운의 아이인지)",
+  "양가 가족과의 인연 (시댁·처가와의 관계)",
+  "관계를 지키는 결정적 지침 (구체적 액션 플랜 포함)",
+  "마무리 총평 (두 사람만의 개운 문구 한 줄 포함)",
+];
 
-const PLATONIC_CATEGORIES = `1. 전체 형국 총평 (두 사람 기운의 큰 그림, 비유 포함)
-2. 첫 만남과 가까워진 이유
-3. 서로가 서로를 바라보는 시선
-4. 상대의 속마음 (겉으로 말하지 않는 진심)
-5. 함께 일할 때의 시너지 (협업 케미)
-6. 소통 방식과 갈등 패턴 (부딪히는 지점, 푸는 법)
-7. 신뢰를 쌓는 법
-8. 금전·거래에서의 주의점
-9. 서로에게 배울 점
-10. 장기적인 인연의 전망
-11. 관계를 지키는 결정적 지침 (구체적 액션 플랜 포함)
-12. 마무리 총평 (두 사람만의 개운 문구 한 줄 포함)`;
+const PLATONIC_CATEGORIES: string[] = [
+  "전체 형국 총평 (두 사람 기운의 큰 그림, 비유 포함)",
+  "첫 만남과 가까워진 이유",
+  "서로가 서로를 바라보는 시선",
+  "상대의 속마음 (겉으로 말하지 않는 진심)",
+  "함께 일할 때의 시너지 (협업 케미)",
+  "소통 방식과 갈등 패턴 (부딪히는 지점, 푸는 법)",
+  "신뢰를 쌓는 법",
+  "금전·거래에서의 주의점",
+  "서로에게 배울 점",
+  "장기적인 인연의 전망",
+  "관계를 지키는 결정적 지침 (구체적 액션 플랜 포함)",
+  "마무리 총평 (두 사람만의 개운 문구 한 줄 포함)",
+];
 
-const READING_CATEGORIES = `1. 원국 총평 (오행 흐름과 그릇의 크기, 시적인 비유 포함)
-2. 타고난 성격의 빛과 그림자
-3. 연애운 (끌리는 상대의 기운, 사랑하는 방식, 주의점)
-4. 결혼운 (어울리는 배우자상, 결혼 생활의 모습)
-5. 직업운과 적성 (기운에 맞는 일, 피해야 할 일)
-6. 재물운 (돈이 들어오는 길과 새는 구멍)
-7. 건강운 (약한 오행과 몸 관리 포인트)
-8. 인간관계와 귀인 (나를 돕는 사람의 기운)
-9. 대운의 큰 흐름 (10년 단위 인생 리듬)
-10. 올해와 내년의 운
-11. 개운법 (용신 기반 행운 컬러·숫자·방향·습관 제안)
-12. 마무리 총평 (이 사람만의 개운 문구 한 줄 포함)`;
+// saju-kid-grade length: every category must read like a full consultation.
+const LENGTH_RULE =
+  `각 카테고리는 반드시 하나의 긴 문단형 리포트로: 15문장 이상, 공백 포함 700자 이상(한국어 기준 — ` +
+  `태국어·영어도 같은 정보량). 실제 간지 글자와 일주 이름(예: 을해일주, 병술일주)을 인용하고, ` +
+  `명리 근거(합·충·암합·조후·용신·십신)를 짚으며, 생활 속 구체적 장면과 실용 조언(인테리어, 말버릇, ` +
+  `시기 등)까지 담아라. 짧고 두루뭉술한 문장은 금지.`;
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
+// One generation call for a slice of categories. Chunked + parallel so the
+// full 12-13 category long-form report fits serverless time limits.
+async function callChunk(
+  c: AnthropicLike,
+  system: string,
+  context: string,
+  cats: string[],
+  startNo: number,
+  lang: Lang
+): Promise<Array<{ title: string; body: string }> | null> {
+  const prompt =
+    context +
+    `\n\n이건 전체 리포트 중 일부야. 다음 카테고리들만 작성해줘:\n` +
+    cats.map((t, i) => `${startNo + i}. ${t}`).join("\n") +
+    `\n\n${LENGTH_RULE}\n\n출력은 반드시 JSON 배열만: [{"title":"...","body":"..."}] — ` +
+    `title은 각 카테고리를 감성적인 한 줄 제목으로 (번호 없이), body는 본문. ` +
+    `모든 텍스트는 ${LANG_NAME[lang]}(으)로.`;
+  try {
+    const res = await c.messages.create({
+      model: MODEL,
+      max_tokens: 9000,
+      system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content: prompt }],
+    });
+    const text = res.content.find((b) => b.type === "text")?.text ?? "";
+    const json = text.slice(text.indexOf("["), text.lastIndexOf("]") + 1);
+    const parsed = JSON.parse(json) as Array<{ title: string; body: string }>;
+    if (!Array.isArray(parsed) || parsed.length === 0) return null;
+    return parsed.map((sec) => ({
+      title: String(sec.title).slice(0, 120),
+      body: String(sec.body),
+    }));
+  } catch (err) {
+    console.error("report chunk generation failed:", err);
+    return null;
+  }
+}
+
+const READING_CATEGORIES: string[] = [
+  "원국 총평 (오행 흐름과 그릇의 크기, 시적인 비유 포함)",
+  "타고난 성격의 빛과 그림자",
+  "연애운 (끌리는 상대의 기운, 사랑하는 방식, 주의점)",
+  "결혼운 (어울리는 배우자상, 결혼 생활의 모습)",
+  "직업운과 적성 (기운에 맞는 일, 피해야 할 일)",
+  "재물운 (돈이 들어오는 길과 새는 구멍)",
+  "건강운 (약한 오행과 몸 관리 포인트)",
+  "인간관계와 귀인 (나를 돕는 사람의 기운)",
+  "대운의 큰 흐름 (10년 단위 인생 리듬)",
+  "올해와 내년의 운",
+  "개운법 (용신 기반 행운 컬러·숫자·방향·습관 제안)",
+  "마무리 총평 (이 사람만의 개운 문구 한 줄 포함)",
+];
 
 /**
  * Long-form paid saju reading (~12 titled sections). Returns null when no API
@@ -106,40 +163,30 @@ export async function generateReadingReport(
     `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
     `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
 
-  const prompt =
+  const context =
     `사주 풀이 리포트를 작성해줘.\n\n` +
     `[의뢰인] ${name} (${profile.gender === "F" ? "여" : profile.gender === "M" ? "남" : "성별 미상"})\n` +
     `사주: ${pillarsOf(chart)}\n` +
     `일간: ${chart.dayMaster} / 오행 분포: ${JSON.stringify(chart.elementCounts)}\n` +
     `신강약: ${s.bandLabel} (지지율 ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
-    `분석 노트: ${s.notes.join(" | ") || "없음"}\n\n` +
-    `다음 카테고리로 작성 (각 섹션 4~8문장, 실제 사주 글자와 위 분석 근거를 인용하며):\n` +
-    READING_CATEGORIES +
-    `\n\n출력은 반드시 JSON 배열만: [{"title":"...","body":"..."}] — ` +
-    `title은 각 카테고리를 감성적인 한 줄 제목으로 (번호 없이), body는 본문. ` +
-    `모든 텍스트는 ${LANG_NAME[lang]}(으)로.`;
+    `분석 노트: ${s.notes.join(" | ") || "없음"}`;
 
-  try {
-    const res = await c.messages.create({
-      model: MODEL,
-      max_tokens: 8000,
-      system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
-      messages: [{ role: "user", content: prompt }],
-    });
-    const text = res.content.find((b) => b.type === "text")?.text ?? "";
-    const json = text.slice(text.indexOf("["), text.lastIndexOf("]") + 1);
-    const parsed = JSON.parse(json) as Array<{ title: string; body: string }>;
-    if (!Array.isArray(parsed) || parsed.length < 6) return null;
-    return parsed.map((sec, i) => ({
-      key: `gen${i + 1}`,
-      title: String(sec.title).slice(0, 120),
-      body: String(sec.body),
-      locked: false,
-    }));
-  } catch (err) {
-    console.error("reading report generation failed (fallback to templates):", err);
-    return null;
-  }
+  const chunks = chunk(READING_CATEGORIES, 4);
+  let start = 1;
+  const jobs = chunks.map((cs) => {
+    const job = callChunk(c, system, context, cs, start, lang);
+    start += cs.length;
+    return job;
+  });
+  const results = await Promise.all(jobs);
+  const all = results.filter(Boolean).flat() as Array<{ title: string; body: string }>;
+  if (all.length < 6) return null;
+  return all.map((sec, i) => ({
+    key: `gen${i + 1}`,
+    title: sec.title,
+    body: sec.body,
+    locked: false,
+  }));
 }
 
 /**
@@ -167,7 +214,7 @@ export async function generateCompatReport(
     `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
     `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
 
-  const prompt =
+  const context =
     `두 사람의 궁합 리포트를 작성해줘.\n\n` +
     `[사람 A] ${nameA} (${profiles.a?.gender === "F" ? "여" : profiles.a?.gender === "M" ? "남" : "성별 미상"})\n` +
     `사주: ${pillarsOf(chartA)}\n오행 분포: ${JSON.stringify(chartA.elementCounts)}\n\n` +
@@ -176,32 +223,23 @@ export async function generateCompatReport(
     `관계: ${relationship} / 궁합 점수: ${result.score}%` +
     (romantic && typeof result.intimate === "number"
       ? ` / 속궁합: ${result.intimate}%`
-      : "") +
-    `\n\n다음 카테고리로 작성 (각 섹션 4~8문장, 두 사람의 실제 사주 글자를 인용하며):\n` +
-    (romantic ? ROMANTIC_CATEGORIES : PLATONIC_CATEGORIES) +
-    `\n\n출력은 반드시 JSON 배열만: [{"title":"...","body":"..."}] — ` +
-    `title은 각 카테고리를 감성적인 한 줄 제목으로 (번호 없이), body는 본문. ` +
-    `모든 텍스트는 ${LANG_NAME[lang]}(으)로.`;
+      : "");
 
-  try {
-    const res = await c.messages.create({
-      model: MODEL,
-      max_tokens: 8000,
-      system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
-      messages: [{ role: "user", content: prompt }],
-    });
-    const text = res.content.find((b) => b.type === "text")?.text ?? "";
-    const json = text.slice(text.indexOf("["), text.lastIndexOf("]") + 1);
-    const parsed = JSON.parse(json) as Array<{ title: string; body: string }>;
-    if (!Array.isArray(parsed) || parsed.length < 6) return null;
-    return parsed.map((sec, i) => ({
-      key: `gen${i + 1}`,
-      title: String(sec.title).slice(0, 120),
-      body: String(sec.body),
-      locked: false,
-    }));
-  } catch (err) {
-    console.error("compat report generation failed (fallback to templates):", err);
-    return null;
-  }
+  const cats = romantic ? ROMANTIC_CATEGORIES : PLATONIC_CATEGORIES;
+  const chunks = chunk(cats, 5);
+  let start = 1;
+  const jobs = chunks.map((cs) => {
+    const job = callChunk(c, system, context, cs, start, lang);
+    start += cs.length;
+    return job;
+  });
+  const results = await Promise.all(jobs);
+  const all = results.filter(Boolean).flat() as Array<{ title: string; body: string }>;
+  if (all.length < 6) return null;
+  return all.map((sec, i) => ({
+    key: `gen${i + 1}`,
+    title: sec.title,
+    body: sec.body,
+    locked: false,
+  }));
 }

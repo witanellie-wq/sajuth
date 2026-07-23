@@ -36,3 +36,20 @@ export const ELEMENT_CHIP: Record<string, string> = {
   metal: "bg-slate-200 text-slate-600",
   water: "bg-blue-100 text-blue-700",
 };
+
+// 지장간 (hidden stems inside each branch), 여기→중기→정기 order.
+// Shown under every branch tile so 암합 readings can be traced by eye.
+export const HIDDEN_STEMS: Record<string, string> = {
+  "子": "壬癸",
+  "丑": "癸辛己",
+  "寅": "戊丙甲",
+  "卯": "甲乙",
+  "辰": "乙癸戊",
+  "巳": "戊庚丙",
+  "午": "丙己丁",
+  "未": "丁乙己",
+  "申": "戊壬庚",
+  "酉": "庚辛",
+  "戌": "辛丁戊",
+  "亥": "戊甲壬",
+};

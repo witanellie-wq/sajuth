@@ -522,6 +522,13 @@ export function computeCompatibility(
     notes.push(NOTES.feed[lang]);
   }
 
+  // Position rule for ALL cross-chart combinations (합·암합·명합): a pair only
+  // counts when the two characters sit in the SAME pillar position (년-년,
+  // 월-월, 일-일, 시-시) or in ADJACENT positions (년-월, 월-일, 일-시).
+  // Distant pairs (년지-시지 등) are not real combinations.
+  // Position order: 0=year, 1=month, 2=day, 3=hour.
+  const nearPos = (i: number, j: number): boolean => Math.abs(i - j) <= 1;
+
   // 7. 암합 — hidden combinations across the two charts' branches.
   const branchesOf = (c: SajuChart): string[] => [
     c.year.zhi,
@@ -529,14 +536,17 @@ export function computeCompatibility(
     c.day.zhi,
     ...(c.hour ? [c.hour.zhi] : []),
   ];
+  const bA = branchesOf(a);
+  const bB = branchesOf(b);
   const amhapFound = new Map<string, number>(); // canonical pair → combo count
   let hiddenJeongim = false;
-  for (const ba of branchesOf(a))
-    for (const bb of branchesOf(b)) {
-      const n = AMHAP_COMBOS[ba + bb];
+  for (let i = 0; i < bA.length; i++)
+    for (let j = 0; j < bB.length; j++) {
+      if (!nearPos(i, j)) continue;
+      const n = AMHAP_COMBOS[bA[i] + bB[j]];
       if (n) {
-        amhapFound.set([ba, bb].sort().join(""), n);
-        if (AMHAP_JEONGIM.has(ba + bb)) hiddenJeongim = true;
+        amhapFound.set([bA[i], bB[j]].sort().join(""), n);
+        if (AMHAP_JEONGIM.has(bA[i] + bB[j])) hiddenJeongim = true;
       }
     }
   const amhapSum = [...amhapFound.values()].reduce((x, y) => x + y, 0);
@@ -549,21 +559,25 @@ export function computeCompatibility(
   const stemsOf = (c: SajuChart): string[] => [
     c.year.gan, c.month.gan, c.day.gan, ...(c.hour ? [c.hour.gan] : []),
   ];
+  const sA = stemsOf(a);
+  const sB = stemsOf(b);
   const STEM_HE_PAIRS = new Set(["甲己", "己甲", "乙庚", "庚乙", "丙辛", "辛丙", "丁壬", "壬丁", "戊癸", "癸戊"]);
   const myeongStem = new Set<string>();
-  for (const ga of stemsOf(a))
-    for (const gb of stemsOf(b))
-      if (STEM_HE_PAIRS.has(ga + gb)) myeongStem.add([ga, gb].sort().join(""));
+  for (let i = 0; i < sA.length; i++)
+    for (let j = 0; j < sB.length; j++)
+      if (nearPos(i, j) && STEM_HE_PAIRS.has(sA[i] + sB[j]))
+        myeongStem.add([sA[i], sB[j]].sort().join(""));
   if (myeongStem.size > 0) {
     score += Math.min(4, myeongStem.size * 2);
     notes.push(NOTES.myeonghap[lang]);
   }
 
-  // 육합 — visible branch harmony across ALL positions (beyond day-day).
+  // 육합 — visible branch harmony across positions (beyond day-day).
   const branchHe = new Set<string>();
-  for (const ba of branchesOf(a))
-    for (const bb of branchesOf(b))
-      if (LIU_HE.has(ba + bb) || LIU_HE.has(bb + ba)) branchHe.add([ba, bb].sort().join(""));
+  for (let i = 0; i < bA.length; i++)
+    for (let j = 0; j < bB.length; j++)
+      if (nearPos(i, j) && (LIU_HE.has(bA[i] + bB[j]) || LIU_HE.has(bB[j] + bA[i])))
+        branchHe.add([bA[i], bB[j]].sort().join(""));
   branchHe.delete([a.day.zhi, b.day.zhi].sort().join("")); // day-day already scored
   if (branchHe.size > 0) {
     score += Math.min(4, branchHe.size * 2);
@@ -571,9 +585,13 @@ export function computeCompatibility(
   }
 
   // 8. 우합/모서리합 — corner pairs across the two charts' branches.
-  const woohapFound = branchesOf(a).some((x) =>
-    branchesOf(b).some((y) => WOOHAP.has(x + y) || WOOHAP.has(y + x))
-  );
+  let woohapFound = false;
+  for (let i = 0; i < bA.length && !woohapFound; i++)
+    for (let j = 0; j < bB.length; j++)
+      if (nearPos(i, j) && (WOOHAP.has(bA[i] + bB[j]) || WOOHAP.has(bB[j] + bA[i]))) {
+        woohapFound = true;
+        break;
+      }
   if (woohapFound) {
     score += 4;
     notes.push(NOTES.woohap[lang]);
@@ -608,11 +626,13 @@ export function computeCompatibility(
   }
 
   // 정임합 (丁壬) across the charts — the classic irresistible-attraction pair.
-  const stemsA = [a.year.gan, a.month.gan, a.day.gan, ...(a.hour ? [a.hour.gan] : [])];
-  const stemsB = [b.year.gan, b.month.gan, b.day.gan, ...(b.hour ? [b.hour.gan] : [])];
-  const visibleJeongim =
-    (stemsA.includes("丁") && stemsB.includes("壬")) ||
-    (stemsA.includes("壬") && stemsB.includes("丁"));
+  // Same position-adjacency rule: 丁 and 壬 must sit in the same or an
+  // adjacent pillar to actually combine.
+  const jeongimNear = (xs: string[], ys: string[]): boolean =>
+    xs.some(
+      (x, i) => x === "丁" && ys.some((y, j) => y === "壬" && nearPos(i, j))
+    );
+  const visibleJeongim = jeongimNear(sA, sB) || jeongimNear(sB, sA);
   if (visibleJeongim) {
     intimate += 15;
     intimateReasons.push(INTIMATE_TEXT.jeongim[lang]);
@@ -623,17 +643,14 @@ export function computeCompatibility(
   }
 
   // 일지/년지 합이 水로 화하는 경우 (巳申합수, 申子辰 수국) → intimacy UP.
-  const dyA = [a.day.zhi, a.year.zhi];
-  const dyB = [b.day.zhi, b.year.zhi];
+  // Same-position pairs only (일지↔일지, 년지↔년지) — distant pairs don't combine.
   const WATER_TRINE = ["申", "子", "辰"];
-  const waterCombo = dyA.some((x) =>
-    dyB.some(
-      (y) =>
-        x + y === "巳申" ||
-        y + x === "巳申" ||
-        (WATER_TRINE.includes(x) && WATER_TRINE.includes(y) && x !== y)
-    )
-  );
+  const waterPair = (x: string, y: string): boolean =>
+    x + y === "巳申" ||
+    y + x === "巳申" ||
+    (WATER_TRINE.includes(x) && WATER_TRINE.includes(y) && x !== y);
+  const waterCombo =
+    waterPair(a.day.zhi, b.day.zhi) || waterPair(a.year.zhi, b.year.zhi);
   if (waterCombo) {
     intimate += 12;
     intimateReasons.push(INTIMATE_TEXT.water[lang]);
