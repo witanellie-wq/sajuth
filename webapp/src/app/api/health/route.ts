@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { normalizeSupabaseUrl } from "@/lib/store";
+import { generationHealth } from "@/lib/generate";
 
 // GET /api/health — storage diagnostics. Open this in a browser to see exactly
 // why persistence is failing (missing env, bad key, missing table, ...).
@@ -70,5 +71,10 @@ export async function GET() {
     tables.note = "supabase env missing → in-memory fallback (share links & payments won't persist)";
   }
 
-  return NextResponse.json({ env, tables, writeTest });
+  // Live-fire test of the Claude generation stack — shows the exact API
+  // error (invalid key, no credit, bad model id …) that a silent template
+  // fallback would otherwise hide.
+  const claude = await generationHealth();
+
+  return NextResponse.json({ env, tables, writeTest, claude });
 }

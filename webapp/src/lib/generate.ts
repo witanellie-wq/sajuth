@@ -38,6 +38,27 @@ function getClient(): AnthropicLike | null {
   return client;
 }
 
+/** Tiny live-fire test of the generation stack — surfaces the exact API error. */
+export async function generationHealth(): Promise<{
+  ok: boolean;
+  model: string;
+  error?: string;
+}> {
+  try {
+    const c = getClient();
+    if (!c) return { ok: false, model: MODEL, error: "ANTHROPIC_API_KEY not set" };
+    const res = await c.messages.create({
+      model: MODEL,
+      max_tokens: 16,
+      messages: [{ role: "user", content: "ping — reply with pong only" }],
+    });
+    const text = res.content.find((b) => b.type === "text")?.text ?? "";
+    return { ok: text.length > 0, model: MODEL };
+  } catch (err) {
+    return { ok: false, model: MODEL, error: String(err).slice(0, 400) };
+  }
+}
+
 function pillarsOf(c: SajuChart): string {
   const p = (x: { gan: string; zhi: string } | null) => (x ? x.gan + x.zhi : "미상");
   return `시주 ${p(c.hour)} / 일주 ${p(c.day)} / 월주 ${p(c.month)} / 연주 ${p(c.year)}`;

@@ -477,10 +477,10 @@ export default function ResultView({ initial }: { initial: Reading }) {
       {needsGen && genProg && (
         <div className="mt-4 animate-pulse rounded-2xl bg-violet-50 px-4 py-3 text-center text-sm font-semibold text-violet-700 ring-1 ring-violet-200">
           {uiLang === "th"
-            ? "🪄 AI กำลังเขียนรายงานฉบับเต็มของคุณ… "
+            ? "🔮 กำลังวิเคราะห์ดวงของคุณอย่างละเอียด… "
             : uiLang === "en"
-            ? "🪄 AI is writing your full report… "
-            : "🪄 AI가 상세 리포트를 작성하는 중이에요… "}
+            ? "🔮 Analyzing your chart in depth… "
+            : "🔮 사주를 정밀 분석하는 중이에요… "}
           {genProg}
           {uiLang === "th" ? " (ประมาณ 1 นาที)" : uiLang === "en" ? " (about a minute)" : " (약 1분)"}
         </div>
