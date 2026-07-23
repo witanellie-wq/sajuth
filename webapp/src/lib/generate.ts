@@ -10,6 +10,7 @@ import type { SajuChart } from "./saju";
 import type { CompatSection, Compatibility } from "./compat";
 import type { ReportSection } from "./interpret";
 import { analyzeStrength } from "./strength";
+import { findSinsal } from "./sinsal";
 import type { Lang } from "./i18n";
 
 const MODEL = "claude-sonnet-5";
@@ -177,12 +178,14 @@ function readingPrompt(
     `따뜻하고 다정하며, 명리 용어(상생·조후·용신·억부·합·충 등)를 자연스럽게 녹여 ` +
     `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
     `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
+  const sinsal = findSinsal(chart);
   const context =
     `사주 풀이 리포트를 작성해줘.\n\n` +
     `[의뢰인] ${name} (${profile.gender === "F" ? "여" : profile.gender === "M" ? "남" : "성별 미상"})\n` +
     `사주: ${pillarsOf(chart)}\n` +
     `일간: ${chart.dayMaster} / 오행 분포: ${JSON.stringify(chart.elementCounts)}\n` +
     `신강약: ${s.bandLabel} (지지율 ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
+    `신살: ${sinsal.length ? sinsal.join(", ") : "없음"} (도화=매력, 홍염=달콤한 유혹, 화개=예술·고독, 역마=이동·변화 — 있으면 해석에 반드시 반영)\n` +
     `분석 노트: ${s.notes.join(" | ") || "없음"}`;
   return { system, context };
 }
@@ -262,15 +265,28 @@ function compatPrompt(
     `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
     `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
 
+  // Engine findings (배우자성·천을귀인·신살·암합·조후…) — the long report must
+  // build on these, not contradict them.
+  const points = (result.sections ?? [])
+    .filter((s) => s.key.startsWith("note"))
+    .map((s) => `- ${s.title ? s.title + ": " : ""}${s.body}`)
+    .join("\n");
+  const sinsalLine = (c: SajuChart) => {
+    const ss = findSinsal(c);
+    return ss.length ? ss.join(", ") : "없음";
+  };
   const context =
     `두 사람의 궁합 리포트를 작성해줘.\n\n` +
     `[사람 A] ${nameA} (${profiles.a?.gender === "F" ? "여" : profiles.a?.gender === "M" ? "남" : "성별 미상"})\n` +
-    `사주: ${pillarsOf(chartA)}\n오행 분포: ${JSON.stringify(chartA.elementCounts)}\n\n` +
+    `사주: ${pillarsOf(chartA)}\n오행 분포: ${JSON.stringify(chartA.elementCounts)}\n신살: ${sinsalLine(chartA)}\n\n` +
     `[사람 B] ${nameB} (${profiles.b?.gender === "F" ? "여" : profiles.b?.gender === "M" ? "남" : "성별 미상"})\n` +
-    `사주: ${pillarsOf(chartB)}\n오행 분포: ${JSON.stringify(chartB.elementCounts)}\n\n` +
+    `사주: ${pillarsOf(chartB)}\n오행 분포: ${JSON.stringify(chartB.elementCounts)}\n신살: ${sinsalLine(chartB)}\n\n` +
     `관계: ${relationship} / 궁합 점수: ${result.score}%` +
     (romantic && typeof result.intimate === "number"
       ? ` / 속궁합: ${result.intimate}%`
+      : "") +
+    (points
+      ? `\n\n[엔진 분석 포인트 — 배우자성(관성·재성)·천을귀인·신살·암합 등. 반드시 이 근거들을 해석에 녹여라]\n${points}`
       : "");
 
   return { system, context, cats: romantic ? ROMANTIC_CATEGORIES : PLATONIC_CATEGORIES, lang };

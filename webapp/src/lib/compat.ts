@@ -8,6 +8,7 @@
 import type { SajuChart } from "./saju";
 import { relationTo } from "./elements";
 import { analyzeStrength } from "./strength";
+import { findSinsal } from "./sinsal";
 import type { Lang } from "./i18n";
 
 export interface CompatSection {
@@ -69,6 +70,22 @@ const CONTROLLER: Record<string, string> = {
 // What each element generates.
 const GENERATES: Record<string, string> = {
   wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood",
+};
+// What each element controls (element → its target). 여자의 관성 = CONTROLLER[her
+// element]; 남자의 재성 = CONTROLS[his element].
+const CONTROLS: Record<string, string> = {
+  wood: "earth", earth: "water", water: "fire", fire: "metal", metal: "wood",
+};
+// 양간 stems — polarity decides 정(different polarity) vs 편(same polarity).
+const STEM_YANG = new Set(["甲", "丙", "戊", "庚", "壬"]);
+// 천을귀인 (天乙貴人) — day stem → noble branches. 갑무경 축미, 을기 자신,
+// 병정 해유, 신 인오, 임계 사묘.
+const CHEONEUL: Record<string, string[]> = {
+  "甲": ["丑", "未"], "戊": ["丑", "未"], "庚": ["丑", "未"],
+  "乙": ["子", "申"], "己": ["子", "申"],
+  "丙": ["亥", "酉"], "丁": ["亥", "酉"],
+  "辛": ["寅", "午"],
+  "壬": ["巳", "卯"], "癸": ["巳", "卯"],
 };
 
 type LText = Record<Lang, string>;
@@ -148,6 +165,56 @@ const NOTES: Record<string, LText> = {
     th: "เดือนเกิด (월지) ของทั้งคู่เป็นราศีเดียวกัน — สบายใจเหมือนพี่น้อง (오누이) เข้าใจกันง่ายมาก แต่ประกายโรแมนติกจางเร็ว ต้องตั้งใจเดตกันต่อเนื่อง",
     en: "You share the same birth-month branch — comfortable like siblings (오누이). Easy understanding, but the romantic spark fades fast; keep dating on purpose.",
     ko: "월지가 같은 오누이 궁합이에요 — 남매처럼 편하고 잘 통하지만, 설렘이 빨리 무뎌질 수 있어 의식적으로 데이트를 챙겨야 해요.",
+  },
+  spouseStarJeong: {
+    th: "ธาตุประจำวันของฝ่ายชายเป็น 'ดาวสามี' (정관) ของฝ่ายหญิง และฝ่ายหญิงเป็น 'ดาวภรรยา' (정재) ของฝ่ายชาย — โครงสร้างคู่แท้แบบตำราที่ทำให้มองกันเป็น 'คู่ชีวิต' ตั้งแต่แรกพบ",
+    en: "His day master is her 정관 (husband star) and she is his 정재 (wife star) — the textbook spouse-star pairing that makes two people register each other as marriage material.",
+    ko: "남자의 일간이 여자에게 정관(남편성), 여자의 일간이 남자에게 정재(아내성)가 되는 교과서적 배필 구조예요 — 서로를 처음부터 '배우자감'으로 강하게 의식하게 되는 인연입니다.",
+  },
+  spouseStarPyeon: {
+    th: "ธาตุประจำวันของฝ่ายชายเป็น 편관 ของฝ่ายหญิง และฝ่ายหญิงเป็น 편재 ของฝ่ายชาย — แรงดึงดูดแบบเข้มข้น เร่าร้อน หยุดคิดถึงกันไม่ได้",
+    en: "His day master is her 편관 and she is his 편재 — the intense, magnetic version of the spouse-star pull; hard to get each other out of your heads.",
+    ko: "남자의 일간이 여자에게 편관, 여자의 일간이 남자에게 편재가 되는 구조예요 — 정(正)보다 자극적이고 강렬한 끌림으로, 서로가 자꾸 생각나는 인연입니다.",
+  },
+  officerPull: {
+    th: "ดวงฝ่ายชายเต็มไปด้วยธาตุ 'ดาวสามี' (관성) ของฝ่ายหญิง — ฝ่ายหญิงจะรู้สึกว่าเขา 'แมนมาก' และถูกดึงดูดได้ง่าย",
+    en: "His chart is rich in her officer element (관성, the husband star) — she instinctively reads him as 'very much a man' and is drawn in.",
+    ko: "남자의 원국에 여자의 관성(남편성) 기운이 가득해요 — 여자 쪽에서 본능적으로 '남자답다'고 느끼며 끌리기 쉬운 구조입니다.",
+  },
+  wealthPull: {
+    th: "ดวงฝ่ายหญิงเต็มไปด้วยธาตุ 'ดาวภรรยา' (재성) ของฝ่ายชาย — ฝ่ายชายจะมองเธอเป็นคู่ชีวิตโดยธรรมชาติ",
+    en: "Her chart is rich in his wealth element (재성, the wife star) — he naturally reads her as wife material and is drawn in.",
+    ko: "여자의 원국에 남자의 재성(아내성) 기운이 풍부해요 — 남자 쪽에서 자연스럽게 '아내감'으로 느끼며 강하게 끌리는 구조입니다.",
+  },
+  nobleBoth: {
+    th: "ในดวงของทั้งคู่มี 천을귀인 (ดาวผู้อุปถัมภ์) ของอีกฝ่ายอยู่ — แค่อยู่ข้างกันก็ช่วยเหลือเกื้อกูลกัน เป็นการพบกันของผู้มีบุญคุณต่อกัน",
+    en: "Each of you carries the other's 천을귀인 (noble star) — simply being together brings help and care both ways; a meeting of mutual benefactors.",
+    ko: "서로의 사주에 상대의 천을귀인(天乙貴人)이 들어 있어요 — 곁에 있는 것만으로 서로를 돕고 아껴주게 되는, 귀인끼리의 만남입니다.",
+  },
+  nobleOne: {
+    th: "ดวงฝ่ายหนึ่งมี 천을귀인 (ดาวผู้อุปถัมภ์) ของอีกฝ่ายอยู่ — อยู่ใกล้คนนี้แล้วเรื่องต่าง ๆ จะคลี่คลาย ได้รับการดูแลเหมือนมีผู้ใหญ่คุ้มครอง",
+    en: "One chart carries the other's 천을귀인 (noble star) — beside this person, things untangle and care flows naturally; a benefactor bond.",
+    ko: "한쪽 사주에 상대의 천을귀인(天乙貴人)이 자리해요 — 그 사람 곁에 있으면 일이 풀리고 보살핌을 받게 되는 귀인 인연입니다.",
+  },
+  dohwaBoth: {
+    th: "ทั้งคู่มี 도화살 (ดาวเสน่ห์) ในดวง — ต่างคนต่างมีแรงดึงดูดทางเสน่ห์สูง เจอกันแล้วประกายไฟติดง่ายมาก",
+    en: "Both carry 도화살 (the peach-blossom charm star) — two magnetic people; sparks fly fast when they meet.",
+    ko: "두 사람 모두 도화살(桃花)을 지녔어요 — 각자 매력이 강한 사람들이라, 만나는 순간 불꽃이 튀기 쉬운 조합입니다.",
+  },
+  dohwaOne: {
+    th: "ฝ่ายหนึ่งมี 도화살 (ดาวเสน่ห์) ในดวง — เสน่ห์ของคนนี้คือแรงดึงดูดหลักของความสัมพันธ์",
+    en: "One of you carries 도화살 (the peach-blossom charm star) — that person's magnetism is a main engine of this bond.",
+    ko: "한쪽이 도화살(桃花)을 지녔어요 — 그 사람의 매력이 이 인연을 끌고 가는 힘 중 하나입니다.",
+  },
+  hongyeom: {
+    th: "มี 홍염살 (ดาวเสน่หายั่วใจ) ในดวง — เสน่ห์แบบอบอุ่นหวานซึ้งที่ทำให้คนใกล้ตัวหลงใหล ความสัมพันธ์นี้มีความโรแมนติกสูง",
+    en: "홍염살 (the red-charm star) is present — a warm, sweet magnetism that makes this relationship run romantic and affectionate.",
+    ko: "홍염살(紅艶)이 있어요 — 은근하고 달콤한 매력으로 상대를 사로잡는 기운이라, 이 관계는 로맨틱한 밀도가 높습니다.",
+  },
+  hwagaeBoth: {
+    th: "ทั้งคู่มี 화개살 (ดาวศิลปะและจิตวิญญาณ) — คุยกันลึกได้ถึงเรื่องศิลปะ ปรัชญา จิตใจ เป็นคู่ที่เหงาแล้วเข้าใจกัน",
+    en: "Both carry 화개살 (the canopy star of art and spirit) — deep talks about art, philosophy, and the inner world come naturally; two solitudes that understand each other.",
+    ko: "두 사람 모두 화개살(華蓋)을 지녔어요 — 예술·철학·정신세계 이야기가 통하는, 고독을 서로 알아봐주는 깊은 교감의 짝입니다.",
   },
   myeonghap: {
     th: "มีธาตุฟ้า (천간) ของทั้งคู่จับคู่กันแบบเปิดเผย (명합) — ความเข้ากันที่มองเห็นได้ชัด คนรอบข้างก็สัมผัสได้",
@@ -326,6 +393,16 @@ const NOTE_CAT: Record<string, LText> = {
   control: { th: "🧘 ความนิ่งทางอารมณ์ (오행 조절)", en: "🧘 Emotional steadiness", ko: "🧘 감정 안정 — 오행의 조절" },
   feed: { th: "🌱 สายหล่อเลี้ยง (상생 라인)", en: "🌱 Feeding lanes (상생)", ko: "🌱 상생 라인 — 살려주는 자리" },
   amhap: { th: "🤫 암합 — แรงดึงดูดที่ซ่อนอยู่", en: "🤫 Hidden bonds (암합)", ko: "🤫 암합 — 숨은 끌림" },
+  spouseStarJeong: { th: "💘 ดาวคู่ครอง (정관·정재)", en: "💘 Spouse stars (정관·정재)", ko: "💘 배우자성 — 정관과 정재" },
+  spouseStarPyeon: { th: "💘 ดาวคู่ครอง (편관·편재)", en: "💘 Spouse stars (편관·편재)", ko: "💘 배우자성 — 편관과 편재" },
+  officerPull: { th: "💘 ดาวสามี (관성)", en: "💘 Husband star (관성)", ko: "💘 배우자성 — 남편성의 끌림" },
+  wealthPull: { th: "💘 ดาวภรรยา (재성)", en: "💘 Wife star (재성)", ko: "💘 배우자성 — 아내성의 끌림" },
+  nobleBoth: { th: "🌟 천을귀인 — ผู้อุปถัมภ์ของกันและกัน", en: "🌟 Mutual noble stars (천을귀인)", ko: "🌟 천을귀인 — 서로의 귀인" },
+  nobleOne: { th: "🌟 천을귀인 — ดาวผู้อุปถัมภ์", en: "🌟 Noble star (천을귀인)", ko: "🌟 천을귀인 — 귀인 인연" },
+  dohwaBoth: { th: "🌸 도화살 — เสน่ห์ชนเสน่ห์", en: "🌸 Peach-blossom charm (도화살)", ko: "🌸 도화살 — 매력과 매력의 만남" },
+  dohwaOne: { th: "🌸 도화살 — ดาวเสน่ห์", en: "🌸 Peach-blossom charm (도화살)", ko: "🌸 도화살 — 치명적 매력" },
+  hongyeom: { th: "🔥 홍염살 — เสน่หายั่วใจ", en: "🔥 Red-charm star (홍염살)", ko: "🔥 홍염살 — 달콤한 유혹" },
+  hwagaeBoth: { th: "🎨 화개살 — จิตวิญญาณที่เข้าใจกัน", en: "🎨 Canopy star (화개살)", ko: "🎨 화개살 — 정신적 교감" },
   onui: { th: "🧸 ดวงพี่น้อง (오누이) — ข้อควรระวัง", en: "🧸 Sibling-like match (오누이)", ko: "🧸 오누이 궁합 — 주의 포인트" },
   myeonghap: { th: "🌟 명합 — คู่ที่มองเห็นได้", en: "🌟 Visible combos (명합)", ko: "🌟 명합 — 드러난 합" },
   branchHeAll: { th: "🔗 จุดเชื่อม 육합", en: "🔗 육합 connection points", ko: "🔗 육합 — 인연의 고리" },
@@ -430,25 +507,27 @@ function branchPair(a: string, b: string): "he" | "chong" | "sanhe" | "same" | "
 }
 
 function clamp(n: number): number {
-  // Cap at 97 — even destined pairs keep a little mystery.
-  return Math.max(0, Math.min(97, Math.round(n)));
+  // Cap at 97 — even destined pairs keep a little mystery. Floor at 25 —
+  // paying customers shouldn't see a single-digit verdict.
+  return Math.max(25, Math.min(97, Math.round(n)));
 }
 
 export function computeCompatibility(
   a: SajuChart,
   b: SajuChart,
   lang: Lang = "th",
-  relationship: string = "lovers"
+  relationship: string = "lovers",
+  genders?: { a?: string; b?: string } // "F" | "M" — drives 배우자성 signals
 ): Compatibility {
   const romantic = ROMANTIC.has(relationship);
-  let score = 40; // base
+  let score = 30; // base (rebalanced — signals below saturate less)
   const notes: Array<{ k: string; text: string }> = [];
 
   // 1. Day master element relation.
   const rel = relationTo(a.dayMasterElement, b.dayMasterElement);
   const relBack = relationTo(b.dayMasterElement, a.dayMasterElement);
   if (rel === "resource" || relBack === "resource") {
-    score += 25;
+    score += 18;
     notes.push({ k: "dmResource", text: NOTES.dmResource[lang] });
   } else if (rel === "same") {
     // 비견 — great as friends/colleagues, contentious as spouses.
@@ -456,17 +535,17 @@ export function computeCompatibility(
       score -= 4;
       notes.push({ k: "dmSameRomantic", text: NOTES.dmSameRomantic[lang] });
     } else {
-      score += 10;
+      score += 8;
       notes.push({ k: "dmSame", text: NOTES.dmSame[lang] });
     }
   } else if (rel === "wealth" || rel === "officer") {
     const pairSet = [a.dayMasterElement, b.dayMasterElement].sort().join("-");
     if (pairSet === "earth-water") {
       // 토×수 — 재성/관성 중에서도 특히 좋은 짝 (제방과 물의 상)
-      score += 10;
+      score += 8;
       notes.push({ k: "earthWater", text: NOTES.earthWater[lang] });
     } else {
-      score += 6;
+      score += 4;
       notes.push({ k: "dmOpposite", text: NOTES.dmOpposite[lang] });
     }
   }
@@ -474,13 +553,13 @@ export function computeCompatibility(
   // 2. Day-branch (spouse palace) relation.
   const bp = branchPair(a.day.zhi, b.day.zhi);
   if (bp === "he") {
-    score += 30;
+    score += 22;
     notes.push({ k: "branchHe", text: NOTES.branchHe[lang] });
   } else if (bp === "sanhe") {
-    score += 24;
+    score += 16;
     notes.push({ k: "branchSanhe", text: NOTES.branchSanhe[lang] });
   } else if (bp === "same") {
-    score += 12;
+    score += 8;
     notes.push({ k: "branchSame", text: NOTES.branchSame[lang] });
   } else if (bp === "chong") {
     score -= 18;
@@ -495,10 +574,10 @@ export function computeCompatibility(
   const aHelpsB = sb.favorable.includes(a.dayMasterElement);
   const bHelpsA = sa.favorable.includes(b.dayMasterElement);
   if (aHelpsB && bHelpsA) {
-    score += 16;
+    score += 12;
     notes.push({ k: "yongBoth", text: NOTES.yongBoth[lang] });
   } else if (aHelpsB || bHelpsA) {
-    score += 8;
+    score += 6;
     notes.push({ k: "yongOne", text: NOTES.yongOne[lang] });
   }
 
@@ -513,7 +592,7 @@ export function computeCompatibility(
   const wetA = a.elementCounts.water >= 2 || a.dayMasterElement === "water";
   const wetB = b.elementCounts.water >= 2 || b.dayMasterElement === "water";
   if ((coldA && warmB) || (coldB && warmA) || (hotA && wetB) || (hotB && wetA)) {
-    score += 8;
+    score += 6;
     notes.push({ k: "climate", text: NOTES.climate[lang] });
   }
 
@@ -525,10 +604,10 @@ export function computeCompatibility(
     (y.elementCounts as Record<string, number>)[CONTROLLER[el]] >= 2;
   if (excessControlled(a, b, "water") || excessControlled(b, a, "water")) {
     // 토극수 — the dam-and-water pairing, extra favorable.
-    score += 9;
+    score += 7;
     notes.push({ k: "control", text: NOTES.control[lang] });
   } else if (excessControlled(a, b, "fire") || excessControlled(b, a, "fire")) {
-    score += 6;
+    score += 5;
     notes.push({ k: "control", text: NOTES.control[lang] });
   }
 
@@ -542,7 +621,7 @@ export function computeCompatibility(
     present(from).filter((el) => present(to).includes(GENERATES[el])).length;
   const lanes = Math.max(feedLanes(a, b), feedLanes(b, a));
   if (lanes >= 4) {
-    score += Math.min(5, lanes);
+    score += Math.min(4, lanes - 2);
     notes.push({ k: "feed", text: NOTES.feed[lang] });
   }
 
@@ -604,7 +683,7 @@ export function computeCompatibility(
         branchHe.add([bA[i], bB[j]].sort().join(""));
   branchHe.delete([a.day.zhi, b.day.zhi].sort().join("")); // day-day already scored
   if (branchHe.size > 0) {
-    score += Math.min(4, branchHe.size * 2);
+    score += Math.min(3, branchHe.size * 2);
     notes.push({ k: "branchHeAll", text: NOTES.branchHeAll[lang] });
   }
 
@@ -617,7 +696,7 @@ export function computeCompatibility(
         break;
       }
   if (woohapFound) {
-    score += 4;
+    score += 3;
     notes.push({ k: "woohap", text: NOTES.woohap[lang] });
   }
 
@@ -626,6 +705,82 @@ export function computeCompatibility(
   if (a.month.zhi === b.month.zhi) {
     score -= 30;
     notes.push({ k: "onui", text: NOTES.onui[lang] });
+  }
+
+  // 10. 배우자성 (spouse stars) — gendered: the element controlling the
+  // woman's day master is her 관성(남편성); the element the man's day master
+  // controls is his 재성(아내성). When the partner IS or CARRIES that star,
+  // romantic pull follows.
+  const rawElemCount = (c: SajuChart, el: string): number => {
+    const els = [
+      c.year.ganElement, c.year.zhiElement,
+      c.month.ganElement, c.month.zhiElement,
+      c.dayMasterElement, c.day.zhiElement,
+      ...(c.hour ? [c.hour.ganElement, c.hour.zhiElement] : []),
+    ];
+    return els.filter((x) => x === el).length;
+  };
+  if (romantic && genders) {
+    const f = genders.a === "F" ? a : genders.b === "F" ? b : null;
+    const m = genders.a === "M" ? a : genders.b === "M" ? b : null;
+    if (f && m && f !== m) {
+      // Day-master level: 남극녀 — his element controls hers, making him her
+      // 관성 and her his 재성 simultaneously (the classic 배필 structure).
+      if (m.dayMasterElement === CONTROLLER[f.dayMasterElement]) {
+        const jeong = STEM_YANG.has(m.dayMaster) !== STEM_YANG.has(f.dayMaster);
+        score += jeong ? 10 : 7;
+        notes.push(
+          jeong
+            ? { k: "spouseStarJeong", text: NOTES.spouseStarJeong[lang] }
+            : { k: "spouseStarPyeon", text: NOTES.spouseStarPyeon[lang] }
+        );
+      }
+      // Abundance: her officer element filling his chart / his wealth element
+      // filling hers.
+      const officerInHim = rawElemCount(m, CONTROLLER[f.dayMasterElement]);
+      const wealthInHer = rawElemCount(f, CONTROLS[m.dayMasterElement]);
+      if (officerInHim >= 2) {
+        score += officerInHim >= 3 ? 5 : 3;
+        notes.push({ k: "officerPull", text: NOTES.officerPull[lang] });
+      }
+      if (wealthInHer >= 2) {
+        score += wealthInHer >= 3 ? 5 : 3;
+        notes.push({ k: "wealthPull", text: NOTES.wealthPull[lang] });
+      }
+    }
+  }
+
+  // 11. 천을귀인 — the partner's branches carry MY noble star → the partner
+  // becomes my benefactor (and treats me with care).
+  const nobleAinB = (CHEONEUL[a.dayMaster] ?? []).some((z) => bB.includes(z));
+  const nobleBinA = (CHEONEUL[b.dayMaster] ?? []).some((z) => bA.includes(z));
+  if (nobleAinB && nobleBinA) {
+    score += 6;
+    notes.push({ k: "nobleBoth", text: NOTES.nobleBoth[lang] });
+  } else if (nobleAinB || nobleBinA) {
+    score += 4;
+    notes.push({ k: "nobleOne", text: NOTES.nobleOne[lang] });
+  }
+
+  // 12. 신살 — 도화(charm)·홍염(sweet allure)·화개(spiritual rapport).
+  const sinA = findSinsal(a);
+  const sinB = findSinsal(b);
+  const dohwaA = sinA.includes("dohwa");
+  const dohwaB = sinB.includes("dohwa");
+  const hongyeomAny = sinA.includes("hongyeom") || sinB.includes("hongyeom");
+  if (romantic && dohwaA && dohwaB) {
+    score += 3;
+    notes.push({ k: "dohwaBoth", text: NOTES.dohwaBoth[lang] });
+  } else if (romantic && (dohwaA || dohwaB)) {
+    notes.push({ k: "dohwaOne", text: NOTES.dohwaOne[lang] });
+  }
+  if (romantic && hongyeomAny) {
+    score += 2;
+    notes.push({ k: "hongyeom", text: NOTES.hongyeom[lang] });
+  }
+  if (sinA.includes("hwagae") && sinB.includes("hwagae")) {
+    score += 2;
+    notes.push({ k: "hwagaeBoth", text: NOTES.hwagaeBoth[lang] });
   }
 
   // ── 속궁합 (intimate chemistry) subscore ──────────────────────────────

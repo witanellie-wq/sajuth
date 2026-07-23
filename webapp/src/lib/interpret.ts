@@ -8,6 +8,7 @@
 import type { SajuChart, Element } from "./saju";
 import { analyzeStrength } from "./strength";
 import { todayFortune, TODAY_PREFIX } from "./today";
+import { findSinsal, SINSAL_NAME, SINSAL_BODY, SINSAL_TITLE } from "./sinsal";
 import type { Lang } from "./i18n";
 
 export interface ReportSection {
@@ -169,6 +170,19 @@ export function interpret(chart: SajuChart, lang: Lang = "th"): ReportSection[] 
           ? ` Missing: ${missingList} — worth strengthening to bring your life into balance.`
           : ` Your five elements are well balanced — a smooth, rounded chart.`);
   sections.push({ key: "elements", title: t.elements, body: balanceBody, locked: false });
+
+  // 2.5 신살 (도화·홍염·화개·역마) — FREE, only when present
+  const sinsal = findSinsal(chart);
+  if (sinsal.length > 0) {
+    sections.push({
+      key: "sinsal",
+      title: SINSAL_TITLE[lang],
+      body: sinsal
+        .map((k) => `${SINSAL_NAME[k][lang]}\n${SINSAL_BODY[k][lang]}`)
+        .join("\n\n"),
+      locked: false,
+    });
+  }
 
   // 3. Day Master strength (신강/신약) + 용신 — FREE, the depth layer
   const strength = analyzeStrength(chart, lang);

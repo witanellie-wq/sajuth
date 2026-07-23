@@ -32,7 +32,10 @@ export async function GET(req: NextRequest) {
 
   let result = stored as Compatibility;
   if (lang !== storedLang && payload?.charts?.a?.year && payload?.charts?.b?.year) {
-    result = computeCompatibility(payload.charts.a, payload.charts.b, lang, relationship);
+    result = computeCompatibility(payload.charts.a, payload.charts.b, lang, relationship, {
+      a: payload?.profiles?.a?.gender,
+      b: payload?.profiles?.b?.gender,
+    });
   }
 
   let sections = rec.paid
@@ -138,7 +141,10 @@ export async function POST(req: NextRequest) {
     typeof body.relationship === "string" && body.relationship ? body.relationship : "lovers";
   const chartA = computeSaju({ ...body.a, ...placeCoords(body.a.place) });
   const chartB = computeSaju({ ...body.b, ...placeCoords(body.b.place) });
-  const result = computeCompatibility(chartA, chartB, lang, relationship);
+  const result = computeCompatibility(chartA, chartB, lang, relationship, {
+    a: body.a.gender,
+    b: body.b.gender,
+  });
 
   const payload = {
     profiles: { a: profileOf(body.a), b: profileOf(body.b) },
