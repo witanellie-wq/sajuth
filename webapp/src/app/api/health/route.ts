@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { normalizeSupabaseUrl } from "@/lib/store";
 
 // GET /api/health — storage diagnostics. Open this in a browser to see exactly
 // why persistence is failing (missing env, bad key, missing table, ...).
@@ -6,11 +7,14 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const url = process.env.SUPABASE_URL ?? "";
+  const rawUrl = process.env.SUPABASE_URL ?? "";
+  const url = rawUrl ? normalizeSupabaseUrl(rawUrl) : "";
   const key = process.env.SUPABASE_SERVICE_KEY ?? "";
 
   const env = {
-    SUPABASE_URL: url ? `set (${url.slice(0, 30)}…)` : "NOT SET",
+    SUPABASE_URL: url
+      ? `set → using ${url}${url !== rawUrl.trim().replace(/\/+$/, "") ? " (normalized from pasted value)" : ""}`
+      : "NOT SET",
     SUPABASE_SERVICE_KEY: key
       ? `set (${key.slice(0, 10)}…, ${key.length} chars)`
       : "NOT SET",
@@ -30,7 +34,11 @@ export async function GET() {
         const { error, count } = await sb
           .from(t)
           .select("*", { count: "exact", head: true });
-        tables[t] = error ? `ERROR: ${error.message}` : `ok (${count ?? 0} rows)`;
+        tables[t] = error
+          ? `ERROR: ${error.message}`
+          : count === null
+          ? "SUSPICIOUS: reachable but no row count — URL may point to the wrong service"
+          : `ok (${count} rows)`;
       } catch (err) {
         tables[t] = `ERROR: ${err instanceof Error ? err.message : String(err)}`;
       }

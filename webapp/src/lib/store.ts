@@ -184,11 +184,22 @@ const memStore: Store = {
 
 let sbClient: unknown | null | undefined;
 
+/**
+ * Normalize whatever the owner pasted into SUPABASE_URL to the canonical
+ * project origin. Handles trailing slashes/paths and the storage/S3 endpoint
+ * variant (https://<ref>.storage.supabase.co/...) — all collapse to
+ * https://<ref>.supabase.co, which is what PostgREST needs.
+ */
+export function normalizeSupabaseUrl(raw: string): string {
+  const m = raw.trim().match(/https:\/\/([a-z0-9-]+)\.(?:storage\.)?supabase\.(co|in)/i);
+  return m ? `https://${m[1]}.supabase.${m[2]}` : raw.trim().replace(/\/+$/, "");
+}
+
 /** Lazily created shared Supabase client, or null when unconfigured. */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function getSupabase(): any {
   if (sbClient !== undefined) return sbClient;
-  const url = process.env.SUPABASE_URL;
+  const url = process.env.SUPABASE_URL ? normalizeSupabaseUrl(process.env.SUPABASE_URL) : "";
   const key = process.env.SUPABASE_SERVICE_KEY;
   if (!url || !key) {
     sbClient = null;
