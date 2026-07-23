@@ -229,19 +229,31 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
   const resourceEl = generatedBy(dm); // 인성
   const resourceExcess = rawCounts[resourceEl] >= EXCESS_RAW;
 
+  // Drain-side nuance: 식상 (my output) drains the DM hardest (설기),
+  // 관성 (what controls me) attacks next, 재성 (what I control) costs least.
+  const DRAIN_WEIGHT: Record<string, number> = {
+    output: 1.25, officer: 1.15, wealth: 1.0,
+  };
+
   let supRes = 0; // support from 인성
   let supPeer = 0; // support from 비겁
+  let drain = 0; // relation-weighted opposition
   let total = 0;
   for (const [el, w] of items) {
     total += w;
-    if (!isSupport(relationTo(dm, el))) continue;
-    if (el === resourceEl) supRes += w;
-    else supPeer += w;
+    const rel = relationTo(dm, el);
+    if (isSupport(rel)) {
+      if (el === resourceEl) supRes += w;
+      else supPeer += w;
+    } else {
+      drain += w * (DRAIN_WEIGHT[rel] ?? 1);
+    }
   }
   // 모자멸자: an excessive resource stops truly supporting the Day Master —
   // 수다목부(water-flooded wood floats) and its siblings. Cap its contribution.
   if (resourceExcess) supRes = Math.min(supRes, total * 0.35);
-  let ratio = total > 0 ? (supRes + supPeer) / total : 0.5;
+  const sup = supRes + supPeer;
+  let ratio = sup + drain > 0 ? sup / (sup + drain) : 0.5;
 
   // 천간합: Day Master combined with an adjacent stem (month or hour gan)
   // is partially bound → slightly weaker in practice.

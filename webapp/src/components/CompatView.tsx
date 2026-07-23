@@ -249,9 +249,10 @@ const CTXT: Record<L3, Record<string, string>> = {
   },
 };
 
-export default function CompatView({ data }: { data: CompatData }) {
+export default function CompatView({ data: initialData }: { data: CompatData }) {
+  const [data, setData] = useState<CompatData>(initialData);
   const { id, charts, profiles, relationship, disclaimer } = data;
-  const [sections] = useState<CompatSection[]>(data.result.sections);
+  const sections = data.result.sections;
   const [pay, setPay] = useState<{ qr: string; amount: number } | null>(null);
   const [payerName, setPayerName] = useState("");
   const [contact, setContact] = useState("");
@@ -265,6 +266,17 @@ export default function CompatView({ data }: { data: CompatData }) {
   const { score, intimate, bandTh, headline } = data.result;
   const uiLang: L3 = data.result.lang === "en" ? "en" : data.result.lang === "ko" ? "ko" : "th";
   const tt = CTXT[uiLang];
+
+  // Language switch: re-render the whole result in the selected language.
+  async function switchLang(v: L3) {
+    if (!id || v === uiLang) return;
+    try {
+      const res = await fetch(`/api/compat?id=${id}&lang=${v}`);
+      if (res.ok) setData(await res.json());
+    } catch {
+      /* keep current language on failure */
+    }
+  }
 
   // Auto-unlock: while sections are locked, poll the payment status so the
   // page opens by itself the moment the owner approves the transfer.
@@ -397,6 +409,23 @@ export default function CompatView({ data }: { data: CompatData }) {
 
   return (
     <section className="mt-8">
+      {id && (
+        <div className="mb-3 flex justify-center">
+          <div className="flex overflow-hidden rounded-full border border-peach/60 bg-white text-[11px]">
+            {(["th", "en", "ko"] as L3[]).map((v) => (
+              <button
+                key={v}
+                onClick={() => switchLang(v)}
+                className={
+                  "px-3 py-1 " + (uiLang === v ? "bg-rosewood text-white" : "text-ink/60")
+                }
+              >
+                {v === "th" ? "ไทย" : v === "en" ? "EN" : "한국어"}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Score + both full charts */}
       <div className="rounded-3xl bg-white p-5 text-center shadow-sm ring-1 ring-peach/40">
         {relationship && RELATIONSHIP_LABEL[relationship] && (
@@ -496,7 +525,9 @@ export default function CompatView({ data }: { data: CompatData }) {
                   "mt-1 text-sm leading-relaxed text-ink/80 " + (s.locked ? "locked-body" : "")
                 }
               >
-                {s.body}
+                {/* Locked preview: repeat the teaser so the blur reflects the
+                    real (long-form) length of the paid report. */}
+                {s.locked ? (s.body + " ").repeat(5) : s.body}
               </p>
             </div>
           ))}

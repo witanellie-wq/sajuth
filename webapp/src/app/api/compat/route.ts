@@ -1,8 +1,44 @@
 import { NextRequest, NextResponse } from "next/server";
 import { computeSaju, placeCoords, type SajuInput } from "@/lib/saju";
-import { computeCompatibility } from "@/lib/compat";
+import { computeCompatibility, unlockCompat, type Compatibility } from "@/lib/compat";
 import { compatStore } from "@/lib/store";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
+
+// GET /api/compat?id=...&lang=th|en|ko → a stored compat result re-rendered in
+// the requested language. Same language → stored result (may include the
+// generated long report); different language → recompute from stored charts.
+export async function GET(req: NextRequest) {
+  const id = req.nextUrl.searchParams.get("id");
+  if (!id) return NextResponse.json({ error: "missing_id" }, { status: 400 });
+  const rec = await compatStore.get(id);
+  if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
+
+  const stored = rec.result as Compatibility;
+  const storedLang = pickLang(stored.lang);
+  const langParam = req.nextUrl.searchParams.get("lang");
+  const lang = langParam ? pickLang(langParam) : storedLang;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const payload = rec.charts as any;
+  const relationship: string = payload?.relationship ?? "lovers";
+
+  let result = stored;
+  if (lang !== storedLang && payload?.charts?.a?.year && payload?.charts?.b?.year) {
+    result = computeCompatibility(payload.charts.a, payload.charts.b, lang, relationship);
+  }
+  const sections = rec.paid
+    ? unlockCompat(result.sections, result.rel, lang)
+    : result.sections;
+
+  return NextResponse.json({
+    id: rec.id,
+    profiles: payload?.profiles,
+    relationship,
+    charts: payload?.charts ?? payload,
+    result: { ...result, sections },
+    disclaimer: DISCLAIMER[lang],
+  });
+}
 
 interface PersonInput extends SajuInput {
   name?: string;

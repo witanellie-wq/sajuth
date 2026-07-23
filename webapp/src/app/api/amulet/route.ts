@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { amuletStore, store, compatStore } from "@/lib/store";
 import { generateLongCompat } from "@/lib/unlockCompat";
+import { generateLongReading } from "@/lib/unlockReading";
 
 // Long-form report generation on redeem can take a while.
 export const maxDuration = 60;
@@ -76,6 +77,7 @@ export async function POST(req: NextRequest) {
       await generateLongCompat(body.id, target as never);
     } else {
       await store.markPaid(body.id);
+      await generateLongReading(body.id, target as never);
     }
 
     return NextResponse.json({ ok: true, balance: remaining });

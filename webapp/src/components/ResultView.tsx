@@ -41,6 +41,20 @@ const ELEMENT_LABEL: Record<string, string> = {
   water: "น้ำ·Water",
 };
 
+// Big visual for the chart's dominant element (가장 강한 오행).
+const ELEMENT_EMOJI: Record<string, string> = {
+  wood: "🌳", fire: "🔥", earth: "⛰️", metal: "💎", water: "🌊",
+};
+const ELEMENT_BAR: Record<string, string> = {
+  wood: "bg-emerald-400", fire: "bg-red-400", earth: "bg-yellow-400",
+  metal: "bg-slate-400", water: "bg-blue-400",
+};
+const DOMINANT_LABEL: Record<L3, string> = {
+  th: "ธาตุที่แรงที่สุดในดวง",
+  en: "Strongest element",
+  ko: "가장 강한 오행",
+};
+
 const SECTION_EMOJI: Record<string, string> = {
   personality: "✨",
   elements: "🎨",
@@ -159,7 +173,7 @@ const TXT: Record<L3, Record<string, string>> = {
 };
 
 export default function ResultView({ initial }: { initial: Reading }) {
-  const [reading] = useState<Reading>(initial);
+  const [reading, setReading] = useState<Reading>(initial);
   const [pay, setPay] = useState<{ qr: string; amount: number } | null>(null);
   const [payerName, setPayerName] = useState("");
   const [contact, setContact] = useState("");
@@ -174,6 +188,17 @@ export default function ResultView({ initial }: { initial: Reading }) {
   const { chart, sections, disclaimer, id } = reading;
   const uiLang: L3 = reading.lang === "en" ? "en" : reading.lang === "ko" ? "ko" : "th";
   const tt = TXT[uiLang];
+
+  // Language switch: re-render the whole report in the selected language.
+  async function switchLang(v: L3) {
+    if (!id || v === uiLang) return;
+    try {
+      const res = await fetch(`/api/reading/${id}?lang=${v}`);
+      if (res.ok) setReading(await res.json());
+    } catch {
+      /* keep current language on failure */
+    }
+  }
 
   // Auto-unlock: while sections are locked, poll the payment status so the
   // page opens by itself the moment the owner approves the transfer.
@@ -317,6 +342,23 @@ export default function ResultView({ initial }: { initial: Reading }) {
 
   return (
     <section className="mt-8">
+      {id && (
+        <div className="mb-3 flex justify-center">
+          <div className="flex overflow-hidden rounded-full border border-peach/60 bg-white text-[11px]">
+            {(["th", "en", "ko"] as L3[]).map((v) => (
+              <button
+                key={v}
+                onClick={() => switchLang(v)}
+                className={
+                  "px-3 py-1 " + (uiLang === v ? "bg-rosewood text-white" : "text-ink/60")
+                }
+              >
+                {v === "th" ? "ไทย" : v === "en" ? "EN" : "한국어"}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       {/* Four Pillars grid (사주 원국) — 시일월년 order */}
       <div className="rounded-3xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
         <h2 className="mb-3 text-center text-sm font-semibold text-rosewood">
@@ -351,14 +393,41 @@ export default function ResultView({ initial }: { initial: Reading }) {
           ⭐ = ธาตุประจำตัวคุณ · your Day Master (일간)
         </p>
 
-        {/* Five-element counts */}
-        <div className="mt-3 flex flex-wrap justify-center gap-2 text-xs">
-          {Object.entries(chart.elementCounts).map(([el, n]) => (
-            <span key={el} className={"rounded-full px-2.5 py-1 font-medium " + ELEMENT_CHIP[el]}>
-              {ELEMENT_LABEL[el]} {n}
-            </span>
-          ))}
-        </div>
+        {/* Dominant element visual + five-element balance bars */}
+        {(() => {
+          const entries = Object.entries(chart.elementCounts);
+          const max = Math.max(...entries.map(([, n]) => n), 1);
+          const dominant = entries.reduce((a, b) => (b[1] > a[1] ? b : a))[0];
+          return (
+            <div className="mt-3">
+              <div className="mx-auto flex w-fit items-center gap-3 rounded-2xl border-2 border-ink/15 bg-cream px-4 py-2">
+                <span className="text-4xl">{ELEMENT_EMOJI[dominant]}</span>
+                <div className="text-left">
+                  <div className="text-[10px] text-ink/50">{DOMINANT_LABEL[uiLang]}</div>
+                  <div className="text-sm font-bold text-ink">
+                    {ELEMENT_LABEL[dominant]} × {chart.elementCounts[dominant]}
+                  </div>
+                </div>
+              </div>
+              <div className="mt-3 space-y-1">
+                {entries.map(([el, n]) => (
+                  <div key={el} className="flex items-center gap-2 text-[10px]">
+                    <span className="w-20 shrink-0 text-right text-ink/60">
+                      {ELEMENT_EMOJI[el]} {ELEMENT_LABEL[el]}
+                    </span>
+                    <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-ink/5">
+                      <div
+                        className={"h-full rounded-full " + ELEMENT_BAR[el]}
+                        style={{ width: `${(n / max) * 100}%` }}
+                      />
+                    </div>
+                    <span className="w-4 font-semibold text-ink/70">{n}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          );
+        })()}
 
         {id && (
           <button
@@ -435,7 +504,9 @@ export default function ResultView({ initial }: { initial: Reading }) {
                     "mt-1 text-sm leading-relaxed text-ink/80 " + (s.locked ? "locked-body" : "")
                   }
                 >
-                  {s.body}
+                  {/* Locked preview: repeat the teaser so the blur reflects the
+                      real (long-form) length of the paid report. */}
+                  {s.locked ? (s.body + " ").repeat(5) : s.body}
                 </p>
               </div>
             </div>

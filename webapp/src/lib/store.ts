@@ -27,6 +27,7 @@ export interface StoredReading {
     lang?: string;
     name?: string;
     gender?: string;
+    generated?: boolean; // long-form report already generated
   };
   chart: SajuChart;
   sections: ReportSection[];
@@ -39,6 +40,8 @@ interface Store {
   get(id: string): Promise<StoredReading | null>;
   markPaid(id: string): Promise<void>;
   saveClaim(id: string, claim: Claim): Promise<void>;
+  /** Replace sections (e.g. with the generated long report) + mark generated. */
+  updateSections(id: string, sections: ReportSection[]): Promise<void>;
   listPending(): Promise<StoredReading[]>;
   listApproved(): Promise<StoredReading[]>;
 }
@@ -209,6 +212,13 @@ const memStore: Store = {
     const rec = mem.get(id);
     if (rec) rec.claim = claim;
   },
+  async updateSections(id, sections) {
+    const rec = mem.get(id);
+    if (rec) {
+      rec.sections = sections;
+      rec.input.generated = true;
+    }
+  },
   async listPending() {
     return [...mem.values()].filter((r) => !r.paid && r.claim);
   },
@@ -293,6 +303,13 @@ function supabaseStore(): Store | null {
       await sb
         .from(TABLE)
         .update({ input: { ...data.input, claim } })
+        .eq("id", id);
+    },
+    async updateSections(id, sections) {
+      const { data } = await sb.from(TABLE).select("input").eq("id", id).single();
+      await sb
+        .from(TABLE)
+        .update({ sections, input: { ...(data?.input ?? {}), generated: true } })
         .eq("id", id);
     },
     async listPending() {

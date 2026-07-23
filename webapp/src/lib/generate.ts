@@ -8,6 +8,8 @@
 
 import type { SajuChart } from "./saju";
 import type { CompatSection, Compatibility } from "./compat";
+import type { ReportSection } from "./interpret";
+import { analyzeStrength } from "./strength";
 import type { Lang } from "./i18n";
 
 const MODEL = "claude-sonnet-5";
@@ -69,6 +71,76 @@ const PLATONIC_CATEGORIES = `1. 전체 형국 총평 (두 사람 기운의 큰 �
 10. 장기적인 인연의 전망
 11. 관계를 지키는 결정적 지침 (구체적 액션 플랜 포함)
 12. 마무리 총평 (두 사람만의 개운 문구 한 줄 포함)`;
+
+const READING_CATEGORIES = `1. 원국 총평 (오행 흐름과 그릇의 크기, 시적인 비유 포함)
+2. 타고난 성격의 빛과 그림자
+3. 연애운 (끌리는 상대의 기운, 사랑하는 방식, 주의점)
+4. 결혼운 (어울리는 배우자상, 결혼 생활의 모습)
+5. 직업운과 적성 (기운에 맞는 일, 피해야 할 일)
+6. 재물운 (돈이 들어오는 길과 새는 구멍)
+7. 건강운 (약한 오행과 몸 관리 포인트)
+8. 인간관계와 귀인 (나를 돕는 사람의 기운)
+9. 대운의 큰 흐름 (10년 단위 인생 리듬)
+10. 올해와 내년의 운
+11. 개운법 (용신 기반 행운 컬러·숫자·방향·습관 제안)
+12. 마무리 총평 (이 사람만의 개운 문구 한 줄 포함)`;
+
+/**
+ * Long-form paid saju reading (~12 titled sections). Returns null when no API
+ * key is set or generation fails — callers keep the static template unlock.
+ */
+export async function generateReadingReport(
+  chart: SajuChart,
+  profile: { name?: string; gender?: string },
+  lang: Lang
+): Promise<ReportSection[] | null> {
+  const c = getClient();
+  if (!c) return null;
+
+  const s = analyzeStrength(chart, lang);
+  const name = profile.name || (lang === "ko" ? "이 분" : lang === "th" ? "เจ้าชะตา" : "this person");
+
+  const system =
+    `너는 20년 경력의 명리학(사주) 상담가이자 감성 카피라이터다. ` +
+    `따뜻하고 다정하며, 명리 용어(상생·조후·용신·억부·합·충 등)를 자연스럽게 녹여 ` +
+    `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
+    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
+
+  const prompt =
+    `사주 풀이 리포트를 작성해줘.\n\n` +
+    `[의뢰인] ${name} (${profile.gender === "F" ? "여" : profile.gender === "M" ? "남" : "성별 미상"})\n` +
+    `사주: ${pillarsOf(chart)}\n` +
+    `일간: ${chart.dayMaster} / 오행 분포: ${JSON.stringify(chart.elementCounts)}\n` +
+    `신강약: ${s.bandLabel} (지지율 ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
+    `분석 노트: ${s.notes.join(" | ") || "없음"}\n\n` +
+    `다음 카테고리로 작성 (각 섹션 4~8문장, 실제 사주 글자와 위 분석 근거를 인용하며):\n` +
+    READING_CATEGORIES +
+    `\n\n출력은 반드시 JSON 배열만: [{"title":"...","body":"..."}] — ` +
+    `title은 각 카테고리를 감성적인 한 줄 제목으로 (번호 없이), body는 본문. ` +
+    `모든 텍스트는 ${LANG_NAME[lang]}(으)로.`;
+
+  try {
+    const res = await c.messages.create({
+      model: MODEL,
+      max_tokens: 8000,
+      system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+      messages: [{ role: "user", content: prompt }],
+    });
+    const text = res.content.find((b) => b.type === "text")?.text ?? "";
+    const json = text.slice(text.indexOf("["), text.lastIndexOf("]") + 1);
+    const parsed = JSON.parse(json) as Array<{ title: string; body: string }>;
+    if (!Array.isArray(parsed) || parsed.length < 6) return null;
+    return parsed.map((sec, i) => ({
+      key: `gen${i + 1}`,
+      title: String(sec.title).slice(0, 120),
+      body: String(sec.body),
+      locked: false,
+    }));
+  } catch (err) {
+    console.error("reading report generation failed (fallback to templates):", err);
+    return null;
+  }
+}
 
 /**
  * Generate the long-form paid report. Returns null when no API key is set or

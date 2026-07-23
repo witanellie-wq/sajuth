@@ -9,8 +9,26 @@ const { Solar } = require("lunar-javascript");
 
 import type { SajuChart, Element } from "./saju";
 import { relationTo, type Relation } from "./elements";
-import { GAN_ELEMENT } from "./strength";
+import { GAN_ELEMENT, analyzeStrength } from "./strength";
 import type { Lang } from "./i18n";
+
+// 용신-based lucky charm: 오행 수리 (numbers) + wardrobe colors per element.
+const LUCKY: Record<Element, { nums: string; color: Record<Lang, string> }> = {
+  wood: { nums: "3, 8", color: { th: "เขียว·มิ้นต์", en: "green & mint", ko: "초록·민트" } },
+  fire: { nums: "2, 7", color: { th: "แดง·พีช·คอรัล", en: "red & coral", ko: "빨강·코랄" } },
+  earth: { nums: "5, 10", color: { th: "เหลือง·เบจ", en: "yellow & beige", ko: "노랑·베이지" } },
+  metal: { nums: "4, 9", color: { th: "ขาว·ซิลเวอร์", en: "white & silver", ko: "흰색·실버" } },
+  water: { nums: "1, 6", color: { th: "น้ำเงิน·ดำ", en: "navy & black", ko: "네이비·블랙" } },
+};
+
+const LUCKY_TEXT: Record<Lang, (color: string, nums: string) => string> = {
+  th: (color, nums) =>
+    ` 🍀 เคล็ดลับเสริมดวงวันนี้: แต่งตัวหรือพกของโทนสี${color} (ธาตุนำโชคของคุณ) และเลขนำโชคคือ ${nums}`,
+  en: (color, nums) =>
+    ` 🍀 Luck booster: wear or carry ${color} tones (your lucky element) — lucky numbers ${nums}.`,
+  ko: (color, nums) =>
+    ` 🍀 행운 팁: ${color} 톤의 옷·소품이 당신의 용신 기운을 더해줘요. 행운의 숫자는 ${nums}.`,
+};
 
 const RELATION_TEXT: Record<Lang, Record<Relation, { title: string; body: string }>> = {
   th: {
@@ -124,6 +142,12 @@ export function todayFortune(
 
   let body = base.body;
   if (CLASH[chart.day.zhi] === zhi) body += CLASH_NOTE[lang];
+
+  // Lucky color + number from the chart's favorable element (용신).
+  const fav = analyzeStrength(chart, lang).favorable[0];
+  if (fav && LUCKY[fav]) {
+    body += LUCKY_TEXT[lang](LUCKY[fav].color[lang], LUCKY[fav].nums);
+  }
 
   return {
     dateISO: `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`,

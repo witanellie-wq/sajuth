@@ -42,9 +42,9 @@ const DAY_MASTER: Record<string, LText> = {
     ko: "당신은 '큰 나무'예요 — 곧고 원칙 있으며 주변의 든든한 버팀목이죠. 꾸준히 성장하고 지는 걸 싫어하지만, 가끔은 고집이 세서 굽히지 못할 때가 있어요.",
   },
   "乙": {
-    th: "คุณคือ ‘ไม้เลื้อย’ — ยืดหยุ่น ปรับตัวเก่ง และอ่อนโยน คุณอยู่รอดได้ในทุกสภาพแวดล้อมด้วยความนุ่มนวล แต่ควรระวังการเกรงใจคนอื่นจนลืมความต้องการของตัวเอง",
-    en: "You are the Vine — flexible, adaptive, and gentle. You thrive in any environment through softness, but be careful not to please others until you forget your own needs.",
-    ko: "당신은 '덩굴'이에요 — 유연하고 적응력 좋고 부드럽죠. 어떤 환경에서도 살아남지만, 남을 배려하다 내 마음을 잊지 않도록 조심해요.",
+    th: "คุณคือ ‘ดอกไม้’ — อ่อนโยน มีเสน่ห์ และปรับตัวเก่ง คุณทำให้ทุกที่ที่ไปสดใสขึ้นด้วยความนุ่มนวล แต่ควรระวังการเกรงใจคนอื่นจนลืมความต้องการของตัวเอง",
+    en: "You are the Flower — graceful, charming, and adaptive. You brighten every place you enter with your softness, but be careful not to please others until you forget your own needs.",
+    ko: "당신은 '꽃'이에요 — 부드럽고 매력적이며 적응력이 뛰어나죠. 가는 곳마다 주변을 환하게 밝히지만, 남을 배려하다 내 마음을 잊지 않도록 조심해요.",
   },
   "丙": {
     th: "คุณคือ ‘ดวงอาทิตย์’ — สดใส อบอุ่น และเป็นศูนย์กลางที่ดึงดูดผู้คน คุณให้พลังกับคนรอบตัวได้เสมอ แต่พออารมณ์ขึ้นก็ร้อนแรงและเปิดเผยเกินไป",
