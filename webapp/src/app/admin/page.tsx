@@ -49,7 +49,7 @@ export default async function AdminPage({
 
   const priceReading = Number(process.env.UNLOCK_PRICE_THB ?? 49);
   const priceCompat = Number(process.env.UNLOCK_COMPAT_PRICE_THB ?? 89);
-  const pricePack = Number(process.env.AMULET_PACK_PRICE_THB ?? 79);
+  const pricePack = Number(process.env.AMULET_PACK_PRICE_THB ?? 129);
 
   const rows = [
     ...readings.map((r) => ({

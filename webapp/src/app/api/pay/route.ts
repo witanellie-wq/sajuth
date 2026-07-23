@@ -5,7 +5,7 @@ import { store, compatStore } from "@/lib/store";
 
 const PRICE_READING_THB = Number(process.env.UNLOCK_PRICE_THB ?? 49);
 const PRICE_COMPAT_THB = Number(process.env.UNLOCK_COMPAT_PRICE_THB ?? 89);
-const PRICE_PACK_THB = Number(process.env.AMULET_PACK_PRICE_THB ?? 79);
+const PRICE_PACK_THB = Number(process.env.AMULET_PACK_PRICE_THB ?? 129);
 const PROMPTPAY_TARGET = process.env.PROMPTPAY_TARGET ?? "0000000000";
 
 type Kind = "reading" | "compat" | "pack";
