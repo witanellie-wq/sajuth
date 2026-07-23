@@ -71,6 +71,11 @@ const NOTES: Record<string, LText> = {
     en: "Same core element — you understand each other like close friends; just don't let sameness turn stale.",
     ko: "일간 오행이 같아요 — 절친처럼 서로를 쉽게 이해하지만, 너무 비슷해서 밋밋해지지 않게 관리가 필요해요.",
   },
+  dmSameRomantic: {
+    th: "ทั้งคู่มีธาตุประจำวันเดียวกัน (비견) — เข้าใจกันง่ายเหมือนเพื่อนสนิท แต่ในฐานะคู่รักมักแย่งกันนำและปะทะด้วยความดื้อของทั้งคู่ ต้องแบ่งบทบาทและเคารพพื้นที่ของกันและกัน",
+    en: "You share the same Day Master (비견) — you click like best friends, but as a couple you'll wrestle over the lead and clash on stubbornness. Divide roles and respect each other's turf.",
+    ko: "일간이 같은 '비견' 관계예요 — 친구처럼 잘 통하지만 부부·연인으로는 주도권 경쟁과 고집 대립이 생기기 쉬워요. 역할을 나누고 서로의 영역을 인정하는 게 관건입니다.",
+  },
   dmOpposite: {
     th: "ธาตุประจำตัวมีแรงดึงดูดแบบตรงข้าม (相剋) มีเสน่ห์และความท้าทายปนกัน",
     en: "Opposite-pole attraction (相剋) between your elements — charm and challenge mixed together.",
@@ -384,8 +389,14 @@ export function computeCompatibility(
     score += 25;
     notes.push(NOTES.dmResource[lang]);
   } else if (rel === "same") {
-    score += 12;
-    notes.push(NOTES.dmSame[lang]);
+    // 비견 — great as friends/colleagues, contentious as spouses.
+    if (romantic) {
+      score -= 4;
+      notes.push(NOTES.dmSameRomantic[lang]);
+    } else {
+      score += 10;
+      notes.push(NOTES.dmSame[lang]);
+    }
   } else if (rel === "wealth" || rel === "officer") {
     score += 6;
     notes.push(NOTES.dmOpposite[lang]);
@@ -433,7 +444,7 @@ export function computeCompatibility(
   const wetA = a.elementCounts.water >= 2 || a.dayMasterElement === "water";
   const wetB = b.elementCounts.water >= 2 || b.dayMasterElement === "water";
   if ((coldA && warmB) || (coldB && warmA) || (hotA && wetB) || (hotB && wetA)) {
-    score += 10;
+    score += 8;
     notes.push(NOTES.climate[lang]);
   }
 
@@ -494,9 +505,9 @@ export function computeCompatibility(
   }
 
   // 9. 오누이 궁합 — same month branch (월지) reads sibling-like: cozy but
-  // low on romantic spark. Docked hard (classically up to -30).
+  // low on romantic spark. Docked hard (-30, per classical practice).
   if (a.month.zhi === b.month.zhi) {
-    score -= 12;
+    score -= 30;
     notes.push(NOTES.onui[lang]);
   }
 
