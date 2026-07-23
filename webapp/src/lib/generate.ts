@@ -130,7 +130,7 @@ async function callChunk(
   try {
     const res = await c.messages.create({
       model: MODEL,
-      max_tokens: 6000,
+      max_tokens: 3000,
       system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: prompt }],
     });
@@ -163,7 +163,7 @@ const READING_CATEGORIES: string[] = [
   "마무리 총평 (이 사람만의 개운 문구 한 줄 포함)",
 ];
 
-const CHUNK_SIZE = 3;
+const CHUNK_SIZE = 1;
 
 function readingPrompt(
   chart: SajuChart,

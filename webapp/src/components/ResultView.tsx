@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Pillar {
   gan: string;
@@ -207,29 +207,53 @@ export default function ResultView({ initial }: { initial: Reading }) {
   }
 
   // Paid but the long report isn't stored yet → generate it from the client,
-  // one part per serverless call, with visible progress. Reload when done.
+  // one part per serverless call. While analyzing, the section list is hidden
+  // and a progress bar (time + parts blended) is shown. Reload when done.
   const needsGen =
     !!id && !!reading.paid && !sections.some((s) => s.key.startsWith("gen"));
-  const [genProg, setGenProg] = useState("");
+  const [genState, setGenState] = useState<{ done: number; total: number } | null>(null);
+  const [genFailed, setGenFailed] = useState(false);
+  const [genPct, setGenPct] = useState(0);
+  const genStartRef = useRef(0);
   useEffect(() => {
     if (!needsGen || !id) return;
     let cancelled = false;
-    setGenProg("0/…");
+    genStartRef.current = Date.now();
+    setGenState({ done: 0, total: 0 });
     runReportGeneration(id, "reading", (d, t) => {
-      if (!cancelled) setGenProg(`${d}/${t}`);
+      if (!cancelled) setGenState({ done: d, total: t });
     })
       .then((ok) => {
-        if (!cancelled && ok) window.location.href = `/result/${id}`;
-        else if (!cancelled) setGenProg("");
+        if (cancelled) return;
+        if (ok) {
+          setGenPct(100);
+          window.location.href = `/result/${id}`;
+        } else {
+          setGenState(null);
+          setGenFailed(true);
+        }
       })
       .catch(() => {
-        if (!cancelled) setGenProg("");
+        if (!cancelled) {
+          setGenState(null);
+          setGenFailed(true);
+        }
       });
     return () => {
       cancelled = true;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [needsGen, id]);
+  // Smooth bar: blend elapsed time (~70s full run) with completed parts.
+  useEffect(() => {
+    if (!genState) return;
+    const iv = setInterval(() => {
+      const timeP = Math.min(90, ((Date.now() - genStartRef.current) / 75000) * 90);
+      const partP = genState.total > 0 ? (genState.done / genState.total) * 100 : 0;
+      setGenPct((p) => Math.max(p, Math.min(97, Math.max(timeP, partP))));
+    }, 400);
+    return () => clearInterval(iv);
+  }, [genState]);
 
   // Auto-unlock: while sections are locked, poll the payment status so the
   // page opens by itself the moment the owner approves the transfer.
@@ -474,19 +498,39 @@ export default function ResultView({ initial }: { initial: Reading }) {
         )}
       </div>
 
-      {needsGen && genProg && (
-        <div className="mt-4 animate-pulse rounded-2xl bg-violet-50 px-4 py-3 text-center text-sm font-semibold text-violet-700 ring-1 ring-violet-200">
-          {uiLang === "th"
-            ? "🔮 กำลังวิเคราะห์ดวงของคุณอย่างละเอียด… "
-            : uiLang === "en"
-            ? "🔮 Analyzing your chart in depth… "
-            : "🔮 사주를 정밀 분석하는 중이에요… "}
-          {genProg}
-          {uiLang === "th" ? " (ประมาณ 1 นาที)" : uiLang === "en" ? " (about a minute)" : " (약 1분)"}
+      {genState && (
+        <div className="mt-4 rounded-2xl bg-violet-50 px-5 py-5 text-center ring-1 ring-violet-200">
+          <div className="text-sm font-semibold text-violet-700">
+            {uiLang === "th"
+              ? "🔮 กำลังวิเคราะห์ดวงของคุณอย่างละเอียด…"
+              : uiLang === "en"
+              ? "🔮 Analyzing your chart in depth…"
+              : "🔮 사주를 정밀 분석하는 중이에요…"}
+          </div>
+          <div className="mx-auto mt-3 h-3 w-full max-w-xs overflow-hidden rounded-full bg-violet-200/60">
+            <div
+              className="h-full rounded-full bg-gradient-to-r from-violet-400 via-rosewood to-rose-400 transition-all duration-500"
+              style={{ width: `${genPct}%` }}
+            />
+          </div>
+          <div className="mt-2 text-xs text-violet-500">
+            {Math.round(genPct)}%
+            {uiLang === "th" ? " · ประมาณ 1 นาที" : uiLang === "en" ? " · about a minute" : " · 약 1분"}
+          </div>
         </div>
       )}
+      {genFailed && (
+        <p className="mt-3 text-center text-[11px] text-ink/40">
+          {uiLang === "th"
+            ? "แสดงบทวิเคราะห์พื้นฐานชั่วคราว — รีเฟรชหน้าเพื่อวิเคราะห์แบบละเอียดอีกครั้ง"
+            : uiLang === "en"
+            ? "Showing the basic analysis for now — refresh to retry the in-depth analysis."
+            : "지금은 기본 해석을 보여드리고 있어요 — 새로고침하면 정밀 분석을 다시 시도합니다."}
+        </p>
+      )}
 
-      {/* Sections — one 49฿ unlock opens every locked category at once */}
+      {/* Sections — hidden while the in-depth analysis is being generated */}
+      {!genState && (
       <div className="mt-4 space-y-3">
         {sections.map((s, i) => {
           const firstLocked = s.locked && !sections.slice(0, i).some((x) => x.locked);
@@ -562,6 +606,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
           );
         })}
       </div>
+      )}
 
       {pay && (
         <div className="fixed inset-0 z-10 flex items-center justify-center bg-black/40 p-4">
