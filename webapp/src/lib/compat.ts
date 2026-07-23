@@ -170,6 +170,16 @@ const INTIMATE_TEXT = {
     en: "Your day/year branches combine into Water (합화수) — the element of closeness, emotion, and physical depth. Alone together, your chemistry peaks.",
     ko: "일지·년지가 합쳐져 수(水)로 변해요(합화수) — 친밀함과 감정을 관장하는 기운이라 둘만 있을 때 케미가 절정입니다.",
   },
+  onui: {
+    th: "แต่เพราะเป็นคู่ 오누이 (เกิดเดือนราศีเดียวกัน) ความสบายใจแบบพี่น้องอาจกลบประกายเสน่หา ต้องตั้งใจสร้างบรรยากาศพิเศษให้กันบ้าง",
+    en: "That said, as an 오누이 pair (same birth-month branch) the sibling-like comfort can mute the spark — set the mood on purpose.",
+    ko: "다만 오누이 궁합(같은 월지)이라 남매 같은 편안함이 설렘을 덮기 쉬워요 — 특별한 분위기는 의식적으로 만들어야 합니다.",
+  },
+  bikyeon: {
+    th: "และการเป็น 비견 (ธาตุประจำวันเดียวกัน) ทำให้บางจังหวะเหมือนเพื่อนสนิทมากกว่าคู่รัก ต้องคอยเติมโหมดโรแมนติก",
+    en: "And as 비견 (same Day Master) you slip into best-friend mode more easily than lovers' mode — keep feeding the romance.",
+    ko: "비견(같은 일간) 조합이라 연인보다 친구 모드로 흐르기 쉬운 점도 반영했어요 — 로맨틱 모드를 자주 켜주세요.",
+  },
   base: {
     th: "เคมีเชิงลึกของคู่คุณอยู่ในระดับอบอุ่น ค่อย ๆ สร้างความไว้ใจ ความใกล้ชิดจะลึกขึ้นตามเวลา",
     en: "Your intimate chemistry runs warm and steady — build trust and it deepens with time.",
@@ -560,14 +570,27 @@ export function computeCompatibility(
     intimateReasons.push(INTIMATE_TEXT.water[lang]);
   }
 
+  // 오누이/비견 dampen physical spark too.
+  if (a.month.zhi === b.month.zhi) {
+    intimate -= 15;
+    intimateReasons.push(INTIMATE_TEXT.onui[lang]);
+  }
+  if (romantic && rel === "same") {
+    intimate -= 8;
+    intimateReasons.push(INTIMATE_TEXT.bikyeon[lang]);
+  }
+
+  const s = clamp(score);
+
+  // Soft-link to the overall score (25%) so intimate can't float far above a
+  // poor overall match — while clash-driven "spicy" pairs keep their edge.
+  intimate = Math.round(0.25 * s + 0.75 * intimate);
   intimate = Math.max(20, Math.min(99, intimate));
 
   const intimateBody =
     INTIMATE_TEXT.intro[lang](intimate) +
     " " +
     (intimateReasons.length ? intimateReasons.join(" ") : INTIMATE_TEXT.base[lang]);
-
-  const s = clamp(score);
   const bandDef = BANDS.find((x) => s >= x.min)!;
   const bandLabel = romantic
     ? bandDef.band[lang]
