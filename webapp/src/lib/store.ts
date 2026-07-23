@@ -135,15 +135,20 @@ export const compatStore = {
   async listPending(): Promise<StoredCompat[]> {
     const sb = getSupabase();
     if (sb) {
-      const { data } = await sb
+      // JSON-path filters (charts->claim) are flaky through PostgREST — fetch
+      // recent unpaid rows and filter for a claim in JS instead.
+      const { data, error } = await sb
         .from("compat_readings")
         .select("*")
         .eq("paid", false)
-        .not("charts->claim", "is", null)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
+      if (error) {
+        console.error("compat listPending:", error.message);
+        return [];
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (data ?? []).map((d: any) => ({
+      return (data ?? []).filter((d: any) => d.charts?.claim).map((d: any) => ({
         id: d.id,
         createdAt: d.created_at,
         charts: d.charts,
@@ -261,15 +266,18 @@ function supabaseStore(): Store | null {
         .eq("id", id);
     },
     async listPending() {
-      const { data } = await sb
+      const { data, error } = await sb
         .from(TABLE)
         .select("*")
         .eq("paid", false)
-        .not("input->claim", "is", null)
         .order("created_at", { ascending: false })
-        .limit(50);
+        .limit(100);
+      if (error) {
+        console.error("readings listPending:", error.message);
+        return [];
+      }
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      return (data ?? []).map((d: any) => ({
+      return (data ?? []).filter((d: any) => d.input?.claim).map((d: any) => ({
         id: d.id,
         createdAt: d.created_at,
         input: d.input,
