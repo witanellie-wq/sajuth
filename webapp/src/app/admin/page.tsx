@@ -166,6 +166,41 @@ export default async function AdminPage({
         </div>
       )}
 
+      <h2 className="mt-10 text-xl font-bold text-violet-700">🧪 테스트 승인</h2>
+      <p className="mt-1 text-sm text-ink/60">
+        실제 이체 없이 바로 해제하는 사장님 전용 도구예요. 손님 화면에서{" "}
+        <b>공유하기로 복사한 결과 링크</b>(또는 ref/부적코드)를 그대로 붙여넣고
+        승인을 누르세요. 열려 있는 손님 화면은 몇 초 안에 자동으로 풀립니다.
+      </p>
+      <form
+        action="/api/admin/confirm"
+        method="GET"
+        className="mt-3 flex flex-wrap items-center gap-2 rounded-2xl bg-white p-4 ring-1 ring-violet-200"
+      >
+        <input type="hidden" name="key" value={key} />
+        <input type="hidden" name="redirect" value="1" />
+        <select
+          name="kind"
+          className="rounded-lg border border-ink/20 bg-white px-2 py-2 text-sm"
+        >
+          <option value="reading">🔮 사주</option>
+          <option value="compat">💞 궁합</option>
+          <option value="pack">🧿 부적팩</option>
+        </select>
+        <input
+          name="id"
+          required
+          placeholder="결과 링크 또는 ref/부적코드 붙여넣기"
+          className="min-w-0 flex-1 rounded-lg border border-ink/20 px-3 py-2 font-mono text-xs"
+        />
+        <button
+          type="submit"
+          className="rounded-xl bg-violet-600 px-5 py-2 text-sm font-semibold text-white"
+        >
+          🧪 즉시 승인
+        </button>
+      </form>
+
       <h2 className="mt-10 text-xl font-bold text-emerald-700">✅ 승인 내역</h2>
       <p className="mt-1 text-sm text-ink/60">
         이미 승인한 건들이에요 (최근 순). 손님이 창을 잃어버렸다면 여기서 🔗 링크를

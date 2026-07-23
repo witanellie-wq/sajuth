@@ -19,7 +19,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  const id = req.nextUrl.searchParams.get("id");
+  // Accept a bare id/code OR a pasted result URL — extract the last segment.
+  let id = (req.nextUrl.searchParams.get("id") ?? "").trim();
+  if (id.includes("/")) id = id.split("/").filter(Boolean).pop() ?? "";
+  id = id.split("?")[0].trim();
   const kindParam = req.nextUrl.searchParams.get("kind");
   const kind =
     kindParam === "compat" ? "compat" : kindParam === "pack" ? "pack" : "reading";
