@@ -506,10 +506,12 @@ function branchPair(a: string, b: string): "he" | "chong" | "sanhe" | "same" | "
   return "none";
 }
 
+const CAP = Number(process.env.COMPAT_CAP ?? 95);
 function clamp(n: number): number {
-  // Cap at 97 — even destined pairs keep a little mystery. Floor at 25 —
+  // Cap at 95 — even destined pairs keep a little mystery, and a believable
+  // top score reads as more trustworthy than a perfect 100. Floor at 25 —
   // paying customers shouldn't see a single-digit verdict.
-  return Math.max(25, Math.min(97, Math.round(n)));
+  return Math.max(25, Math.min(CAP, Math.round(n)));
 }
 
 export function computeCompatibility(
@@ -520,14 +522,19 @@ export function computeCompatibility(
   genders?: { a?: string; b?: string } // "F" | "M" — drives 배우자성 signals
 ): Compatibility {
   const romantic = ROMANTIC.has(relationship);
-  let score = 30; // base (rebalanced — signals below saturate less)
+  // Base for an "unremarkable" couple. The signal weights below are sized so
+  // the median random couple lands in the honest 무난 band (~60), a strong
+  // multi-signal pair reaches 천생연분 (85+) only rarely, and no single signal
+  // alone can peg the ceiling — the score is meant to be believable, not
+  // flattering.
+  let score = 29;
   const notes: Array<{ k: string; text: string }> = [];
 
   // 1. Day master element relation.
   const rel = relationTo(a.dayMasterElement, b.dayMasterElement);
   const relBack = relationTo(b.dayMasterElement, a.dayMasterElement);
   if (rel === "resource" || relBack === "resource") {
-    score += 18;
+    score += 12;
     notes.push({ k: "dmResource", text: NOTES.dmResource[lang] });
   } else if (rel === "same") {
     // 비견 — great as friends/colleagues, contentious as spouses.
@@ -542,10 +549,12 @@ export function computeCompatibility(
     const pairSet = [a.dayMasterElement, b.dayMasterElement].sort().join("-");
     if (pairSet === "earth-water") {
       // 토×수 — 재성/관성 중에서도 특히 좋은 짝 (제방과 물의 상)
-      score += 8;
+      score += 11;
       notes.push({ k: "earthWater", text: NOTES.earthWater[lang] });
     } else {
-      score += 4;
+      // 상극(재성·관성) — 여자의 관성=남편, 남자의 재성=아내. 부부 궁합의
+      // 핵심 축이므로 상생 못지않게 비중을 준다.
+      score += 9;
       notes.push({ k: "dmOpposite", text: NOTES.dmOpposite[lang] });
     }
   }
@@ -553,19 +562,19 @@ export function computeCompatibility(
   // 2. Day-branch (spouse palace) relation.
   const bp = branchPair(a.day.zhi, b.day.zhi);
   if (bp === "he") {
-    score += 22;
+    score += 15;
     notes.push({ k: "branchHe", text: NOTES.branchHe[lang] });
   } else if (bp === "sanhe") {
-    score += 16;
+    score += 11;
     notes.push({ k: "branchSanhe", text: NOTES.branchSanhe[lang] });
   } else if (bp === "same") {
-    score += 8;
+    score += 6;
     notes.push({ k: "branchSame", text: NOTES.branchSame[lang] });
   } else if (bp === "chong") {
-    score -= 18;
+    score -= 14;
     notes.push({ k: "branchChong", text: NOTES.branchChong[lang] });
   } else {
-    score += 6;
+    score += 5;
   }
 
   // 3. 용신 complement — does each supply the other's favorable element?
@@ -574,10 +583,10 @@ export function computeCompatibility(
   const aHelpsB = sb.favorable.includes(a.dayMasterElement);
   const bHelpsA = sa.favorable.includes(b.dayMasterElement);
   if (aHelpsB && bHelpsA) {
-    score += 12;
+    score += 9;
     notes.push({ k: "yongBoth", text: NOTES.yongBoth[lang] });
   } else if (aHelpsB || bHelpsA) {
-    score += 6;
+    score += 5;
     notes.push({ k: "yongOne", text: NOTES.yongOne[lang] });
   }
 
@@ -703,7 +712,7 @@ export function computeCompatibility(
   // 9. 오누이 궁합 — same month branch (월지) reads sibling-like: cozy but
   // low on romantic spark. Docked hard (-30, per classical practice).
   if (a.month.zhi === b.month.zhi) {
-    score -= 30;
+    score -= 19;
     notes.push({ k: "onui", text: NOTES.onui[lang] });
   }
 
