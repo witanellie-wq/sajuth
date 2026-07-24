@@ -239,7 +239,7 @@ export async function generateReadingReport(
   });
   const results = await Promise.all(jobs);
   const all = results.filter(Boolean).flat() as Array<{ title: string; body: string }>;
-  if (all.length < cats.length) return null; // full report or nothing
+  if (all.length < READING_CATEGORIES.length) return null; // full report or nothing
   return all.map((sec, i) => ({
     key: `gen${i + 1}`,
     title: sec.title,
