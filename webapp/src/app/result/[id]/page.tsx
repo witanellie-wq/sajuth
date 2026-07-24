@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { store } from "@/lib/store";
+import { redactLocked } from "@/lib/redact";
 import { unlock } from "@/lib/interpret";
 import { todayFortune, TODAY_PREFIX } from "@/lib/today";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
@@ -20,7 +21,7 @@ export default async function ResultPage({
   const lang = pickLang(reading.input.lang);
   let sections = reading.paid
     ? unlock(reading.sections, reading.chart.dayMaster, lang)
-    : reading.sections;
+    : redactLocked(reading.sections);
 
   // Refresh the daily fortune on every visit (shared links stay alive daily).
   const today = todayFortune(reading.chart, new Date(), lang);

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { store } from "@/lib/store";
+import { redactLocked } from "@/lib/redact";
 import { unlock, interpret } from "@/lib/interpret";
 import { generateReadingReport } from "@/lib/generate";
 import { todayFortune, TODAY_PREFIX } from "@/lib/today";
@@ -29,7 +30,7 @@ export async function GET(
     lang === storedLang ? reading.sections : interpret(reading.chart, lang);
   let sections = reading.paid
     ? unlock(base, reading.chart.dayMaster, lang)
-    : base;
+    : redactLocked(base);
 
   // Paid + generated long report exists, but viewer switched language →
   // serve the cached translation, or generate + cache it now.

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { computeSaju, placeCoords, type SajuInput } from "@/lib/saju";
 import { computeCompatibility, unlockCompat, type Compatibility } from "@/lib/compat";
 import { compatStore } from "@/lib/store";
+import { redactLocked } from "@/lib/redact";
 import { generateCompatReport } from "@/lib/generate";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
 
@@ -40,7 +41,7 @@ export async function GET(req: NextRequest) {
 
   let sections = rec.paid
     ? unlockCompat(result.sections, result.rel, lang)
-    : result.sections;
+    : redactLocked(result.sections);
 
   // Paid + generated long report exists, but viewer switched language →
   // serve the cached translation, or generate + cache it now.

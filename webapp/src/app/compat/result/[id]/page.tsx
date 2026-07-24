@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { compatStore } from "@/lib/store";
+import { redactLocked } from "@/lib/redact";
 import { unlockCompat, type Compatibility } from "@/lib/compat";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
 import CompatView, { type CompatData } from "@/components/CompatView";
@@ -19,7 +20,7 @@ export default async function CompatResultPage({
   const lang = pickLang(result.lang);
   const sections = rec.paid
     ? unlockCompat(result.sections, result.rel, lang)
-    : result.sections;
+    : redactLocked(result.sections);
 
   // New records store { profiles, relationship, charts: {a,b} }; old ones
   // stored bare { a, b } summaries — fall back gracefully.
