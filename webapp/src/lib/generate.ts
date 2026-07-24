@@ -186,7 +186,8 @@ function readingPrompt(
     `일간: ${chart.dayMaster} / 오행 분포: ${JSON.stringify(chart.elementCounts)}\n` +
     `신강약: ${s.bandLabel} (지지율 ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
     `신살: ${sinsal.length ? sinsal.join(", ") : "없음"} (도화=매력, 홍염=달콤한 유혹, 화개=예술·고독, 역마=이동·변화 — 있으면 해석에 반드시 반영)\n` +
-    `분석 노트: ${s.notes.join(" | ") || "없음"}`;
+    `분석 노트: ${s.notes.join(" | ") || "없음"}\n` +
+    `호칭 규칙: 의뢰인은 반드시 "${name}"(으)로 지칭하고, A나 '고객' 같은 임의 약칭을 만들지 마라.`;
   return { system, context };
 }
 
@@ -256,8 +257,19 @@ function compatPrompt(
   const lang = result.lang ?? "th";
   const relationship = result.relationship ?? "lovers";
   const romantic = ROMANTIC.has(relationship);
-  const nameA = profiles.a?.name || (lang === "ko" ? "첫 번째 분" : "A");
-  const nameB = profiles.b?.name || (lang === "ko" ? "두 번째 분" : "B");
+  // Refer to people by their entered name; fall back to a gendered label —
+  // never "A"/"B".
+  const personLabel = (
+    p: { name?: string; gender?: string } | undefined,
+    ord: number
+  ): string => {
+    if (p?.name?.trim()) return p.name.trim();
+    if (p?.gender === "F") return lang === "ko" ? "여자분" : lang === "th" ? "ฝ่ายหญิง" : "the woman";
+    if (p?.gender === "M") return lang === "ko" ? "남자분" : lang === "th" ? "ฝ่ายชาย" : "the man";
+    return lang === "ko" ? `${ord === 1 ? "첫" : "두"} 번째 분` : lang === "th" ? `คนที่ ${ord}` : `person ${ord}`;
+  };
+  const nameA = personLabel(profiles.a, 1);
+  const nameB = personLabel(profiles.b, 2);
 
   const system =
     `너는 20년 경력의 명리학(사주) 상담가이자 감성 카피라이터다. ` +
@@ -287,7 +299,9 @@ function compatPrompt(
       : "") +
     (points
       ? `\n\n[엔진 분석 포인트 — 배우자성(관성·재성)·천을귀인·신살·암합 등. 반드시 이 근거들을 해석에 녹여라]\n${points}`
-      : "");
+      : "") +
+    `\n\n호칭 규칙: 두 사람은 반드시 "${nameA}"와(과) "${nameB}"로만 지칭하라. ` +
+    `"A", "B", "사람1" 같은 임의 약칭을 절대 만들지 마라.`;
 
   return { system, context, cats: romantic ? ROMANTIC_CATEGORIES : PLATONIC_CATEGORIES, lang };
 }
