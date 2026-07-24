@@ -292,7 +292,7 @@ const INTIMATE_TITLE: Record<Lang, string> = {
 const PLATONIC_BANDS: Array<{ min: number; band: LText }> = [
   { min: 85, band: { th: "คู่หูที่ฟ้าส่งมา", en: "A Dream Team", ko: "하늘이 맺어준 짝꿍" } },
   { min: 70, band: { th: "เข้าขากันสุด ๆ", en: "Great Chemistry", ko: "환상의 케미" } },
-  { min: 55, band: { th: "เข้ากันได้ดี", en: "A Good Match", ko: "잘 맞는 사이" } },
+  { min: 55, band: { th: "เข้ากันได้พอสมควร", en: "A Fair Match", ko: "무난한 사이" } },
   { min: 40, band: { th: "ต้องปรับจูนกัน", en: "Needs Tuning", ko: "조율이 필요한 사이" } },
   { min: 0, band: { th: "ท้าทายแต่เป็นไปได้", en: "Challenging but Workable", ko: "쉽지 않지만 가능한 사이" } },
 ];
@@ -318,11 +318,11 @@ const BANDS: Array<{ min: number; band: LText; headline: LText }> = [
   },
   {
     min: 55,
-    band: { th: "เข้ากันได้ดี", en: "Compatible", ko: "잘 맞는 궁합" },
+    band: { th: "เข้ากันได้พอสมควร", en: "A Fair Match", ko: "무난한 궁합" },
     headline: {
-      th: "มีจุดเสริมกันชัดเจน ถ้าเข้าใจจังหวะของกันและกันจะลงตัว",
-      en: "Clear complementary strengths — sync your rhythms and it clicks.",
-      ko: "서로 보완하는 지점이 분명해요. 리듬만 맞추면 딱 맞아떨어집니다.",
+      th: "เป็นคู่ที่พอไปด้วยกันได้ มีทั้งจุดที่เสริมและจุดที่ต้องปรับ ถ้าเข้าใจจังหวะของกันและกันจะราบรื่นขึ้น",
+      en: "A workable pair — some strengths, some things to adjust. Understand each other's rhythm and it gets smoother.",
+      ko: "무난하게 어울리는 편이에요 — 보완되는 면도, 맞춰가야 할 면도 있어요. 서로의 리듬을 이해하면 훨씬 편안해집니다.",
     },
   },
   {
