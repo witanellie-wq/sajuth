@@ -151,6 +151,41 @@ async function callChunk(
   }
 }
 
+/**
+ * Translate ONE generated section into another language, preserving meaning,
+ * length, paragraph breaks, and emoji — so every language shows the same
+ * report. Client-orchestrated one call per section (like generation).
+ */
+export async function translateSection(
+  title: string,
+  body: string,
+  lang: Lang
+): Promise<{ title: string; body: string } | null> {
+  const c = getClient();
+  if (!c) return null;
+  const prompt =
+    `다음 사주 해석 섹션을 ${LANG_NAME[lang]}(으)로 번역해줘. ` +
+    `의미와 정보량, 문단 구분(빈 줄), 이모지를 그대로 유지하고, 간지 한자(예: 丙戌, 乙亥)는 그대로 두되 ` +
+    `명리 용어는 ${LANG_NAME[lang]} 독자가 이해할 수 있게 자연스럽게 옮겨라. 요약하거나 줄이지 마라. ` +
+    `출력은 반드시 JSON 하나만: {"title":"...","body":"..."}\n\n` +
+    `[제목] ${title}\n[본문]\n${body}`;
+  try {
+    const res = await c.messages.create({
+      model: MODEL,
+      max_tokens: 3000,
+      messages: [{ role: "user", content: prompt }],
+    });
+    const text = res.content.find((b) => b.type === "text")?.text ?? "";
+    const json = text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
+    const p = JSON.parse(json) as { title: string; body: string };
+    if (!p?.title || !p?.body) return null;
+    return { title: String(p.title).slice(0, 200), body: String(p.body) };
+  } catch (err) {
+    console.error("section translation failed:", err);
+    return null;
+  }
+}
+
 const READING_CATEGORIES: string[] = [
   "원국 총평 (오행 흐름과 그릇의 크기, 시적인 비유 포함)",
   "타고난 성격의 빛과 그림자",

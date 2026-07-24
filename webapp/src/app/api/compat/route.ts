@@ -3,7 +3,6 @@ import { computeSaju, placeCoords, type SajuInput } from "@/lib/saju";
 import { computeCompatibility, unlockCompat, type Compatibility } from "@/lib/compat";
 import { compatStore } from "@/lib/store";
 import { redactLocked } from "@/lib/redact";
-import { generateCompatReport } from "@/lib/generate";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
 
 // Language-switch on a paid record may generate the long report on demand.
@@ -44,35 +43,24 @@ export async function GET(req: NextRequest) {
     : redactLocked(result.sections);
 
   // Paid + generated long report exists, but viewer switched language →
-  // serve the cached translation, or generate + cache it now.
+  // serve the cached translation, or fall back to the source-language report
+  // and tell the client to run the (client-orchestrated) translation.
+  let needsTranslate = false;
   if (rec.paid && lang !== storedLang && stored.generated) {
     const cached = stored.genByLang?.[lang];
+    const storedGen = (stored.sections ?? []).filter((s) => s.key.startsWith("gen"));
     if (cached && cached.length > 0) {
       sections = [result.sections[0], ...cached];
-    } else if (payload?.charts?.a?.year && payload?.charts?.b?.year) {
-      const gen = await generateCompatReport(
-        payload.charts.a,
-        payload.charts.b,
-        payload?.profiles ?? {},
-        result
-      );
-      if (gen) {
-        sections = [result.sections[0], ...gen];
-        try {
-          await compatStore.updateResult(id, {
-            ...stored,
-            genByLang: { ...(stored.genByLang ?? {}), [lang]: gen },
-          });
-        } catch (err) {
-          console.error("genByLang cache save failed (non-fatal):", err);
-        }
-      }
+    } else if (storedGen.length > 0) {
+      sections = [result.sections[0], ...storedGen.map((s) => ({ ...s, locked: false }))];
+      needsTranslate = true;
     }
   }
 
   return NextResponse.json({
     id: rec.id,
     paid: rec.paid,
+    needsTranslate,
     profiles: payload?.profiles,
     relationship,
     charts: payload?.charts ?? payload,

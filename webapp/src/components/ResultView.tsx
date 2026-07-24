@@ -14,6 +14,7 @@ interface Section {
 }
 export interface Reading {
   id: string | null;
+  needsTranslate?: boolean;
   name?: string;
   chart: {
     year: Pillar;
@@ -30,7 +31,7 @@ export interface Reading {
 }
 
 import { STEM_STYLE, BRANCH_STYLE, ELEMENT_CHIP, HIDDEN_STEMS } from "./hanStyles";
-import { runReportGeneration } from "./genReport";
+import { runReportGeneration, runReportTranslation } from "./genReport";
 
 const IG_URL = process.env.NEXT_PUBLIC_IG_URL ?? "https://www.instagram.com/duangsaju";
 
@@ -191,18 +192,45 @@ export default function ResultView({ initial }: { initial: Reading }) {
   const tt = TXT[uiLang];
 
   // Language switch: re-render the whole report in the selected language.
-  // First switch on a paid record generates the long report → can take ~40s.
+  // If the paid long report has no cached translation yet, translate it
+  // section-by-section (progress bar) and cache — content stays identical
+  // across languages.
   const [langBusy, setLangBusy] = useState(false);
   async function switchLang(v: L3) {
     if (!id || v === uiLang || langBusy) return;
     setLangBusy(true);
     try {
       const res = await fetch(`/api/reading/${id}?lang=${v}`);
-      if (res.ok) setReading(await res.json());
+      if (res.ok) {
+        const fresh = await res.json();
+        setReading(fresh);
+        if (fresh.needsTranslate) await translateFlow(v);
+      }
     } catch {
       /* keep current language on failure */
     } finally {
       setLangBusy(false);
+    }
+  }
+  async function translateFlow(v: L3) {
+    if (!id) return;
+    setGenMode("tr");
+    genStartRef.current = Date.now();
+    setGenPct(0);
+    setGenState({ done: 0, total: 0 });
+    try {
+      const out = await runReportTranslation(id, "reading", v, (d, t) =>
+        setGenState({ done: d, total: t })
+      );
+      if (out !== "failed") {
+        const r2 = await fetch(`/api/reading/${id}?lang=${v}`);
+        if (r2.ok) setReading(await r2.json());
+      }
+    } catch {
+      /* keep source-language content */
+    } finally {
+      setGenState(null);
+      setGenMode("gen");
     }
   }
 
@@ -214,6 +242,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
   const [genState, setGenState] = useState<{ done: number; total: number } | null>(null);
   const [genFailed, setGenFailed] = useState(false);
   const [genPct, setGenPct] = useState(0);
+  const [genMode, setGenMode] = useState<"gen" | "tr">("gen");
   const genStartRef = useRef(0);
   const genRanRef = useRef(false); // run at most once per page view — never loop
   useEffect(() => {
@@ -519,7 +548,13 @@ export default function ResultView({ initial }: { initial: Reading }) {
       {genState && (
         <div className="mt-4 rounded-2xl bg-violet-50 px-5 py-5 text-center ring-1 ring-violet-200">
           <div className="text-sm font-semibold text-violet-700">
-            {uiLang === "th"
+            {genMode === "tr"
+              ? uiLang === "th"
+                ? "🌏 กำลังแปลผลวิเคราะห์…"
+                : uiLang === "en"
+                ? "🌏 Translating your report…"
+                : "🌏 리포트를 번역하는 중이에요…"
+              : uiLang === "th"
               ? "🔮 กำลังวิเคราะห์ดวงของคุณอย่างละเอียด…"
               : uiLang === "en"
               ? "🔮 Analyzing your chart in depth…"

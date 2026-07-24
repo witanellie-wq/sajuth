@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { store } from "@/lib/store";
 import { redactLocked } from "@/lib/redact";
 import { unlock, interpret } from "@/lib/interpret";
-import { generateReadingReport } from "@/lib/generate";
 import { todayFortune, TODAY_PREFIX } from "@/lib/today";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
 
@@ -33,26 +32,18 @@ export async function GET(
     : redactLocked(base);
 
   // Paid + generated long report exists, but viewer switched language →
-  // serve the cached translation, or generate + cache it now.
+  // serve the cached translation, or fall back to the source-language report
+  // and tell the client to run the (client-orchestrated) translation.
+  let needsTranslate = false;
   if (reading.paid && lang !== storedLang && reading.input.generated) {
     const free = interpret(reading.chart, lang).filter((s) => !s.locked);
     const cached = reading.input.genByLang?.[lang];
+    const storedGen = reading.sections.filter((s) => s.key.startsWith("gen"));
     if (cached && cached.length > 0) {
       sections = [...free, ...cached];
-    } else {
-      const gen = await generateReadingReport(
-        reading.chart,
-        { name: reading.input.name, gender: reading.input.gender },
-        lang
-      );
-      if (gen) {
-        sections = [...free, ...gen];
-        try {
-          await store.cacheGenLang(params.id, lang, gen);
-        } catch (err) {
-          console.error("genByLang cache save failed (non-fatal):", err);
-        }
-      }
+    } else if (storedGen.length > 0) {
+      sections = [...free, ...storedGen.map((s) => ({ ...s, locked: false }))];
+      needsTranslate = true;
     }
   }
 
@@ -66,6 +57,7 @@ export async function GET(
 
   return NextResponse.json({
     id: reading.id,
+    needsTranslate,
     name: reading.input.name ?? "",
     chart: reading.chart,
     sections,

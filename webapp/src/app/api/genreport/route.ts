@@ -4,6 +4,7 @@ import {
   reportChunkCount,
   generateReadingPart,
   generateCompatPart,
+  translateSection,
 } from "@/lib/generate";
 import type { Compatibility } from "@/lib/compat";
 import { pickLang } from "@/lib/i18n";
@@ -40,17 +41,31 @@ const readingAllowed = (rec: any): boolean =>
   !!rec.paid || !!rec.claim || !!rec.input?.claim;
 
 // GET /api/genreport?id=...&kind=reading|compat → { allowed, total, finished }
+// With &tlang=th|en|ko → translation status for that language instead.
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id") ?? "";
   const kind: Kind = req.nextUrl.searchParams.get("kind") === "compat" ? "compat" : "reading";
+  const tlangParam = req.nextUrl.searchParams.get("tlang");
   if (!id) return NextResponse.json({ error: "missing_id" }, { status: 400 });
 
   if (kind === "compat") {
     const rec = await compatStore.get(id);
     if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
-    const result = rec.result as Compatibility & { generated?: boolean };
+    const result = rec.result as Compatibility & {
+      generated?: boolean;
+      genByLang?: Record<string, Compatibility["sections"]>;
+    };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload = rec.charts as any;
+    if (tlangParam) {
+      const tlang = pickLang(tlangParam);
+      const gen = (result.sections ?? []).filter((s) => s.key.startsWith("gen"));
+      return NextResponse.json({
+        allowed: rec.paid && !!result.generated,
+        finished: !!result.genByLang?.[tlang]?.length,
+        total: gen.length,
+      });
+    }
     return NextResponse.json({
       paid: rec.paid,
       allowed: compatAllowed(rec),
@@ -60,6 +75,15 @@ export async function GET(req: NextRequest) {
   }
   const rec = await store.get(id);
   if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
+  if (tlangParam) {
+    const tlang = pickLang(tlangParam);
+    const gen = rec.sections.filter((s) => s.key.startsWith("gen"));
+    return NextResponse.json({
+      allowed: rec.paid && !!rec.input.generated,
+      finished: !!rec.input.genByLang?.[tlang]?.length,
+      total: gen.length,
+    });
+  }
   return NextResponse.json({
     paid: rec.paid,
     allowed: readingAllowed(rec),
@@ -69,14 +93,17 @@ export async function GET(req: NextRequest) {
 }
 
 // POST /api/genreport
-//   { id, kind, part }              → generate that part, return its sections
-//   { id, kind, save: [...] }       → assemble + persist (first write wins)
+//   { id, kind, part }                     → generate that part
+//   { id, kind, save: [...] }              → assemble + persist (first write wins)
+//   { id, kind, tlang, part }              → translate stored section [part]
+//   { id, kind, tlang, save: [...] }       → cache the translated report
 export async function POST(req: NextRequest) {
   let body: {
     id?: string;
     kind?: string;
     part?: number;
     save?: unknown;
+    tlang?: string;
   };
   try {
     body = await req.json();
@@ -86,6 +113,65 @@ export async function POST(req: NextRequest) {
   const id = body.id ?? "";
   const kind: Kind = body.kind === "compat" ? "compat" : "reading";
   if (!id) return NextResponse.json({ error: "missing_id" }, { status: 400 });
+
+  // ── Translation mode (paid records only) ──────────────────────────────
+  if (body.tlang) {
+    const tlang = pickLang(body.tlang);
+    if (kind === "compat") {
+      const rec = await compatStore.get(id);
+      if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
+      if (!rec.paid) return NextResponse.json({ error: "not_paid" }, { status: 403 });
+      const result = rec.result as Compatibility & {
+        generated?: boolean;
+        genByLang?: Record<string, Compatibility["sections"]>;
+      };
+      const gen = (result.sections ?? []).filter((s) => s.key.startsWith("gen"));
+      if (body.save !== undefined) {
+        if (result.genByLang?.[tlang]?.length) return NextResponse.json({ ok: true, already: true });
+        const secs = sane(body.save);
+        if (!secs || secs.length !== gen.length)
+          return NextResponse.json({ error: "bad_sections" }, { status: 400 });
+        await compatStore.updateResult(id, {
+          ...result,
+          genByLang: {
+            ...(result.genByLang ?? {}),
+            [tlang]: secs.map((s, i) => ({
+              key: `gen${i + 1}`, title: s.title, body: s.body, locked: false,
+            })),
+          },
+        });
+        return NextResponse.json({ ok: true });
+      }
+      const part = Number(body.part ?? -1);
+      if (part < 0 || part >= gen.length)
+        return NextResponse.json({ error: "bad_part" }, { status: 400 });
+      const tr = await translateSection(gen[part].title, gen[part].body, tlang);
+      if (!tr) return NextResponse.json({ error: "translation_failed" }, { status: 502 });
+      return NextResponse.json({ part, section: tr });
+    }
+    const rec = await store.get(id);
+    if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
+    if (!rec.paid) return NextResponse.json({ error: "not_paid" }, { status: 403 });
+    const gen = rec.sections.filter((s) => s.key.startsWith("gen"));
+    if (body.save !== undefined) {
+      if (rec.input.genByLang?.[tlang]?.length) return NextResponse.json({ ok: true, already: true });
+      const secs = sane(body.save);
+      if (!secs || secs.length !== gen.length)
+        return NextResponse.json({ error: "bad_sections" }, { status: 400 });
+      await store.cacheGenLang(
+        id,
+        tlang,
+        secs.map((s, i) => ({ key: `gen${i + 1}`, title: s.title, body: s.body, locked: false }))
+      );
+      return NextResponse.json({ ok: true });
+    }
+    const part = Number(body.part ?? -1);
+    if (part < 0 || part >= gen.length)
+      return NextResponse.json({ error: "bad_part" }, { status: 400 });
+    const tr = await translateSection(gen[part].title, gen[part].body, tlang);
+    if (!tr) return NextResponse.json({ error: "translation_failed" }, { status: 502 });
+    return NextResponse.json({ part, section: tr });
+  }
 
   if (kind === "compat") {
     const rec = await compatStore.get(id);
