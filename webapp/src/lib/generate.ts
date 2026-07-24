@@ -289,9 +289,9 @@ function compatPrompt(
   };
   const context =
     `두 사람의 궁합 리포트를 작성해줘.\n\n` +
-    `[사람 A] ${nameA} (${profiles.a?.gender === "F" ? "여" : profiles.a?.gender === "M" ? "남" : "성별 미상"})\n` +
+    `[${nameA}] (${profiles.a?.gender === "F" ? "여" : profiles.a?.gender === "M" ? "남" : "성별 미상"})\n` +
     `사주: ${pillarsOf(chartA)}\n오행 분포: ${JSON.stringify(chartA.elementCounts)}\n신살: ${sinsalLine(chartA)}\n\n` +
-    `[사람 B] ${nameB} (${profiles.b?.gender === "F" ? "여" : profiles.b?.gender === "M" ? "남" : "성별 미상"})\n` +
+    `[${nameB}] (${profiles.b?.gender === "F" ? "여" : profiles.b?.gender === "M" ? "남" : "성별 미상"})\n` +
     `사주: ${pillarsOf(chartB)}\n오행 분포: ${JSON.stringify(chartB.elementCounts)}\n신살: ${sinsalLine(chartB)}\n\n` +
     `관계: ${relationship} / 궁합 점수: ${result.score}%` +
     (romantic && typeof result.intimate === "number"
