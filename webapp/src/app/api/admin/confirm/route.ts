@@ -1,10 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { store, compatStore, amuletStore } from "@/lib/store";
-import { generateLongCompat } from "@/lib/unlockCompat";
-import { generateLongReading } from "@/lib/unlockReading";
-
-// Long-form report generation can take a while.
-export const maxDuration = 60;
 
 // GET /api/admin/confirm?kind=reading|compat&id=<uuid>&key=<ADMIN_SECRET>
 //
@@ -36,16 +31,13 @@ export async function GET(req: NextRequest) {
     const rec = await compatStore.get(id);
     if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
     await compatStore.markPaid(id);
-    // Generate the long-form paid report now so the buyer's page is rich on
-    // first load. Falls back silently to templates on failure.
-    await generateLongCompat(id, rec);
+    // Long-form generation happens on the buyer's page (client-orchestrated,
+    // one category per call, with a progress bar) — never here, where a
+    // partial batch could be saved as a 6-section report.
   } else {
     const rec = await store.get(id);
     if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
     await store.markPaid(id);
-    // Generate the long-form paid report now so the buyer's page is rich on
-    // first load. Falls back silently to templates on failure.
-    await generateLongReading(id, rec);
   }
 
   // From the /admin dashboard → bounce back with a success flag.
