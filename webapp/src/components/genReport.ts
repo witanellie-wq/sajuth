@@ -49,12 +49,26 @@ export async function runReportGeneration(
     }
   };
 
-  await Promise.all([...Array(total).keys()].map(genOne));
-  if (alreadyFinished) return "already";
-
-  // One retry round for parts that failed.
-  const failed = [...Array(total).keys()].filter((p) => !parts[p]);
-  if (failed.length) await Promise.all(failed.map(genOne));
+  // Low-tier API keys have tight per-minute token limits — firing all parts
+  // at once gets most of them rate-limited. Run a small worker pool (3
+  // concurrent) and retry missing parts across rounds with backoff.
+  const MAX_ROUNDS = 5;
+  for (let round = 0; round < MAX_ROUNDS; round++) {
+    const missing = [...Array(total).keys()].filter((p) => !parts[p]);
+    if (!missing.length || alreadyFinished) break;
+    if (round > 0) await new Promise((r) => setTimeout(r, 5000 * round));
+    let idx = 0;
+    await Promise.all(
+      Array(Math.min(3, missing.length))
+        .fill(0)
+        .map(async () => {
+          while (idx < missing.length && !alreadyFinished) {
+            const p = missing[idx++];
+            await genOne(p);
+          }
+        })
+    );
+  }
   if (alreadyFinished) return "already";
   if (parts.some((p) => !p)) return "failed";
 

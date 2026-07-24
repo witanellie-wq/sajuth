@@ -262,7 +262,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
   useEffect(() => {
     if (!genState) return;
     const iv = setInterval(() => {
-      const timeP = Math.min(90, ((Date.now() - genStartRef.current) / 75000) * 90);
+      const timeP = Math.min(90, ((Date.now() - genStartRef.current) / 160000) * 90);
       const partP = genState.total > 0 ? (genState.done / genState.total) * 100 : 0;
       setGenPct((p) => Math.max(p, Math.min(97, Math.max(timeP, partP))));
     }, 400);
@@ -529,7 +529,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
           </div>
           <div className="mt-2 text-xs text-violet-500">
             {Math.round(genPct)}%
-            {uiLang === "th" ? " · ประมาณ 1 นาที" : uiLang === "en" ? " · about a minute" : " · 약 1분"}
+            {uiLang === "th" ? " · 1~3 นาที" : uiLang === "en" ? " · 1–3 minutes" : " · 1~3분"}
           </div>
         </div>
       )}
@@ -608,7 +608,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
                 </h3>
                 <p
                   className={
-                    "mt-1 text-sm leading-relaxed text-ink/80 " + (s.locked ? "locked-body" : "")
+                    "mt-1 whitespace-pre-line text-sm leading-relaxed text-ink/80 " + (s.locked ? "locked-body" : "")
                   }
                 >
                   {/* Locked preview: repeat the teaser so the blur reflects the
