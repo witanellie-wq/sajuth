@@ -342,6 +342,10 @@ export default function ResultView({ initial }: { initial: Reading }) {
       if (data.ref) {
         setPay(null);
         setClaim({ ref: data.ref });
+        // PRE-GENERATE: start building the long report in the background the
+        // moment the transfer is reported. It's stored blurred (locked), so
+        // approval later unlocks it INSTANTLY.
+        runReportGeneration(id, "reading", () => {}).catch(() => {});
       }
     } finally {
       setBusy(false);
@@ -613,7 +617,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
                 >
                   {/* Locked preview: repeat the teaser so the blur reflects the
                       real (long-form) length of the paid report. */}
-                  {s.locked ? (s.body + " ").repeat(5) : s.body}
+                  {s.locked ? (s.body.length < 400 ? (s.body + " ").repeat(5) : s.body) : s.body}
                 </p>
               </div>
             </div>

@@ -9,9 +9,11 @@ import type { Compatibility } from "@/lib/compat";
 import { pickLang } from "@/lib/i18n";
 
 // Client-orchestrated long-report generation. One serverless call per PART
-// (3 categories, ~30s) so the full 12-13 category report can never hit the
-// 60s function cap. The buyer's page fires all parts in parallel, shows
-// progress, then saves the assembled report in a single write.
+// (one category, ~20s) so the report can never hit the 60s function cap.
+//
+// PRE-GENERATION: a record with a payment CLAIM (이체 신고) may generate
+// before approval — the report is stored with locked sections, so the page
+// stays blurred until the owner approves, and then unlocks INSTANTLY.
 export const maxDuration = 60;
 
 type Kind = "reading" | "compat";
@@ -31,7 +33,13 @@ function sane(sections: unknown): GenSection[] | null {
   return out;
 }
 
-// GET /api/genreport?id=...&kind=reading|compat → { total, finished }
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const compatAllowed = (rec: any): boolean => !!rec.paid || !!rec.charts?.claim;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const readingAllowed = (rec: any): boolean =>
+  !!rec.paid || !!rec.claim || !!rec.input?.claim;
+
+// GET /api/genreport?id=...&kind=reading|compat → { allowed, total, finished }
 export async function GET(req: NextRequest) {
   const id = req.nextUrl.searchParams.get("id") ?? "";
   const kind: Kind = req.nextUrl.searchParams.get("kind") === "compat" ? "compat" : "reading";
@@ -45,6 +53,7 @@ export async function GET(req: NextRequest) {
     const payload = rec.charts as any;
     return NextResponse.json({
       paid: rec.paid,
+      allowed: compatAllowed(rec),
       finished: !!result.generated,
       total: reportChunkCount("compat", payload?.relationship ?? result.relationship),
     });
@@ -53,6 +62,7 @@ export async function GET(req: NextRequest) {
   if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
   return NextResponse.json({
     paid: rec.paid,
+    allowed: readingAllowed(rec),
     finished: !!rec.input.generated,
     total: reportChunkCount("reading"),
   });
@@ -80,7 +90,7 @@ export async function POST(req: NextRequest) {
   if (kind === "compat") {
     const rec = await compatStore.get(id);
     if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
-    if (!rec.paid) return NextResponse.json({ error: "not_paid" }, { status: 403 });
+    if (!compatAllowed(rec)) return NextResponse.json({ error: "not_paid" }, { status: 403 });
     const result = rec.result as Compatibility & { generated?: boolean };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const payload = rec.charts as any;
@@ -90,9 +100,11 @@ export async function POST(req: NextRequest) {
       const gen = sane(body.save);
       if (!gen) return NextResponse.json({ error: "bad_sections" }, { status: 400 });
       const overview = result.sections?.find((s) => s.key === "overview");
+      // Unpaid (pre-generated) reports stay locked/blurred until approval.
+      const locked = !rec.paid;
       const sections = [
         ...(overview ? [overview] : []),
-        ...gen.map((s, i) => ({ key: `gen${i + 1}`, title: s.title, body: s.body, locked: false })),
+        ...gen.map((s, i) => ({ key: `gen${i + 1}`, title: s.title, body: s.body, locked })),
       ];
       await compatStore.updateResult(id, { ...result, sections, generated: true });
       return NextResponse.json({ ok: true });
@@ -116,16 +128,18 @@ export async function POST(req: NextRequest) {
 
   const rec = await store.get(id);
   if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
-  if (!rec.paid) return NextResponse.json({ error: "not_paid" }, { status: 403 });
+  if (!readingAllowed(rec)) return NextResponse.json({ error: "not_paid" }, { status: 403 });
 
   if (body.save !== undefined) {
     if (rec.input.generated) return NextResponse.json({ ok: true, already: true });
     const gen = sane(body.save);
     if (!gen) return NextResponse.json({ error: "bad_sections" }, { status: 400 });
     const free = rec.sections.filter((s) => !s.locked);
+    // Unpaid (pre-generated) reports stay locked/blurred until approval.
+    const locked = !rec.paid;
     await store.updateSections(id, [
       ...free,
-      ...gen.map((s, i) => ({ key: `gen${i + 1}`, title: s.title, body: s.body, locked: false })),
+      ...gen.map((s, i) => ({ key: `gen${i + 1}`, title: s.title, body: s.body, locked })),
     ]);
     return NextResponse.json({ ok: true });
   }

@@ -448,11 +448,14 @@ export function unlock(
   lang: Lang = "th"
 ): ReportSection[] {
   const bodies = PREMIUM_BY_DAY_MASTER[dayMaster] ?? {};
-  return sections.map((s) =>
-    s.locked && bodies[s.key]
-      ? { ...s, body: bodies[s.key][lang], locked: false }
-      : s
-  );
+  return sections.map((s) => {
+    if (!s.locked) return s;
+    if (bodies[s.key]) return { ...s, body: bodies[s.key][lang], locked: false };
+    // Pre-generated long-report sections (gen1..genN) carry their real body —
+    // paying just removes the blur.
+    if (s.key.startsWith("gen")) return { ...s, locked: false };
+    return s;
+  });
 }
 
 // Back-compat export (Thai) — prefer DISCLAIMER from i18n.ts.

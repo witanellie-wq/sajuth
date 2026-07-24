@@ -19,7 +19,7 @@ export async function runReportGeneration(
 ): Promise<GenOutcome> {
   const st = await fetch(`/api/genreport?id=${id}&kind=${kind}`).then((r) => r.json());
   if (st.finished) return "already";
-  if (!st.paid || !st.total) return "failed";
+  if (!st.allowed || !st.total) return "failed";
   const total: number = st.total;
   onProgress(0, total);
 
