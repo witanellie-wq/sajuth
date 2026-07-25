@@ -514,6 +514,26 @@ function clamp(n: number): number {
   return Math.max(25, Math.min(CAP, Math.round(n)));
 }
 
+// Perceptual remap of the clamped raw score. Practitioner preference: mid
+// matches should read one tier warmer — a raw 50-something → 60s, a raw
+// 60-something → 70s — while the top stays compressed near the 95 cap so
+// 천생연분 remains rare and the anchor couple holds ~93-94. Piecewise-linear
+// through these (raw → shown) anchor points, monotonic throughout.
+const REMAP_POINTS: Array<[number, number]> = [
+  [25, 25], [40, 48], [50, 60], [60, 70], [70, 76], [80, 84], [90, 92], [95, 95],
+];
+function remapScore(s: number): number {
+  if (s <= REMAP_POINTS[0][0]) return REMAP_POINTS[0][1];
+  const last = REMAP_POINTS[REMAP_POINTS.length - 1];
+  if (s >= last[0]) return last[1];
+  for (let i = 1; i < REMAP_POINTS.length; i++) {
+    const [x0, y0] = REMAP_POINTS[i - 1];
+    const [x1, y1] = REMAP_POINTS[i];
+    if (s <= x1) return Math.round(y0 + ((s - x0) / (x1 - x0)) * (y1 - y0));
+  }
+  return s;
+}
+
 export function computeCompatibility(
   a: SajuChart,
   b: SajuChart,
@@ -854,10 +874,11 @@ export function computeCompatibility(
     intimateReasons.push(INTIMATE_TEXT.bikyeon[lang]);
   }
 
-  const s = clamp(score);
+  const s = remapScore(clamp(score));
 
   // Soft-link to the overall score (25%) so intimate can't float far above a
   // poor overall match — while clash-driven "spicy" pairs keep their edge.
+  // Uses the shown score so 속궁합 tracks the same warmth as the headline.
   intimate = Math.round(0.25 * s + 0.75 * intimate);
   intimate = Math.max(20, Math.min(99, intimate));
 
