@@ -4,7 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { STEM_STYLE, BRANCH_STYLE, HIDDEN_STEMS } from "./hanStyles";
 import { runReportGeneration, runReportTranslation } from "./genReport";
 
-const IG_URL = process.env.NEXT_PUBLIC_IG_URL ?? "https://www.instagram.com/duangsaju";
+const IG_HANDLE = process.env.NEXT_PUBLIC_IG_HANDLE ?? "duangsaju";
+// Official Instagram direct-message deep link — opens a DM thread straight to
+// the account (the app on mobile, web DM on desktop). A plain profile URL only
+// opens the profile page and can't pre-open a chat.
+const IG_DM_URL = `https://ig.me/m/${IG_HANDLE}`;
 
 // Korean readings shown under each hanja (like classic 만세력 apps).
 const STEM_KO: Record<string, string> = {
@@ -612,7 +616,7 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
             </>
           ) : (
             <a
-              href={IG_URL}
+              href={IG_DM_URL}
               target="_blank"
               rel="noreferrer"
               className="mt-3 inline-block rounded-xl bg-rosewood px-6 py-2.5 text-sm font-semibold text-white"
@@ -754,7 +758,7 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
               </p>
             )}
             <a
-              href={IG_URL}
+              href={IG_DM_URL}
               target="_blank"
               rel="noreferrer"
               className="mt-2 block w-full rounded-xl bg-rosewood py-2.5 text-sm font-semibold text-white"
