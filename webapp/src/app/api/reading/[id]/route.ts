@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { store } from "@/lib/store";
-import { redactLocked } from "@/lib/redact";
+import { redactLocked, dropDegenerate } from "@/lib/redact";
 import { unlock, interpret } from "@/lib/interpret";
 import { todayFortune, TODAY_PREFIX } from "@/lib/today";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
@@ -60,7 +60,7 @@ export async function GET(
     needsTranslate,
     name: reading.input.name ?? "",
     chart: reading.chart,
-    sections,
+    sections: dropDegenerate(sections),
     paid: reading.paid,
     lang,
     disclaimer: DISCLAIMER[lang],

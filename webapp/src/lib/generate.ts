@@ -141,10 +141,17 @@ async function callChunk(
     const json = text.slice(text.indexOf("["), text.lastIndexOf("]") + 1);
     const parsed = JSON.parse(json) as Array<{ title: string; body: string }>;
     if (!Array.isArray(parsed) || parsed.length === 0) return null;
-    return parsed.map((sec) => ({
-      title: String(sec.title).slice(0, 120),
-      body: String(sec.body),
+    const out = parsed.map((sec) => ({
+      title: String(sec.title ?? "").slice(0, 120),
+      body: String(sec.body ?? ""),
     }));
+    // Reject degenerate output — a rare "placeholder" stub, an empty body, or a
+    // section far shorter than the length rule asks for. Returning null lets the
+    // caller's retry loop regenerate this part instead of saving junk.
+    if (out.some((s) => s.body.trim().length < 120 || s.body.trim() === s.title.trim())) {
+      return null;
+    }
+    return out;
   } catch (err) {
     console.error("report chunk generation failed:", err);
     return null;
@@ -179,6 +186,8 @@ export async function translateSection(
     const json = text.slice(text.indexOf("{"), text.lastIndexOf("}") + 1);
     const p = JSON.parse(json) as { title: string; body: string };
     if (!p?.title || !p?.body) return null;
+    // Reject a degenerate/placeholder translation so the retry loop re-runs it.
+    if (String(p.body).trim().length < 120) return null;
     return { title: String(p.title).slice(0, 200), body: String(p.body) };
   } catch (err) {
     console.error("section translation failed:", err);

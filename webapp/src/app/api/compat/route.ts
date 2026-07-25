@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { computeSaju, placeCoords, type SajuInput } from "@/lib/saju";
 import { computeCompatibility, unlockCompat, type Compatibility } from "@/lib/compat";
 import { compatStore } from "@/lib/store";
-import { redactLocked } from "@/lib/redact";
+import { redactLocked, dropDegenerate } from "@/lib/redact";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
 
 // Language-switch on a paid record may generate the long report on demand.
@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
     profiles: payload?.profiles,
     relationship,
     charts: payload?.charts ?? payload,
-    result: { ...result, sections },
+    result: { ...result, sections: dropDegenerate(sections) },
     disclaimer: DISCLAIMER[lang],
   });
 }
