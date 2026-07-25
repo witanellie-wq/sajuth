@@ -34,15 +34,24 @@ function branchesOf(c: SajuChart): string[] {
   return [c.year.zhi, c.month.zhi, c.day.zhi, ...(c.hour ? [c.hour.zhi] : [])];
 }
 
-/** Which 신살 the chart carries (기준: 년지·일지; 홍염 기준: 일간). */
+/**
+ * Which 신살 the chart carries (group basis: 년지·일지; 홍염 basis: 일간).
+ *
+ * 도화·화개 are only reported as "진도화(眞桃花)·진화개(眞華蓋)" — i.e. when the
+ * star sits in the 일지 or 시지 (the potent 日時 positions). A 도화/화개 that
+ * only shows up in the 년지·월지 is peripheral and NOT flagged, so we never
+ * overstate a charm/canopy star the chart doesn't strongly carry.
+ */
 export function findSinsal(chart: SajuChart): SinsalKey[] {
   const branches = branchesOf(chart);
+  // 진도화·진화개 positions: 일지 + 시지(시주를 아는 경우에 한함).
+  const prominent = [chart.day.zhi, ...(chart.hour ? [chart.hour.zhi] : [])];
   const found = new Set<SinsalKey>();
   for (const basis of [chart.year.zhi, chart.day.zhi]) {
     const stars = GROUP_STARS[basis];
     if (!stars) continue;
-    if (branches.includes(stars.dohwa)) found.add("dohwa");
-    if (branches.includes(stars.hwagae)) found.add("hwagae");
+    if (prominent.includes(stars.dohwa)) found.add("dohwa");
+    if (prominent.includes(stars.hwagae)) found.add("hwagae");
     if (branches.includes(stars.yeokma)) found.add("yeokma");
   }
   const hy = HONGYEOM[chart.dayMaster];

@@ -100,12 +100,26 @@ const PLATONIC_CATEGORIES: string[] = [
 
 // saju-kid-grade length: every category must read like a full consultation.
 const LENGTH_RULE =
-  `각 카테고리는 반드시 길게: 15문장 이상, 공백 포함 700자 이상(한국어 기준 — ` +
-  `태국어·영어도 같은 정보량). 실제 간지 글자와 일주 이름(예: 을해일주, 병술일주)을 인용하고, ` +
+  `각 카테고리는 충분히: 11~13문장, 공백 포함 500~600자(한국어 기준 — ` +
+  `태국어·영어도 같은 정보량). 너무 길게 늘어지지 말고 핵심 위주로 밀도 있게 써라. ` +
+  `실제 간지 글자와 일주 이름(예: 을해일주, 병술일주)을 인용하고, ` +
   `명리 근거(합·충·암합·조후·용신·십신)를 짚으며, 생활 속 구체적 장면과 실용 조언(인테리어, 말버릇, ` +
   `시기 등)까지 담아라. 짧고 두루뭉술한 문장은 금지. ` +
   `문단 구성: 한 덩어리로 쓰지 말고 빈 줄(\\n\\n)로 구분된 2~3개 문단으로 나눠라. ` +
   `분위기에 맞는 이모지(🌊 🔥 🌸 💞 🍀 ✨ 등)를 문단당 0~2개, 과하지 않게 자연스레 섞어라.`;
+
+// Accuracy guardrails shared by the reading and compat prompts. The model
+// tends to invent specific pillar-to-pillar 합/암합 (e.g. "월주와 시주 사이
+// 술해 우합") that don't exist, and to overstate scattered 도화/화개. These
+// rules keep the prose faithful to real 명리 positioning.
+const ACCURACY_RULES =
+  `\n\n[해석 정확도 규칙 — 반드시 지켜라]\n` +
+  `1) 합·암합·우합·충은 '같은 자리'(예: 일지↔일지) 또는 '바로 옆 기둥'(예: 월지↔일지, 일지↔시지)의 지지끼리만 성립한다. ` +
+  `월주-시주, 년주-시주, 년주-일주처럼 건너뛰어 떨어진 기둥끼리의 합/암합/우합은 존재하지 않으니 절대 지어내지 마라. ` +
+  `어느 두 기둥인지 확신이 없으면 위치를 지목하지 말고 기운의 작용으로만 설명하라.\n` +
+  `2) 흩어져 떨어진 암합은 언급하지 마라. 같은 자리 혹은 바로 옆자리 지지끼리의 암합만 다뤄라.\n` +
+  `3) 도화살·화개살은 일지(또는 시지)에 자리한 '진도화·진화개'만 언급하라. 그 외 자리의 도화/화개는 없는 것으로 취급하고, 억지로 세게 가졌다고 하지 마라.\n` +
+  `4) 사주에 '미상'(시주 등)으로 표시된 기둥은 그 기둥·지지에 관한 어떤 해석도 하지 마라.`;
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -233,7 +247,8 @@ function readingPrompt(
     `신강약: ${s.bandLabel} (지지율 ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
     `신살: ${sinsal.length ? sinsal.join(", ") : "없음"} (도화=매력, 홍염=달콤한 유혹, 화개=예술·고독, 역마=이동·변화 — 있으면 해석에 반드시 반영)\n` +
     `분석 노트: ${s.notes.join(" | ") || "없음"}\n` +
-    `호칭 규칙: 의뢰인은 반드시 "${name}"(으)로 지칭하고, A나 '고객' 같은 임의 약칭을 만들지 마라.`;
+    `호칭 규칙: 의뢰인은 반드시 "${name}"(으)로 지칭하고, A나 '고객' 같은 임의 약칭을 만들지 마라.` +
+    ACCURACY_RULES;
   return { system, context };
 }
 
@@ -347,7 +362,8 @@ function compatPrompt(
       ? `\n\n[엔진 분석 포인트 — 배우자성(관성·재성)·천을귀인·신살·암합 등. 반드시 이 근거들을 해석에 녹여라]\n${points}`
       : "") +
     `\n\n호칭 규칙: 두 사람은 반드시 "${nameA}"와(과) "${nameB}"로만 지칭하라. ` +
-    `"A", "B", "사람1" 같은 임의 약칭을 절대 만들지 마라.`;
+    `"A", "B", "사람1" 같은 임의 약칭을 절대 만들지 마라.` +
+    ACCURACY_RULES;
 
   return { system, context, cats: romantic ? ROMANTIC_CATEGORIES : PLATONIC_CATEGORIES, lang };
 }
