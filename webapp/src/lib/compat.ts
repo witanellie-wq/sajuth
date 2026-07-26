@@ -27,6 +27,11 @@ export interface Compatibility {
   relationship: string;
   lang: Lang;
   sections: CompatSection[];
+  // Factual list of every cross-chart combination the engine found, with
+  // positions ("{A}의 시지 亥 ↔ {B}의 일지 戌 — 암합"). {A}/{B} tokens are
+  // replaced with real names in the report prompt; the AI may only cite
+  // combinations from this list, never invent its own.
+  combos?: string[];
 }
 
 // 六合 harmony pairs.
@@ -580,6 +585,7 @@ export function computeCompatibility(
   }
 
   // 2. Day-branch (spouse palace) relation.
+  let dayChong: { x: string; y: string } | null = null;
   const bp = branchPair(a.day.zhi, b.day.zhi);
   if (bp === "he") {
     score += 15;
@@ -596,6 +602,9 @@ export function computeCompatibility(
   } else {
     score += 5;
   }
+  // Record the spouse-palace pairing for the report AI (육합 is captured by
+  // the 육합 sweep below; 삼합 by the 삼합 sweep).
+  if (bp === "chong") dayChong = { x: a.day.zhi, y: b.day.zhi };
 
   // 3. 용신 complement — does each supply the other's favorable element?
   const sa = analyzeStrength(a, lang);
@@ -660,6 +669,15 @@ export function computeCompatibility(
   // Distant pairs (년지-시지 등) are not real combinations.
   // Position order: 0=year, 1=month, 2=day, 3=hour.
   const nearPos = (i: number, j: number): boolean => Math.abs(i - j) <= 1;
+  // Factual record of every combination found (fed verbatim to the report AI).
+  const POS_ZHI = ["년지", "월지", "일지", "시지"];
+  const POS_GAN = ["년간", "월간", "일간", "시간"];
+  const combos: string[] = [];
+  const comboAt = (i: number, j: number, x: string, y: string, kind: string, zhi = true) => {
+    const P = zhi ? POS_ZHI : POS_GAN;
+    combos.push(`{A}의 ${P[i]} ${x} ↔ {B}의 ${P[j]} ${y} — ${kind}`);
+  };
+  if (dayChong) comboAt(2, 2, dayChong.x, dayChong.y, "충(沖)");
 
   // 7. 암합 — hidden combinations across the two charts' branches.
   const branchesOf = (c: SajuChart): string[] => [
@@ -678,6 +696,7 @@ export function computeCompatibility(
       const n = AMHAP_COMBOS[bA[i] + bB[j]];
       if (n) {
         amhapFound.set([bA[i], bB[j]].sort().join(""), n);
+        comboAt(i, j, bA[i], bB[j], "암합(暗合)");
         if (AMHAP_JEONGIM.has(bA[i] + bB[j])) hiddenJeongim = true;
       }
     }
@@ -697,8 +716,10 @@ export function computeCompatibility(
   const myeongStem = new Set<string>();
   for (let i = 0; i < sA.length; i++)
     for (let j = 0; j < sB.length; j++)
-      if (nearPos(i, j) && STEM_HE_PAIRS.has(sA[i] + sB[j]))
+      if (nearPos(i, j) && STEM_HE_PAIRS.has(sA[i] + sB[j])) {
         myeongStem.add([sA[i], sB[j]].sort().join(""));
+        comboAt(i, j, sA[i], sB[j], "천간합(명합)", false);
+      }
   if (myeongStem.size > 0) {
     score += Math.min(4, myeongStem.size * 2);
     notes.push({ k: "myeonghap", text: NOTES.myeonghap[lang] });
@@ -708,8 +729,10 @@ export function computeCompatibility(
   const branchHe = new Set<string>();
   for (let i = 0; i < bA.length; i++)
     for (let j = 0; j < bB.length; j++)
-      if (nearPos(i, j) && (LIU_HE.has(bA[i] + bB[j]) || LIU_HE.has(bB[j] + bA[i])))
+      if (nearPos(i, j) && (LIU_HE.has(bA[i] + bB[j]) || LIU_HE.has(bB[j] + bA[i]))) {
         branchHe.add([bA[i], bB[j]].sort().join(""));
+        comboAt(i, j, bA[i], bB[j], "육합(六合)");
+      }
   branchHe.delete([a.day.zhi, b.day.zhi].sort().join("")); // day-day already scored
   if (branchHe.size > 0) {
     score += Math.min(3, branchHe.size * 2);
@@ -718,16 +741,29 @@ export function computeCompatibility(
 
   // 8. 우합/모서리합 — corner pairs across the two charts' branches.
   let woohapFound = false;
-  for (let i = 0; i < bA.length && !woohapFound; i++)
+  for (let i = 0; i < bA.length; i++)
     for (let j = 0; j < bB.length; j++)
       if (nearPos(i, j) && (WOOHAP.has(bA[i] + bB[j]) || WOOHAP.has(bB[j] + bA[i]))) {
+        if (!woohapFound) comboAt(i, j, bA[i], bB[j], "우합(隅合)");
         woohapFound = true;
-        break;
       }
   if (woohapFound) {
     score += 3;
     notes.push({ k: "woohap", text: NOTES.woohap[lang] });
   }
+
+  // 8b. 삼합 lanes across the charts (same/adjacent positions, beyond the
+  // day-day pairing already scored) — e.g. 내 시지와 상대 일지가 같은 삼합국.
+  let sanheCross = false;
+  for (let i = 0; i < bA.length; i++)
+    for (let j = 0; j < bB.length; j++) {
+      if (!nearPos(i, j) || (i === 2 && j === 2)) continue;
+      if (bA[i] !== bB[j] && SAN_HE.some((g) => g.includes(bA[i]) && g.includes(bB[j]))) {
+        if (!sanheCross) comboAt(i, j, bA[i], bB[j], "삼합(三合) 기운");
+        sanheCross = true;
+      }
+    }
+  if (sanheCross) score += 1;
 
   // 9. 오누이 궁합 — same month branch (월지) reads sibling-like: cozy but
   // low on romantic spark. Docked hard (-30, per classical practice).
@@ -931,6 +967,7 @@ export function computeCompatibility(
     relationship,
     lang,
     sections,
+    combos,
   };
 }
 

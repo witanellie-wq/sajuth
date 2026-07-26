@@ -68,47 +68,53 @@ function pillarsOf(c: SajuChart): string {
 const ROMANTIC = new Set(["lovers", "married", "talking"]);
 
 // Each category owns ONE distinct topic so the report never repeats itself.
-// The parenthetical "여기서만" scope keeps a category from bleeding into
-// another (reports are generated one category at a time, so the title's
-// boundary is what enforces separation).
-const ROMANTIC_CATEGORIES: string[] = [
-  "전체 총평 (조후·오행·궁합 점수의 큰 그림만 — 세부 주제는 뒤 카테고리에서 다루므로 여기선 총론만)",
-  "두 사람 각자의 성격과 기질 (궁합이 아니라, 두 사람의 일간·오행 성향을 각각 인물 소개하듯)",
-  "겉궁합 (현실적·사회적 어울림: 첫인상, 생활 리듬, 데이트, 남들 눈에 비치는 두 사람 — 정서·육체 친밀감은 제외)",
-  "속궁합 (정서적·육체적 친밀감의 케미만 — 암합·충·합 근거로 구체적으로)",
-  "사랑하는 방식 (각자 애정을 주고받는 언어의 차이와 맞춤법)",
-  "소통과 갈등 (다툴 때의 패턴과 화해법에만 집중)",
-  "금전·재물 궁합 (돈에 대한 태도와 함께일 때의 경제 흐름·관리법)",
-  "결혼운 (결혼했을 때의 생활 모습과 결혼 적기·안정도)",
-  "자녀운 (아이를 낳는다면 어떤 기운의 아이인지, 양육 궁합)",
-  "가족·주변 인연 (시댁·처가 등 양가와 주변 관계)",
-  "장기 전망 (권태기·위기 시점과 오래 가는 힘)",
-  "관계를 지키는 결정적 지침 (구체적 액션 플랜만)",
-  "마무리 총평 (두 사람만의 개운 문구 한 줄 포함)",
+// label = the topic word that MUST lead the section title (so readers can
+// scan the report structure at a glance); spec = the scope the body must
+// stay inside. Reports are generated one category at a time, so these
+// boundaries are what enforce separation.
+interface ReportCategory {
+  label: string;
+  spec: string;
+}
+
+const ROMANTIC_CATEGORIES: ReportCategory[] = [
+  { label: "전체 총평", spec: "조후·오행·궁합 점수의 큰 그림만. 세부 주제(성격·속궁합·금전 등)는 뒤 카테고리에서 다루므로 여기선 총론만." },
+  { label: "각자의 성격", spec: "궁합이 아니라 두 사람 개인 소개. 각자의 일간·오행 기질을 인물 소개하듯 절반씩." },
+  { label: "겉궁합", spec: "현실적·사회적 어울림만: 첫인상, 생활 리듬, 데이트 스타일, 남들 눈에 비치는 두 사람. 정서·육체 친밀감은 금지(속궁합 몫)." },
+  { label: "속궁합", spec: "정서적·육체적 친밀감의 케미만 — 암합·충·합 근거로 구체적으로." },
+  { label: "사랑 방식", spec: "각자 애정을 표현하고 받고 싶어하는 방식의 차이와 맞춤법만." },
+  { label: "소통·갈등", spec: "다툴 때의 패턴과 화해법에만 집중." },
+  { label: "금전 궁합", spec: "돈에 대한 태도 차이와 함께일 때의 경제 흐름·관리법만." },
+  { label: "결혼운", spec: "결혼했을 때의 생활 모습, 결혼 적기, 안정도만. 돈 얘기는 금전 궁합 몫." },
+  { label: "자녀운", spec: "아이를 낳는다면 어떤 기운의 아이인지, 양육 궁합만." },
+  { label: "가족 인연", spec: "시댁·처가 등 양가와 주변 관계만." },
+  { label: "장기 전망", spec: "권태기·위기 시점과 오래 가는 힘만." },
+  { label: "관계 지침", spec: "관계를 지키는 구체적 액션 플랜만." },
+  { label: "마무리", spec: "짧은 마무리 총평. 두 사람만의 개운 문구 한 줄 포함." },
 ];
 
-const PLATONIC_CATEGORIES: string[] = [
-  "전체 총평 (두 사람 기운의 큰 그림만 — 세부는 뒤에서 다루므로 여기선 총론만)",
-  "두 사람 각자의 성격과 기질 (각자의 일간·오행 성향을 인물 소개하듯)",
-  "함께 있을 때의 케미 (어울림·분위기, 남들 눈에 비치는 관계)",
-  "협업·일 궁합 (함께 일이나 프로젝트를 할 때의 시너지)",
-  "소통과 갈등 (부딪히는 지점과 푸는 법에만 집중)",
-  "신뢰와 의리 (믿음을 쌓아가는 방식)",
-  "금전·거래에서의 주의점 (돈이 얽힐 때만)",
-  "서로에게 배울 점과 성장",
-  "장기적인 인연의 전망",
-  "관계를 지키는 결정적 지침 (구체적 액션 플랜만)",
-  "마무리 총평 (두 사람만의 개운 문구 한 줄 포함)",
+const PLATONIC_CATEGORIES: ReportCategory[] = [
+  { label: "전체 총평", spec: "두 사람 기운의 큰 그림만 — 세부는 뒤에서 다루므로 총론만." },
+  { label: "각자의 성격", spec: "각자의 일간·오행 기질을 인물 소개하듯 절반씩." },
+  { label: "케미", spec: "함께 있을 때의 어울림·분위기, 남들 눈에 비치는 관계만." },
+  { label: "협업 궁합", spec: "함께 일이나 프로젝트를 할 때의 시너지만." },
+  { label: "소통·갈등", spec: "부딪히는 지점과 푸는 법에만 집중." },
+  { label: "신뢰", spec: "믿음과 의리를 쌓아가는 방식만." },
+  { label: "금전 주의점", spec: "돈이 얽힐 때의 주의점만." },
+  { label: "배울 점", spec: "서로에게 배울 점과 성장 포인트만." },
+  { label: "장기 전망", spec: "장기적인 인연의 전망만." },
+  { label: "관계 지침", spec: "관계를 지키는 구체적 액션 플랜만." },
+  { label: "마무리", spec: "짧은 마무리 총평. 두 사람만의 개운 문구 한 줄 포함." },
 ];
 
 // saju-kid-grade length: every category must read like a full consultation.
 const LENGTH_RULE =
-  `각 카테고리는 충분히: 11~13문장, 공백 포함 500~600자(한국어 기준 — ` +
-  `태국어·영어도 같은 정보량). 너무 길게 늘어지지 말고 핵심 위주로 밀도 있게 써라. ` +
-  `실제 간지 글자와 일주 이름(예: 을해일주, 병술일주)을 인용하고, ` +
-  `명리 근거(합·충·암합·조후·용신·십신)를 짚으며, 생활 속 구체적 장면과 실용 조언(인테리어, 말버릇, ` +
-  `시기 등)까지 담아라. 짧고 두루뭉술한 문장은 금지. ` +
-  `문단 구성: 한 덩어리로 쓰지 말고 빈 줄(\\n\\n)로 구분된 2~3개 문단으로 나눠라. ` +
+  `각 카테고리는 9~11문장, 공백 포함 400~500자(한국어 기준 — 태국어·영어도 같은 정보량). ` +
+  `짧아도 되니 지루하지 않게: 뻔한 덕담과 하나마나한 문장은 빼고, 이 두 사람 사주에서만 나올 수 있는 ` +
+  `구체적인 이야기만 써라. 실제 간지 글자와 일주 이름(예: 을해일주)을 인용하고 명리 근거(합·충·조후·용신·십신)를 짚되, ` +
+  `용어 나열보다 생활 속 장면 하나를 생생하게 그려주는 쪽을 택하라. ` +
+  `문장 리듬에 변화를 주고, 매 카테고리를 같은 패턴(예: "두 분은...")으로 시작하지 마라. ` +
+  `문단 구성: 빈 줄(\\n\\n)로 구분된 2~3개 문단. ` +
   `분위기에 맞는 이모지(🌊 🔥 🌸 💞 🍀 ✨ 등)를 문단당 0~2개, 과하지 않게 자연스레 섞어라.`;
 
 // Accuracy guardrails shared by the reading and compat prompts. The model
@@ -136,18 +142,22 @@ async function callChunk(
   c: AnthropicLike,
   system: string,
   context: string,
-  cats: string[],
+  cats: ReportCategory[],
+  allCats: ReportCategory[],
   startNo: number,
   lang: Lang
 ): Promise<Array<{ title: string; body: string }> | null> {
   const prompt =
     context +
-    `\n\n이건 전체 리포트 중 일부야. 다음 카테고리들만 작성해줘:\n` +
-    cats.map((t, i) => `${startNo + i}. ${t}`).join("\n") +
-    `\n\n각 카테고리는 제목에 명시된 주제 범위 안에서만 써라. ` +
-    `다른 카테고리(예: 겉궁합↔속궁합, 성격↔궁합, 결혼↔금전)에서 다룰 내용을 여기서 미리 다루거나 반복하지 마라. ` +
+    `\n\n전체 리포트의 카테고리 구성 (겹치면 안 되는 다른 주제들):\n` +
+    allCats.map((t, i) => `${i + 1}. ${t.label}`).join(" / ") +
+    `\n\n이번엔 다음 카테고리만 작성해줘:\n` +
+    cats.map((t, i) => `${startNo + i}. [${t.label}] ${t.spec}`).join("\n") +
+    `\n\n범위 규칙: 위 [라벨]의 spec 범위 안에서만 써라. 전체 구성에 있는 다른 카테고리의 ` +
+    `주제는 여기서 한 문장도 다루지 마라 (예: 겉궁합에서 속궁합 얘기 금지, 결혼운에서 돈 얘기 금지). ` +
     `\n\n${LENGTH_RULE}\n\n출력은 반드시 JSON 배열만: [{"title":"...","body":"..."}] — ` +
-    `title은 각 카테고리를 감성적인 한 줄 제목으로 (번호 없이), body는 본문. ` +
+    `title은 반드시 "<카테고리명> — <감성 부제>" 형식 (카테고리명은 [라벨]을 ${LANG_NAME[lang]}로, ` +
+    `부제는 이 커플만의 한 줄). 번호는 붙이지 마라. body는 본문. ` +
     `모든 텍스트는 ${LANG_NAME[lang]}(으)로.`;
   try {
     const res = await c.messages.create({
@@ -214,19 +224,19 @@ export async function translateSection(
   }
 }
 
-const READING_CATEGORIES: string[] = [
-  "원국 총평 (오행 흐름과 그릇의 크기, 시적인 비유 포함)",
-  "타고난 성격의 빛과 그림자",
-  "연애운 (끌리는 상대의 기운, 사랑하는 방식, 주의점)",
-  "결혼운 (어울리는 배우자상, 결혼 생활의 모습)",
-  "직업운과 적성 (기운에 맞는 일, 피해야 할 일)",
-  "재물운 (돈이 들어오는 길과 새는 구멍)",
-  "건강운 (약한 오행과 몸 관리 포인트)",
-  "인간관계와 귀인 (나를 돕는 사람의 기운)",
-  "대운의 큰 흐름 (10년 단위 인생 리듬)",
-  "올해와 내년의 운",
-  "개운법 (용신 기반 행운 컬러·숫자·방향·습관 제안)",
-  "마무리 총평 (이 사람만의 개운 문구 한 줄 포함)",
+const READING_CATEGORIES: ReportCategory[] = [
+  { label: "원국 총평", spec: "오행 흐름과 그릇의 크기, 시적인 비유 포함. 총론만." },
+  { label: "성격", spec: "타고난 성격의 빛과 그림자만." },
+  { label: "연애운", spec: "끌리는 상대의 기운, 사랑하는 방식, 주의점만." },
+  { label: "결혼운", spec: "어울리는 배우자상과 결혼 생활의 모습만." },
+  { label: "직업·적성", spec: "기운에 맞는 일과 피해야 할 일만." },
+  { label: "재물운", spec: "돈이 들어오는 길과 새는 구멍만." },
+  { label: "건강운", spec: "약한 오행과 몸 관리 포인트만." },
+  { label: "인간관계", spec: "나를 돕는 귀인의 기운과 관계 패턴만." },
+  { label: "대운 흐름", spec: "10년 단위 인생 리듬만." },
+  { label: "올해·내년", spec: "올해와 내년의 운만." },
+  { label: "개운법", spec: "용신 기반 행운 컬러·숫자·방향·습관 제안만." },
+  { label: "마무리", spec: "짧은 마무리 총평. 이 사람만의 개운 문구 한 줄 포함." },
 ];
 
 const CHUNK_SIZE = 1;
@@ -280,7 +290,7 @@ export async function generateReadingPart(
   const chunks = chunk(READING_CATEGORIES, CHUNK_SIZE);
   if (part < 0 || part >= chunks.length) return null;
   const { system, context } = readingPrompt(chart, profile, lang);
-  return callChunk(c, system, context, chunks[part], part * CHUNK_SIZE + 1, lang);
+  return callChunk(c, system, context, chunks[part], READING_CATEGORIES, part * CHUNK_SIZE + 1, lang);
 }
 
 /**
@@ -299,7 +309,7 @@ export async function generateReadingReport(
   const chunks = chunk(READING_CATEGORIES, CHUNK_SIZE);
   let start = 1;
   const jobs = chunks.map((cs) => {
-    const job = callChunk(c, system, context, cs, start, lang);
+    const job = callChunk(c, system, context, cs, READING_CATEGORIES, start, lang);
     start += cs.length;
     return job;
   });
@@ -314,12 +324,25 @@ export async function generateReadingReport(
   }));
 }
 
+// The engine's factual cross-chart combination list (positions included) —
+// the ONLY 합/암합/충 the AI may cite. Old stored results lack `combos`.
+function comboList(result: Compatibility, nameA: string, nameB: string): string {
+  const list = (result.combos ?? [])
+    .map((c) => `- ${c.replaceAll("{A}", nameA).replaceAll("{B}", nameB)}`)
+    .join("\n");
+  if (!list) return "";
+  return (
+    `\n\n[확인된 합·충 목록 — 위치까지 검증된 사실. 합·암합·우합·삼합·충은 이 목록에 있는 것만, ` +
+    `적힌 위치 그대로 언급하라. 목록에 없는 합을 지어내면 안 된다]\n${list}`
+  );
+}
+
 function compatPrompt(
   chartA: SajuChart,
   chartB: SajuChart,
   profiles: { a?: { name?: string; gender?: string }; b?: { name?: string; gender?: string } },
   result: Compatibility
-): { system: string; context: string; cats: string[]; lang: Lang } {
+): { system: string; context: string; cats: ReportCategory[]; lang: Lang } {
   const lang = result.lang ?? "th";
   const relationship = result.relationship ?? "lovers";
   const romantic = ROMANTIC.has(relationship);
@@ -366,6 +389,7 @@ function compatPrompt(
     (points
       ? `\n\n[엔진 분석 포인트 — 배우자성(관성·재성)·천을귀인·신살·암합 등. 반드시 이 근거들을 해석에 녹여라]\n${points}`
       : "") +
+    comboList(result, nameA, nameB) +
     `\n\n호칭 규칙: 두 사람은 반드시 "${nameA}"와(과) "${nameB}"로만 지칭하라. ` +
     `"A", "B", "사람1" 같은 임의 약칭을 절대 만들지 마라.` +
     ACCURACY_RULES;
@@ -386,7 +410,7 @@ export async function generateCompatPart(
   const { system, context, cats, lang } = compatPrompt(chartA, chartB, profiles, result);
   const chunks = chunk(cats, CHUNK_SIZE);
   if (part < 0 || part >= chunks.length) return null;
-  return callChunk(c, system, context, chunks[part], part * CHUNK_SIZE + 1, lang);
+  return callChunk(c, system, context, chunks[part], cats, part * CHUNK_SIZE + 1, lang);
 }
 
 /**
@@ -406,7 +430,7 @@ export async function generateCompatReport(
   const chunks = chunk(cats, CHUNK_SIZE);
   let start = 1;
   const jobs = chunks.map((cs) => {
-    const job = callChunk(c, system, context, cs, start, lang);
+    const job = callChunk(c, system, context, cs, cats, start, lang);
     start += cs.length;
     return job;
   });
