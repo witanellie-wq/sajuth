@@ -765,6 +765,17 @@ export function computeCompatibility(
     }
   if (sanheCross) score += 1;
 
+  // 충 sweep (record only — scoring stays day-day + the intimate crossChong).
+  // Same/adjacent positions, e.g. 내 시지 午 ↔ 상대 시지 子 = 자오충.
+  for (let i = 0; i < bA.length; i++)
+    for (let j = 0; j < bB.length; j++)
+      if (
+        nearPos(i, j) &&
+        !(i === 2 && j === 2) && // day-day 충 already recorded above
+        (LIU_CHONG.has(bA[i] + bB[j]) || LIU_CHONG.has(bB[j] + bA[i]))
+      )
+        comboAt(i, j, bA[i], bB[j], "충(沖)");
+
   // 9. 오누이 궁합 — same month branch (월지) reads sibling-like: cozy but
   // low on romantic spark. Docked hard (-30, per classical practice).
   if (a.month.zhi === b.month.zhi) {
