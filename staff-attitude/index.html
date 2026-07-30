@@ -278,7 +278,26 @@
   .paybtn.on{background:var(--jade);border-color:var(--jade);color:#fff;}
   .paybtn.on:hover{background:#fff;color:var(--jade);}
   .paydate{margin-top:5px;padding:4px 6px!important;font-size:11.5px;max-width:140px;}
+  /* 분류 콤보 — 직접 입력 + 언제든 목록 열기 (input[list] 는 값이 있으면 목록이 걸러져서 직접 만듭니다) */
+  input.hascombo{padding-right:26px;
+    background-image:linear-gradient(45deg,transparent 50%,var(--ink-soft) 50%),
+                     linear-gradient(135deg,var(--ink-soft) 50%,transparent 50%);
+    background-position:calc(100% - 15px) calc(50% + 1px),calc(100% - 10px) calc(50% + 1px);
+    background-size:5px 5px,5px 5px;background-repeat:no-repeat;}
+  .combo-pop{position:fixed;z-index:70;background:#fff;border:1px solid var(--line);
+    border-radius:var(--r);box-shadow:0 10px 28px rgba(19,28,46,.18);
+    max-height:240px;overflow:auto;min-width:150px;display:none;padding:4px 0;}
+  .combo-pop.on{display:block;}
+  .combo-pop button{display:block;width:100%;text-align:left;background:none;border:none;
+    padding:8px 13px;font-size:13px;cursor:pointer;font-family:inherit;color:var(--ink);}
+  .combo-pop button:hover{background:#EEF5F3;}
+  .combo-pop button small{color:var(--ink-soft);margin-left:7px;font-size:11px;}
+  .combo-pop .chd{padding:6px 13px 4px;font-size:10px;letter-spacing:.05em;
+    color:var(--ink-soft);font-weight:600;border-top:1px solid var(--line-soft);margin-top:3px;}
+  .combo-pop .chd:first-child{border-top:none;margin-top:0;}
   .fx-off td{opacity:.45;}
+  #exList{overflow-x:auto;}
+  #cmList{overflow-x:auto;}
   #fixTable input[type=number],#fixTable input[type=text]{padding:6px 8px;font-size:13px;}
   #fixTable input[type=number]{text-align:right;font-family:'IBM Plex Mono',monospace;}
   .catbar{display:flex;height:9px;border-radius:5px;overflow:hidden;background:var(--line-soft);margin-bottom:8px;}
@@ -532,11 +551,13 @@
       <div class="field" style="width:150px;margin:0"><label data-i="lBiz"></label>
         <select id="fxBiz"></select></div>
       <div class="field" style="width:130px;margin:0"><label data-i="fixCat"></label>
-        <input type="text" id="fxCat" list="fixCatList"><datalist id="fixCatList"></datalist></div>
+        <input type="text" id="fxCat" class="hascombo" data-combo="fix"></div>
       <div class="field" style="width:120px;margin:0"><label data-i="fixBase"></label>
         <input type="number" id="fxAmt" min="0" step="10"></div>
       <div class="field" style="width:96px;margin:0"><label data-i="fixDue"></label>
         <input type="number" id="fxDue" min="1" max="31" step="1"></div>
+      <div class="field" style="flex:1;min-width:110px;margin:0"><label data-i="expMemo"></label>
+        <input type="text" id="fxMemo"></div>
       <button class="save" id="fxAdd" style="width:auto;margin:0;padding:9px 18px;align-self:flex-end" data-i="add"></button>
     </div>
     <p class="note" data-ih="fixNote"></p>
@@ -550,9 +571,11 @@
       <div class="field" style="width:150px;margin:0"><label data-i="lBiz"></label>
         <select id="exBizIn"></select></div>
       <div class="field" style="width:135px;margin:0"><label data-i="expCat"></label>
-        <input type="text" id="exCat" list="expCatList"><datalist id="expCatList"></datalist></div>
-      <div class="field" style="flex:1;min-width:150px;margin:0"><label data-i="expItem"></label>
+        <input type="text" id="exCat" class="hascombo" data-combo="exp"></div>
+      <div class="field" style="flex:1;min-width:140px;margin:0"><label data-i="expItem"></label>
         <input type="text" id="exItem"></div>
+      <div class="field" style="flex:1;min-width:120px;margin:0"><label data-i="expMemo"></label>
+        <input type="text" id="exMemo"></div>
       <div class="field" style="width:115px;margin:0"><label data-i="expAmt"></label>
         <input type="number" id="exAmt" min="0" step="10"></div>
       <button class="save" id="exAdd" style="width:auto;margin:0;padding:9px 18px;align-self:flex-end" data-i="add"></button>
@@ -688,6 +711,9 @@
   </div>
 </div>
 
+<!-- ══ 분류 선택 드롭다운 ══ -->
+<div class="combo-pop" id="comboPop"></div>
+
 <!-- ══ 동기화 상태 ══ -->
 <div class="netbar no-print">
   <div class="neterr" id="netErr"></div>
@@ -779,16 +805,18 @@ const I={
   fixDelConfirm:'이 고정비 항목을 삭제할까요? 지금까지의 월별 납부 기록도 함께 지워집니다.',
   fixTotalRow:'고정비 합계', fixNamePh:'예: 임대료 / 전기요금',
   fixDueMsg:'이달 미납 고정비', fixAllPaid:'이달 고정비 모두 납부 완료 ✓',
-  fixNote:'항목을 <b>한 번만 등록해두면 매달 자동으로 이 표에 뜹니다</b> — 매달 다시 입력할 필요가 없습니다.<br><b>이달 금액</b> 칸을 고치면 그 달에만 적용됩니다 (전기요금처럼 달마다 다른 항목에 쓰세요). 비워두면 기본 금액을 씁니다.<br><b>사업장</b>으로 하나하얀과 위튼 타일랜드를 나눠 볼 수 있습니다 — 위쪽 <b>사업장</b> 선택으로 한쪽만 보거나 전체를 볼 수 있고, 전체일 때는 사업장별 소계가 함께 나옵니다.<br><b>분류</b>는 목록에서 고르거나 <b>직접 입력</b>해도 됩니다 — 새로 쓴 분류는 다음부터 추천 목록에 나옵니다.<br>계약이 끝난 항목은 <b>중지</b>를 누르세요 — 다음 달부터 표에서 빠지고 지난 기록은 남습니다. <b>삭제</b>는 납부 이력까지 지웁니다.',
+  fixNote:'항목을 <b>한 번만 등록해두면 매달 자동으로 이 표에 뜹니다</b> — 매달 다시 입력할 필요가 없습니다.<br><b>기본 금액</b>은 매달 기본으로 잡히는 금액입니다 — 여기를 고치면 앞으로 모든 달에 적용됩니다. <b>이달 금액</b>은 그 달만 다를 때 넣으세요 (전기요금처럼). 비워두면 기본 금액을 씁니다.<br>표 안의 <b>모든 칸은 직접 고칠 수 있고</b>, 고치는 즉시 저장됩니다.<br><b>사업장</b>으로 하나하얀과 위튼 타일랜드를 나눠 볼 수 있습니다 — 위쪽 <b>사업장</b> 선택으로 한쪽만 보거나 전체를 볼 수 있고, 전체일 때는 사업장별 소계가 함께 나옵니다.<br><b>분류</b>는 목록에서 고르거나 <b>직접 입력</b>해도 됩니다 — 새로 쓴 분류는 다음부터 추천 목록에 나옵니다.<br>계약이 끝난 항목은 <b>중지</b>를 누르세요 — 다음 달부터 표에서 빠지고 지난 기록은 남습니다. <b>삭제</b>는 납부 이력까지 지웁니다.',
   expDate:'날짜', expItem:'내용', expCat:'분류', expAmt:'금액 (฿)',
   expNone:'이 달 지출 기록이 없습니다.', expTotal:'지출 합계', expByCat:'분류별 소계',
   expItemPh:'예: 니트릴 장갑 2박스 · 면봉',
-  expNote:'한 번만 나가는 돈(소모품 구입, 장비 수리, 세금 납부 등)을 그때그때 적어두는 곳입니다. <b>등록한 날짜가 속한 달</b>의 요약에 자동 합산됩니다. 분류는 <b>직접 입력</b>할 수 있고, 사업장도 함께 고르면 위 표에서 나눠 볼 수 있습니다.',
+  expNote:'한 번만 나가는 돈(소모품 구입, 장비 수리, 세금 납부 등)을 그때그때 적어두는 곳입니다. <b>등록한 날짜가 속한 달</b>의 요약에 자동 합산됩니다. 분류는 <b>직접 입력</b>할 수 있고, 사업장도 함께 고르면 위 표에서 나눠 볼 수 있습니다.<br>이미 넣은 항목은 <b>표에서 바로 고칠 수 있습니다</b> — 날짜 · 사업장 · 분류 · 내용 · 금액 모두 고치는 즉시 저장됩니다.',
   exCsv:'지출 CSV', exNoteSum:'급여는 급여 · 커미션 탭에서 계산된 지급 합계입니다.',
   markPaid:'지급 처리', markPaidHint:'누르면 지급 완료로 기록됩니다',
   undoPaidHint:'누르면 미지급으로 되돌립니다',
   lBiz:'사업장', bizAll:'전체 사업장', exNoPay:'급여 제외', exNoBiz:'사업장 구분 없음',
-  catPh:'직접 입력 가능',
+  catPh:'직접 입력 가능', catPreset:'기본 분류', catMine:'직접 만든 분류',
+  expMemo:'비고', memoPhShort:'메모', fixBaseCol:'기본 금액', fixBaseHint:'매달 기본으로 잡히는 금액입니다. 여기를 고치면 앞으로 모든 달에 적용됩니다.',
+  fixThisHint:'이 달만 다른 금액일 때 넣으세요. 비워두면 기본 금액을 씁니다.',
   opFix:'고정비', opExp:'지출',
   fcRent:'임대료', fcUtil:'공과금', fcTel:'통신', fcIns:'보험', fcSub:'구독 · 서비스', fcTax:'세금', fcEtc:'기타',
   ecSupply:'소모품', ecStock:'제품 · 재고', ecEquip:'장비 · 수리', ecMkt:'마케팅', ecFee:'세금 · 수수료', ecEtc:'기타',
@@ -890,7 +918,7 @@ const I={
   fixDelConfirm:'ต้องการลบรายการนี้หรือไม่? ประวัติการจ่ายรายเดือนจะถูกลบไปด้วย',
   fixTotalRow:'รวมค่าใช้จ่ายประจำ', fixNamePh:'เช่น: ค่าเช่า / ค่าไฟ',
   fixDueMsg:'ค่าใช้จ่ายประจำที่ยังไม่จ่ายเดือนนี้', fixAllPaid:'จ่ายค่าใช้จ่ายประจำครบแล้ว ✓',
-  fixNote:'ลงทะเบียนรายการ<b>ครั้งเดียว ระบบจะแสดงให้ทุกเดือนอัตโนมัติ</b> — ไม่ต้องกรอกซ้ำทุกเดือน<br>แก้ช่อง <b>ยอดเดือนนี้</b> จะมีผลเฉพาะเดือนนั้น (ใช้กับค่าไฟที่ไม่เท่ากันทุกเดือน) เว้นว่างไว้จะใช้ยอดตั้งต้น<br>ใช้ช่อง <b>กิจการ</b> แยกดู HANAHAYAN กับ WITAN Thailand ได้ — เลือกกิจการด้านบนเพื่อดูเฉพาะกิจการนั้น หรือเลือกทุกกิจการเพื่อดูยอดแยกรายกิจการ<br><b>ประเภท</b> เลือกจากรายการหรือ<b>พิมพ์เองก็ได้</b> ประเภทที่พิมพ์ใหม่จะขึ้นในรายการแนะนำครั้งต่อไป<br>รายการที่หมดสัญญาแล้วให้กด <b>หยุดใช้</b> — เดือนถัดไปจะไม่แสดง แต่ประวัติเดิมยังอยู่ ส่วน <b>ลบ</b> จะลบประวัติการจ่ายด้วย',
+  fixNote:'ลงทะเบียนรายการ<b>ครั้งเดียว ระบบจะแสดงให้ทุกเดือนอัตโนมัติ</b> — ไม่ต้องกรอกซ้ำทุกเดือน<br><b>ยอดตั้งต้น</b> คือยอดที่ใช้ทุกเดือน แก้ตรงนี้จะมีผลกับทุกเดือนต่อไป · <b>ยอดเดือนนี้</b> ใส่เมื่อเดือนนั้นต่างจากปกติ (เช่นค่าไฟ) เว้นว่างไว้จะใช้ยอดตั้งต้น<br><b>ทุกช่องในตารางแก้ไขได้</b> และบันทึกทันทีที่แก้<br>ใช้ช่อง <b>กิจการ</b> แยกดู HANAHAYAN กับ WITAN Thailand ได้ — เลือกกิจการด้านบนเพื่อดูเฉพาะกิจการนั้น หรือเลือกทุกกิจการเพื่อดูยอดแยกรายกิจการ<br><b>ประเภท</b> เลือกจากรายการหรือ<b>พิมพ์เองก็ได้</b> ประเภทที่พิมพ์ใหม่จะขึ้นในรายการแนะนำครั้งต่อไป<br>รายการที่หมดสัญญาแล้วให้กด <b>หยุดใช้</b> — เดือนถัดไปจะไม่แสดง แต่ประวัติเดิมยังอยู่ ส่วน <b>ลบ</b> จะลบประวัติการจ่ายด้วย',
   expDate:'วันที่', expItem:'รายละเอียด', expCat:'ประเภท', expAmt:'จำนวนเงิน (฿)',
   expNone:'เดือนนี้ยังไม่มีรายการค่าใช้จ่าย', expTotal:'รวมค่าใช้จ่าย', expByCat:'แยกตามประเภท',
   expItemPh:'เช่น: ถุงมือไนไตร 2 กล่อง · คอตตอนบัด',
@@ -899,7 +927,9 @@ const I={
   markPaid:'บันทึกว่าจ่ายแล้ว', markPaidHint:'กดเพื่อบันทึกว่าจ่ายแล้ว',
   undoPaidHint:'กดเพื่อเปลี่ยนกลับเป็นยังไม่จ่าย',
   lBiz:'กิจการ', bizAll:'ทุกกิจการ', exNoPay:'ไม่รวมเงินเดือน', exNoBiz:'ไม่แยกตามกิจการ',
-  catPh:'พิมพ์เองได้',
+  catPh:'พิมพ์เองได้', catPreset:'ประเภทพื้นฐาน', catMine:'ประเภทที่สร้างเอง',
+  expMemo:'หมายเหตุ', memoPhShort:'บันทึกย่อ', fixBaseCol:'ยอดตั้งต้น', fixBaseHint:'ยอดที่ใช้เป็นค่าเริ่มต้นทุกเดือน แก้ตรงนี้จะมีผลกับทุกเดือนต่อไป',
+  fixThisHint:'ใส่เมื่อเดือนนี้ยอดต่างจากปกติ เว้นว่างไว้จะใช้ยอดตั้งต้น',
   opFix:'ค่าใช้จ่ายประจำ', opExp:'ค่าใช้จ่าย',
   fcRent:'ค่าเช่า', fcUtil:'ค่าน้ำค่าไฟ', fcTel:'อินเทอร์เน็ต · โทรศัพท์', fcIns:'ประกัน',
   fcSub:'บริการรายเดือน', fcTax:'ภาษี', fcEtc:'อื่นๆ',
@@ -1517,6 +1547,10 @@ function render(){
 
 /* ══════════ 지출 — 고정비 · 소모품 (관리자) ══════════ */
 function renderEx(){
+  // 표 안의 칸에 포커스가 남은 채로 innerHTML 을 갈아끼우면 크롬이 예외를 던집니다
+  const ae=document.activeElement;
+  if(ae&&ae.closest&&ae.closest('#v-ex table'))ae.blur();
+  comboClose();
   const m=$('exMonth').value||todayISO().slice(0,7);
   const bf=$('exBiz').value||'';              // '' = 전체 사업장
   const pay=payrollTotal(m), fix=fixTotal(m,bf), exp=expTotal(m,bf);
@@ -1556,14 +1590,15 @@ function renderEx(){
 
   /* 고정비 표 */
   $('fixHead').innerHTML=`<tr>
-    <th style="width:22%">${t('fixName')}</th>
-    <th style="width:14%">${t('lBiz')}</th>
-    <th style="width:14%">${t('fixCat')}</th>
-    <th class="num" style="width:10%">${t('fixDue')}</th>
-    <th class="num" style="width:14%">${t('fixAmt')}</th>
-    <th style="width:16%">${t('fixPaid')}</th>
-    <th style="width:10%"></th></tr>`;
-  const fixCats=catOptions(FIXCATS,data.fixedCosts.map(c=>c.category));
+    <th style="width:18%">${t('fixName')}</th>
+    <th style="width:13%">${t('lBiz')}</th>
+    <th style="width:12%">${t('fixCat')}</th>
+    <th class="num" style="width:8%">${t('fixDue')}</th>
+    <th class="num" style="width:13%">${t('fixBaseCol')}</th>
+    <th class="num" style="width:13%">${t('fixAmt')}</th>
+    <th style="width:13%">${t('fixPaid')}</th>
+    <th style="width:14%">${t('expMemo')}</th>
+    <th style="width:9%"></th></tr>`;
   const bizSel=(v,attr)=>`<select ${attr}>${bizAll().map(b=>
       `<option value="${esc(b)}"${(v||DEF_BIZ)===b?' selected':''}>${esc(bizLabel(b))}</option>`).join('')}</select>`;
   $('fixTable').innerHTML=list.map(c=>{
@@ -1571,13 +1606,17 @@ function renderEx(){
     return `<tr>
       <td><input type="text" data-fx="name" data-id="${c.id}" value="${esc(c.name)}"></td>
       <td>${bizSel(c.biz,`data-fx="biz" data-id="${c.id}"`)}</td>
-      <td><input type="text" data-fx="category" data-id="${c.id}" list="fixCatList"
-        value="${esc(c.category)}"></td>
+      <td><input type="text" data-fx="category" data-id="${c.id}"
+        class="hascombo" data-combo="fix" value="${esc(c.category)}"></td>
       <td class="num"><input type="number" min="1" max="31" data-fx="dueDay" data-id="${c.id}"
         value="${c.dueDay||''}" style="width:100%" placeholder="—">
         ${over?`<span class="due over" style="font-size:10px">${t('fixOverdue')}</span>`:''}</td>
+      <td><input type="number" step="10" min="0" data-fx="amount" data-id="${c.id}"
+        value="${c.amount||''}" title="${t('fixBaseHint')}"
+        style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
       <td><input type="number" step="10" data-fxp="amount" data-id="${c.id}"
         value="${p.amount==null?'':p.amount}" placeholder="${c.amount||0}"
+        title="${t('fixThisHint')}"
         style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
       <td>
         <button class="paybtn${p.paid?' on':''}" data-fxpaid="${c.id}"
@@ -1585,43 +1624,51 @@ function renderEx(){
           p.paid?'✓ '+t('paidY'):t('markPaid')}</button>
         ${p.paid?`<input type="date" class="paydate" data-fxp="date" data-id="${c.id}" value="${p.date||''}">`
                 :`<div style="font-size:11px;color:var(--coral);margin-top:4px">${t('paidN')}</div>`}</td>
+      <td><input type="text" data-fx="memo" data-id="${c.id}" value="${esc(c.memo||'')}"
+        placeholder="${t('memoPhShort')}" style="width:100%"></td>
       <td style="text-align:right;white-space:nowrap">
         <button class="rm" data-fxstop="${c.id}">${t('fixStop')}</button>
         <button class="rm" data-fxdel="${c.id}">${t('del')}</button></td>
     </tr>`;
-  }).join('')||`<tr><td colspan="7">${t('fixNone')}</td></tr>`;
+  }).join('')||`<tr><td colspan="9">${t('fixNone')}</td></tr>`;
 
   /* 중지·기간 밖 항목도 아래에 흐리게 (재개할 수 있도록) */
   const stopped=data.fixedCosts.filter(c=>!fixLiveIn(c,m)&&bizOK(c,bf));
   if(stopped.length)$('fixTable').insertAdjacentHTML('beforeend',stopped.map(c=>`
     <tr class="fx-off"><td>${esc(c.name)}</td>
       <td>${esc(bizLabel(c.biz))}</td><td>${esc(catLabel(FIXCATS,c.category))}</td>
-      <td class="num">${c.dueDay||'—'}</td><td class="num">${money(c.amount)}</td>
+      <td class="num">${c.dueDay||'—'}</td><td class="num">${money(c.amount)}</td><td></td>
       <td><span class="intern-badge done">${t('fixStopped')}</span></td>
+      <td>${esc(c.memo||'')}</td>
       <td style="text-align:right;white-space:nowrap">
         <button class="rm" data-fxresume="${c.id}">${t('fixResume')}</button>
         <button class="rm" data-fxdel="${c.id}">${t('del')}</button></td></tr>`).join(''));
 
   $('fixFoot').innerHTML=list.length?`<tr>
-    <th colspan="4" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('fixTotalRow')}</th>
+    <th colspan="5" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('fixTotalRow')}</th>
     <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:14px">${money(fix)}</th>
-    <th colspan="2" style="border-top:1px solid var(--ink);border-bottom:none"></th></tr>`:'';
+    <th colspan="3" style="border-top:1px solid var(--ink);border-bottom:none"></th></tr>`:'';
 
   /* 소모품 · 기타 지출 */
   const el=expListIn(m,bf).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.seq||0)-(a.seq||0));
   $('exList').innerHTML=el.length?`<table>
-    <thead><tr><th style="width:105px">${t('expDate')}</th><th style="width:15%">${t('lBiz')}</th>
+    <thead><tr><th style="width:140px">${t('expDate')}</th><th style="width:15%">${t('lBiz')}</th>
       <th style="width:15%">${t('expCat')}</th>
-      <th>${t('expItem')}</th><th class="num" style="width:115px">${t('expAmt')}</th>
+      <th>${t('expItem')}</th><th style="width:22%">${t('expMemo')}</th>
+      <th class="num" style="width:120px">${t('expAmt')}</th>
       <th style="width:38px"></th></tr></thead>
     <tbody>${el.map(e=>`<tr>
-      <td class="num" style="text-align:left">${e.date}</td>
-      <td><b style="color:${bizColor(e.biz)};font-size:12px">${esc(bizLabel(e.biz))}</b></td>
-      <td>${esc(catLabel(EXCATS,e.category))}</td>
-      <td><b>${esc(e.item||'')}</b>${e.memo?`<br><span style="font-size:11px;color:var(--ink-soft)">${esc(e.memo)}</span>`:''}</td>
-      <td class="num"><b>${money(e.amount)}</b></td>
+      <td><input type="date" data-ex="date" data-id="${e.id}" value="${e.date}" style="width:100%"></td>
+      <td>${bizSel(e.biz,`data-ex="biz" data-id="${e.id}"`)}</td>
+      <td><input type="text" data-ex="category" data-id="${e.id}"
+        class="hascombo" data-combo="exp" value="${esc(e.category)}"></td>
+      <td><input type="text" data-ex="item" data-id="${e.id}" value="${esc(e.item||'')}" style="width:100%"></td>
+      <td><input type="text" data-ex="memo" data-id="${e.id}" value="${esc(e.memo||'')}"
+        placeholder="${t('memoPhShort')}" style="width:100%"></td>
+      <td><input type="number" step="10" min="0" data-ex="amount" data-id="${e.id}" value="${e.amount||''}"
+        style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
       <td style="text-align:right"><button class="del" data-exdel="${e.id}">×</button></td></tr>`).join('')}</tbody>
-    <tfoot><tr><th colspan="4" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('expTotal')}</th>
+    <tfoot><tr><th colspan="5" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('expTotal')}</th>
       <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:13.5px">${money(exp)}</th>
       <th style="border-top:1px solid var(--ink);border-bottom:none"></th></tr></tfoot></table>`
     :`<div class="empty">${t('expNone')}</div>`;
@@ -1636,15 +1683,6 @@ function renderEx(){
     <div class="catbar">${byCat.map((x,i)=>`<span style="width:${x.sum/exp*100}%;background:${CATCOLOR[i%CATCOLOR.length]}"></span>`).join('')}</div>
     <div class="catlist">${byCat.map((x,i)=>`<span><b style="background:${CATCOLOR[i%CATCOLOR.length]}"></b>${
       esc(catLabel(EXCATS,x.v))} ${money(x.sum)}</span>`).join('')}</div>`:'';
-
-  /* 분류 추천 목록 갱신 */
-  $('fixCatList').innerHTML=fixCats.map(v=>{
-    const pr=FIXCATS.find(x=>x[0]===v);
-    return `<option value="${esc(v)}"${pr?` label="${esc(t(pr[1]))}"`:''}>`;}).join('');
-  const expCats=catOptions(EXCATS,(data.expenses||[]).map(e=>e.category));
-  $('expCatList').innerHTML=expCats.map(v=>{
-    const pr=EXCATS.find(x=>x[0]===v);
-    return `<option value="${esc(v)}"${pr?` label="${esc(t(pr[1]))}"`:''}>`;}).join('');
 }
 /** 그 달 납부일이 이미 지났는가 (이번 달일 때만 의미 있음) */
 function isPastDue(m,day){
@@ -1653,6 +1691,67 @@ function isPastDue(m,day){
   if(now.slice(0,7)<m)return false;
   return Number(now.slice(8,10))>Number(day);
 }
+
+/* ══════════ 분류 콤보 — 직접 입력하면서 목록도 언제든 열립니다 ══════════ */
+const COMBO={fix:{list:()=>FIXCATS,used:()=>data.fixedCosts.map(c=>c.category)},
+             exp:{list:()=>EXCATS,used:()=>(data.expenses||[]).map(e=>e.category)}};
+let comboEl=null;
+/** filter=true 는 '타이핑 중' 일 때만. 그냥 클릭해서 열면 값이 들어 있어도 전체를 보여줍니다
+    (기존 값을 다른 것으로 바꾸려면 전체가 보여야 하니까요) */
+function comboOpen(inp,filter){
+  const cfg=COMBO[inp.dataset.combo]; if(!cfg)return;
+  const pop=$('comboPop'), src=cfg.list();
+  const presets=src.map(x=>x[0]);
+  const mine=[...new Set(cfg.used())].filter(v=>v&&!presets.includes(v)).sort();
+  const cur=(inp.value||'').trim();
+  const q=filter?cur.toLowerCase():'';
+  const match=v=>{
+    if(!q)return true;
+    const pr=src.find(x=>x[0]===v);
+    return v.toLowerCase().includes(q)||(pr&&t(pr[1]).toLowerCase().includes(q));
+  };
+  // 타이핑한 것과 맞는 게 하나도 없으면 거르지 않고 전부 보여줍니다
+  const anyHit=[...presets,...mine].some(match);
+  const row=v=>{
+    const pr=src.find(x=>x[0]===v);
+    return `<button type="button" data-cv="${esc(v)}"${v===cur?' style="font-weight:700;background:#EEF5F3"':''}>${
+      v===cur?'✓ ':''}${esc(v)}${pr&&LANG!=='ko'?`<small>${esc(t(pr[1]))}</small>`:''}</button>`;
+  };
+  const sec=(title,vals)=>vals.length?`<div class="chd">${title}</div>`+vals.map(row).join(''):'';
+  pop.innerHTML=sec(t('catPreset'),presets.filter(v=>!anyHit||match(v)))
+              +sec(t('catMine'),mine.filter(v=>!anyHit||match(v)));
+  const r=inp.getBoundingClientRect();
+  pop.style.left=Math.min(r.left,innerWidth-190)+'px';
+  pop.style.top=(r.bottom+3)+'px';
+  pop.style.minWidth=Math.max(r.width,150)+'px';
+  pop.classList.add('on');
+  comboEl=inp;
+}
+const comboClose=()=>{$('comboPop').classList.remove('on');comboEl=null;};
+document.addEventListener('focusin',e=>{
+  const inp=e.target.closest&&e.target.closest('input[data-combo]');
+  if(inp)comboOpen(inp);
+});
+document.addEventListener('click',e=>{
+  const inp=e.target.closest('input[data-combo]');
+  if(inp){comboOpen(inp);return;}
+  if(!e.target.closest('#comboPop'))comboClose();
+});
+document.addEventListener('input',e=>{
+  const inp=e.target.closest('input[data-combo]');
+  if(inp&&comboEl===inp)comboOpen(inp,true);   // 타이핑할 때만 걸러냅니다
+});
+$('comboPop').addEventListener('click',e=>{
+  const b=e.target.closest('[data-cv]'); if(!b||!comboEl)return;
+  const inp=comboEl;
+  inp.value=b.dataset.cv;
+  comboClose();
+  inp.blur();                                     // 다시 그리기 전에 포커스를 뗍니다
+  inp.dispatchEvent(new Event('change',{bubbles:true}));
+});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')comboClose();});
+window.addEventListener('scroll',()=>{if(comboEl)comboClose();},true);
+window.addEventListener('resize',()=>{if(comboEl)comboClose();});
 
 function buildExSelects(){
   const opts=sel=>bizAll().map(b=>`<option value="${esc(b)}">${esc(bizLabel(b))}</option>`).join('');
@@ -1678,6 +1777,11 @@ $('fixTable').addEventListener('change',async e=>{
     if(k==='name'){const v=f.value.trim();if(!v){f.value=c.name;return;}c.name=v;patch.name=v;}
     else if(k==='biz'){c.biz=f.value||DEF_BIZ;patch.biz=c.biz;}
     else if(k==='category'){const v=f.value.trim()||'기타';c.category=v;patch.category=v;}
+    else if(k==='memo'){c.memo=f.value;patch.memo=c.memo;}
+    else if(k==='amount'){
+      const v=f.value===''?0:Math.max(0,Number(f.value));
+      c.amount=v; patch.amount=v; f.value=v||'';
+    }
     else if(k==='dueDay'){
       const v=f.value===''?null:Math.min(31,Math.max(1,Number(f.value)));
       c.dueDay=v; patch.due_day=v; if(v)f.value=v;
@@ -1742,13 +1846,13 @@ $('fxAdd').addEventListener('click',async()=>{
   if(!n){$('fxName').focus();return;}
   const dd=$('fxDue').value===''?null:Math.min(31,Math.max(1,Number($('fxDue').value)));
   const row={name:n,biz:$('fxBiz').value||DEF_BIZ,category:$('fxCat').value.trim()||'기타',
-    amount:Number($('fxAmt').value||0),due_day:dd,active:true,
+    amount:Number($('fxAmt').value||0),due_day:dd,active:true,memo:$('fxMemo').value.trim(),
     sort_order:data.fixedCosts.length,legacy_id:newLid('fx')};
   const res=await op(t('opFix'),()=>sb.from('staff_fixed_costs').insert(row).select().single());
   if(res.ok&&res.data)data.fixedCosts.push({id:res.data.id,name:n,biz:row.biz,category:row.category,
-    amount:row.amount,dueDay:dd,active:true,startMonth:null,endMonth:null,memo:'',
+    amount:row.amount,dueDay:dd,active:true,startMonth:null,endMonth:null,memo:row.memo,
     sortOrder:row.sort_order,lid:row.legacy_id});
-  $('fxName').value=''; $('fxAmt').value=''; $('fxDue').value='';
+  $('fxName').value=''; $('fxAmt').value=''; $('fxDue').value=''; $('fxMemo').value='';
   renderEx();
 });
 $('fxName').addEventListener('keydown',e=>{if(e.key==='Enter')$('fxAdd').click();});
@@ -1760,14 +1864,28 @@ $('exAdd').addEventListener('click',async()=>{
   if(!amt){$('exAmt').focus();return;}
   if(!item){$('exItem').focus();return;}
   const row={date:$('exDate').value||todayISO(),biz:$('exBizIn').value||DEF_BIZ,
-    category:$('exCat').value.trim()||'기타',item,amount:amt,memo:'',legacy_id:newLid('ex')};
+    category:$('exCat').value.trim()||'기타',item,amount:amt,
+    memo:$('exMemo').value.trim(),legacy_id:newLid('ex')};
   const res=await op(t('opExp'),()=>sb.from('staff_expenses').insert(row).select().single());
   if(res.ok&&res.data)data.expenses.unshift({id:res.data.id,date:res.data.date,biz:row.biz,
-    category:row.category,item,amount:amt,memo:'',lid:row.legacy_id,seq:Date.now()});
-  $('exAmt').value=''; $('exItem').value='';
+    category:row.category,item,amount:amt,memo:row.memo,lid:row.legacy_id,seq:Date.now()});
+  $('exAmt').value=''; $('exItem').value=''; $('exMemo').value='';
   renderEx();
 });
 $('exItem').addEventListener('keydown',e=>{if(e.key==='Enter')$('exAdd').click();});
+$('exList').addEventListener('change',async e=>{
+  const el=e.target.closest('[data-ex]'); if(!el)return;
+  const x=(data.expenses||[]).find(v=>String(v.id)===String(el.dataset.id)); if(!x)return;
+  const k=el.dataset.ex, patch={};
+  if(k==='date'){ if(!el.value){el.value=x.date;return;} x.date=el.value; patch.date=x.date; }
+  else if(k==='biz'){ x.biz=el.value||DEF_BIZ; patch.biz=x.biz; }
+  else if(k==='category'){ x.category=el.value.trim()||'기타'; patch.category=x.category; }
+  else if(k==='item'){ x.item=el.value.trim(); patch.item=x.item; }
+  else if(k==='memo'){ x.memo=el.value; patch.memo=x.memo; }
+  else if(k==='amount'){ x.amount=el.value===''?0:Math.max(0,Number(el.value)); patch.amount=x.amount; }
+  renderEx();
+  await op(t('opExp'),()=>sb.from('staff_expenses').update(patch).eq('id',x.id));
+});
 $('exList').addEventListener('click',async e=>{
   const b=e.target.closest('[data-exdel]'); if(!b)return;
   if(!confirm(t('confirmDel')))return;
@@ -1781,12 +1899,12 @@ $('exMonth').addEventListener('change',()=>{if(isAdmin)renderEx();});
 $('exPrint').addEventListener('click',()=>window.print());
 $('exCsvBtn').addEventListener('click',()=>{
   const m=$('exMonth').value, bf=$('exBiz').value||'';
-  const head=['month','business','kind','category','name_item','amount','due_day','paid','paid_date','date'];
+  const head=['month','business','kind','category','name_item','amount','due_day','paid','paid_date','date','memo'];
   const rows=[];
   fixListIn(m,bf).forEach(c=>{const p=fixPay(c,m);
-    rows.push([m,bizLabel(c.biz),'고정비',c.category,c.name,fixAmt(c,m),c.dueDay??'',p.paid?'Y':'N',p.date||'','']);});
-  expListIn(m,bf).forEach(e=>rows.push([m,bizLabel(e.biz),'지출',e.category,e.item,e.amount,'','','',e.date]));
-  if(!bf)rows.push([m,'','급여','','(전체 직원 지급 합계)',payrollTotal(m),'','','','']);
+    rows.push([m,bizLabel(c.biz),'고정비',c.category,c.name,fixAmt(c,m),c.dueDay??'',p.paid?'Y':'N',p.date||'','',c.memo||'']);});
+  expListIn(m,bf).forEach(e=>rows.push([m,bizLabel(e.biz),'지출',e.category,e.item,e.amount,'','','',e.date,e.memo||'']));
+  if(!bf)rows.push([m,'','급여','','(전체 직원 지급 합계)',payrollTotal(m),'','','','','']);
   const csv='\uFEFF'+[head,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
