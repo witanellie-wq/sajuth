@@ -18,6 +18,18 @@ language sql stable as $$
   select lower(coalesce(auth.jwt() ->> 'email', '')) = lower('admin@hanahayan.co.th');
 $$;
 
+-- 이 툴을 쓸 수 있는 계정 목록.
+--   ⚠ 이 Supabase 프로젝트를 예약 사이트와 공유하고 있다면, 예약 사이트 쪽 계정이
+--     근태 데이터에 접근하지 못하도록 반드시 아래 두 개로만 좁혀 두세요.
+--     ('로그인한 사람 전부' 로 열어두면 예약 사이트 가입자도 읽을 수 있습니다)
+create or replace function staff_is_member() returns boolean
+language sql stable as $$
+  select lower(coalesce(auth.jwt() ->> 'email', '')) in (
+    lower('staff@hanahayan.co.th'),
+    lower('admin@hanahayan.co.th')
+  );
+$$;
+
 -- ───────────────────────────────────────────────────────────────────────────
 -- 1. 직원 명단 (staff_members)
 -- ───────────────────────────────────────────────────────────────────────────
@@ -151,18 +163,18 @@ alter table public.staff_payroll     enable row level security;
 alter table public.staff_commissions enable row level security;
 alter table public.staff_warnings    enable row level security;
 
--- 로그인한 사람이면 누구나 (직원 + 관리자)
+-- 직원 계정 + 관리자 계정만 (예약 사이트 계정은 접근 불가)
 drop policy if exists staff_members_rw on public.staff_members;
 create policy staff_members_rw on public.staff_members
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (staff_is_member()) with check (staff_is_member());
 
 drop policy if exists staff_records_rw on public.staff_records;
 create policy staff_records_rw on public.staff_records
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (staff_is_member()) with check (staff_is_member());
 
 drop policy if exists staff_evals_rw on public.staff_evals;
 create policy staff_evals_rw on public.staff_evals
-  for all to authenticated using (true) with check (true);
+  for all to authenticated using (staff_is_member()) with check (staff_is_member());
 
 -- 관리자 전용
 drop policy if exists staff_payroll_rw on public.staff_payroll;
@@ -210,6 +222,7 @@ alter table public.staff_evals       replica identity full;
 
 -- ═══════════════════════════════════════════════════════════════════════════
 --  끝. 이어서 Authentication → Users 에서 계정 2개를 만드세요.
+--  ⚠ 아래 두 이메일은 staff_is_member() / staff_is_admin() 안의 값과 똑같아야 합니다.
 --    1) staff@hanahayan.co.th  (직원 공용 비밀번호)   ← Auto Confirm User 체크
 --    2) admin@hanahayan.co.th  (관리자 비밀번호)      ← Auto Confirm User 체크
 --  그리고 Authentication → Providers → Email 에서
