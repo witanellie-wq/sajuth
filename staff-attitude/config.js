@@ -10,8 +10,8 @@
      RLS 가 모든 테이블을 막습니다.
    ═══════════════════════════════════════════════════════════════════ */
 window.STAFF_CFG = {
-  url:        'https://YOUR-PROJECT.supabase.co',
-  anonKey:    'YOUR-ANON-KEY',
+  url:        'https://fxybjauokblmwhpupwzd.supabase.co',
+  anonKey:    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4eWJqYXVva2JsbXdocHVwd3pkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUyMTIwNTMsImV4cCI6MjEwMDc4ODA1M30.f_eYGqaXb1B1K87MiRJPsq9s3e8Bpyb7ksGyAU6pZCs',
   staffEmail: 'staff@hanahayan.co.th',
   adminEmail: 'admin@hanahayan.co.th'
 };
