@@ -260,14 +260,18 @@
   body.adm .lockbox-wrap{display:none!important;}
 
   /* ── 지출 요약 카드 ── */
-  .sumcards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
-  @media(max-width:700px){.sumcards{grid-template-columns:1fr 1fr;}}
+  .sumcards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;}
+  @media(max-width:1000px){.sumcards{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:640px){.sumcards{grid-template-columns:1fr 1fr;}}
   .sumcard{border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;background:#FCFDFC;}
   .sumcard b{display:block;font-size:10px;letter-spacing:.05em;color:var(--ink-soft);font-weight:600;margin-bottom:4px;}
   .sumcard i{font-style:normal;font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:600;}
   .sumcard small{display:block;font-size:10px;color:var(--ink-soft);margin-top:2px;font-family:inherit;}
   .sumcard.total{background:var(--ink);border-color:var(--ink);}
   .sumcard.total b{color:#9AA5B5;} .sumcard.total i,.sumcard.total small{color:#fff;}
+  /* 급여 + 고정비 = 매달 반드시 나가는 돈 */
+  .sumcard.sub{background:#F1F7F5;border-color:#CFE2DC;}
+  .sumcard.sub i{color:var(--jade);}
   .duebox{margin-top:14px;border:1px solid var(--amber);background:#FDF8EC;border-radius:var(--r);
     padding:11px 14px;font-size:12.5px;color:#8A5E06;}
   .duebox b{color:var(--coral);}
@@ -807,6 +811,7 @@ const I={
   /* ── 지출 ── */
   tabEx:'지출', exTitle:'월 지출 요약', fixTitle:'고정비', expTitle:'소모품 · 기타 지출',
   cPayrollSum:'급여', cFixSum:'고정비', cExpSum:'소모품 · 기타', cGrandSum:'이달 총지출',
+  cMonthlySum:'급여 + 고정비', exMonthlyNote:'매달 고정으로 나가는 돈',
   fixName:'항목', fixCat:'분류', fixDue:'납부일', fixAmt:'이달 금액', fixBase:'기본 금액 (฿)',
   fixPaid:'납부', fixNone:'등록된 고정비가 없습니다. 아래에서 추가하세요.',
   fixStop:'중지', fixResume:'재개', fixStopped:'중지됨',
@@ -922,6 +927,7 @@ const I={
   tabEx:'ค่าใช้จ่าย', exTitle:'สรุปค่าใช้จ่ายรายเดือน', fixTitle:'ค่าใช้จ่ายประจำ',
   expTitle:'วัสดุสิ้นเปลือง · ค่าใช้จ่ายอื่น',
   cPayrollSum:'เงินเดือน', cFixSum:'ค่าใช้จ่ายประจำ', cExpSum:'วัสดุ · อื่นๆ', cGrandSum:'รวมทั้งเดือน',
+  cMonthlySum:'เงินเดือน + ค่าใช้จ่ายประจำ', exMonthlyNote:'รายจ่ายคงที่ทุกเดือน',
   fixName:'รายการ', fixCat:'ประเภท', fixDue:'วันครบกำหนด', fixAmt:'ยอดเดือนนี้', fixBase:'ยอดตั้งต้น (฿)',
   fixPaid:'จ่ายแล้ว', fixNone:'ยังไม่มีค่าใช้จ่ายประจำ เพิ่มได้ที่ด้านล่าง',
   fixStop:'หยุดใช้', fixResume:'ใช้ต่อ', fixStopped:'หยุดแล้ว',
@@ -1568,13 +1574,16 @@ function renderEx(){
   const withPay=!bf;                          // 급여는 사업장 구분이 없어 '전체'일 때만 합산
 
   /* 월 요약 카드 */
+  const monthly=(withPay?pay:0)+fix;          // 급여 + 고정비 = 매달 고정으로 나가는 돈
   $('exCards').innerHTML=[
-    ['cPayrollSum',withPay?pay:null,''],['cFixSum',fix,''],['cExpSum',exp,''],
-    ['cGrandSum',(withPay?pay:0)+fix+exp,'total']
-  ].map(([k,v,cls])=>`<div class="sumcard ${cls}"><b>${t(k)}</b>
+    ['cPayrollSum',withPay?pay:null,'',      withPay?'':t('exNoBiz')],
+    ['cFixSum',    fix,             '',      ''],
+    ['cMonthlySum',monthly,         'sub',   withPay?t('exMonthlyNote'):t('exNoPay')],
+    ['cExpSum',    exp,             '',      ''],
+    ['cGrandSum',  monthly+exp,     'total', m+(withPay?'':' · '+t('exNoPay'))]
+  ].map(([k,v,cls,sub])=>`<div class="sumcard ${cls}"><b>${t(k)}</b>
       <i>${v==null?'—':money(v)}</i>
-      <small>${cls==='total'?m+(withPay?'':' · '+t('exNoPay'))
-                           :(v==null?t('exNoBiz'):'')}</small></div>`).join('');
+      <small>${esc(sub||'')}</small></div>`).join('');
 
   /* 사업장별 소계 — '전체' 일 때만 */
   const bl=bizAll();
