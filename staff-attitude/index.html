@@ -301,6 +301,13 @@
     color:var(--ink-soft);font-weight:600;border-top:1px solid var(--line-soft);margin-top:3px;}
   .combo-pop .chd:first-child{border-top:none;margin-top:0;}
   .fx-off td{opacity:.45;}
+  #tgTable input[type=number]{width:100%;text-align:right;font-family:'IBM Plex Mono',monospace;padding:7px 9px;}
+  .profit{margin-top:14px;border:1px solid var(--line);border-radius:var(--r);padding:12px 15px;
+    font-size:13px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+  .profit b{font-family:'IBM Plex Mono',monospace;font-size:15px;}
+  .profit.plus{border-color:#CFE2DC;background:#F1F7F5;} .profit.plus b{color:var(--jade);}
+  .profit.minus{border-color:var(--coral);background:#FCF3F2;} .profit.minus b{color:var(--coral);}
+  .profit .eq{color:var(--ink-soft);font-size:12px;}
   #exList{overflow-x:auto;}
   #cmList{overflow-x:auto;}
   #fixTable input[type=number],#fixTable input[type=text]{padding:6px 8px;font-size:13px;}
@@ -546,6 +553,14 @@
     <div class="sumcards" id="exCards"></div>
     <div id="exBizSum"></div>
     <div id="exDue"></div>
+  </section>
+
+  <section class="panel adm-only" style="margin-top:20px">
+    <h2 data-i="tgTitle"></h2>
+    <div style="overflow-x:auto"><table>
+      <thead id="tgHead"></thead><tbody id="tgTable"></tbody><tfoot id="tgFoot"></tfoot></table></div>
+    <div id="tgProfit"></div>
+    <p class="note" data-ih="tgNote"></p>
   </section>
 
   <section class="panel adm-only" style="margin-top:20px">
@@ -829,7 +844,11 @@ const I={
   undoPaidHint:'누르면 미지급으로 되돌립니다',
   lBiz:'사업장', bizAll:'전체 사업장', exNoPay:'급여 제외', exNoBiz:'사업장 구분 없음',
   catPh:'직접 입력 가능', catPreset:'기본 분류', catMine:'직접 만든 분류',
-  expMemo:'비고', memoPhShort:'메모', fixBaseCol:'기본 금액', fixBaseHint:'매달 기본으로 잡히는 금액입니다. 여기를 고치면 앞으로 모든 달에 적용됩니다.',
+  expMemo:'비고', memoPhShort:'메모', fixBaseCol:'기본 금액',
+  tgTitle:'매출 목표', tgThis:'이달 목표', tgNext:'다음 달 목표', opTarget:'매출 목표',
+  tgGoal:'목표 매출', tgProfit:'예상 이익', tgMargin:'이익률', tgShort:'부족',
+  tgNone:'목표 매출을 입력하면 총지출과 비교해 예상 이익이 여기에 나옵니다.',
+  tgNote:'<b>다음 달 목표</b>를 미리 적어두면 달이 바뀌어도 그대로 남습니다 — 월을 넘기면 자동으로 <b>이달 목표</b> 자리로 옮겨집니다.<br>예상 이익 = <b>목표 매출 − 이달 총지출</b>(급여 + 고정비 + 소모품). 목표보다 지출이 크면 붉게 표시됩니다.<br>사업장별로 따로 잡을 수 있고, 위쪽 <b>사업장</b> 선택으로 한쪽만 볼 수 있습니다.', fixBaseHint:'매달 기본으로 잡히는 금액입니다. 여기를 고치면 앞으로 모든 달에 적용됩니다.',
   fixThisHint:'이 달만 다른 금액일 때 넣으세요. 비워두면 기본 금액을 씁니다.',
   opFix:'고정비', opExp:'지출',
   fcRent:'임대료', fcUtil:'공과금', fcTel:'통신', fcIns:'보험', fcSub:'구독 · 서비스', fcTax:'세금', fcEtc:'기타',
@@ -945,7 +964,11 @@ const I={
   undoPaidHint:'กดเพื่อเปลี่ยนกลับเป็นยังไม่จ่าย',
   lBiz:'กิจการ', bizAll:'ทุกกิจการ', exNoPay:'ไม่รวมเงินเดือน', exNoBiz:'ไม่แยกตามกิจการ',
   catPh:'พิมพ์เองได้', catPreset:'ประเภทพื้นฐาน', catMine:'ประเภทที่สร้างเอง',
-  expMemo:'หมายเหตุ', memoPhShort:'บันทึกย่อ', fixBaseCol:'ยอดตั้งต้น', fixBaseHint:'ยอดที่ใช้เป็นค่าเริ่มต้นทุกเดือน แก้ตรงนี้จะมีผลกับทุกเดือนต่อไป',
+  expMemo:'หมายเหตุ', memoPhShort:'บันทึกย่อ', fixBaseCol:'ยอดตั้งต้น',
+  tgTitle:'เป้ายอดขาย', tgThis:'เป้าเดือนนี้', tgNext:'เป้าเดือนหน้า', opTarget:'เป้ายอดขาย',
+  tgGoal:'เป้ายอดขาย', tgProfit:'กำไรคาดการณ์', tgMargin:'อัตรากำไร', tgShort:'ขาด',
+  tgNone:'ใส่เป้ายอดขายแล้วระบบจะเทียบกับรายจ่ายรวมและแสดงกำไรคาดการณ์ที่นี่',
+  tgNote:'ใส่ <b>เป้าเดือนหน้า</b> ไว้ล่วงหน้าได้ พอขึ้นเดือนใหม่ระบบจะเลื่อนมาเป็น <b>เป้าเดือนนี้</b> ให้เอง<br>กำไรคาดการณ์ = <b>เป้ายอดขาย − รายจ่ายรวมของเดือน</b> (เงินเดือน + ค่าใช้จ่ายประจำ + วัสดุ) ถ้ารายจ่ายมากกว่าเป้าจะแสดงเป็นสีแดง<br>ตั้งแยกตามกิจการได้ และเลือกดูเฉพาะกิจการเดียวได้จากช่อง <b>กิจการ</b> ด้านบน', fixBaseHint:'ยอดที่ใช้เป็นค่าเริ่มต้นทุกเดือน แก้ตรงนี้จะมีผลกับทุกเดือนต่อไป',
   fixThisHint:'ใส่เมื่อเดือนนี้ยอดต่างจากปกติ เว้นว่างไว้จะใช้ยอดตั้งต้น',
   opFix:'ค่าใช้จ่ายประจำ', opExp:'ค่าใช้จ่าย',
   fcRent:'ค่าเช่า', fcUtil:'ค่าน้ำค่าไฟ', fcTel:'อินเทอร์เน็ต · โทรศัพท์', fcIns:'ประกัน',
@@ -993,7 +1016,7 @@ const DEFAULT_STAFF=[
 ];
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
-                  fixedCosts:[],fixedPays:{},expenses:[]});
+                  fixedCosts:[],fixedPays:{},expenses:[],targets:{}});
 let data=EMPTY();
 const EMPTYPES=[['정직원','tRegular'],['수습','tProbation'],['인턴','tIntern'],['알바','tPart']];
 /* 지출 분류 — [한국어, 태국어] (DB 에는 한국어 값이 들어갑니다) */
@@ -1116,7 +1139,7 @@ async function loadAll(){
   if(!sb)return;
   const q=(tb,fn)=>op(t('opLoad')+' · '+tb,fn,false);
   const admQ=(tb,fn)=>isAdmin?q(tb,fn):Promise.resolve({ok:true,data:[]});
-  const [m,r,p,c,w,e,fc,fp,ex]=await Promise.all([
+  const [m,r,p,c,w,e,fc,fp,ex,tg]=await Promise.all([
     q('staff_members',()=>sb.from('staff_members').select('*')
         .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
     q('staff_records',()=>sb.from('staff_records').select('*')
@@ -1129,7 +1152,8 @@ async function loadAll(){
         .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
     admQ('staff_fixed_payments',()=>sb.from('staff_fixed_payments').select('*').limit(LIM)),
     admQ('staff_expenses',()=>sb.from('staff_expenses').select('*')
-        .order('date',{ascending:false}).order('created_at',{ascending:false}).limit(LIM))
+        .order('date',{ascending:false}).order('created_at',{ascending:false}).limit(LIM)),
+    admQ('staff_targets',()=>sb.from('staff_targets').select('*').limit(LIM))
   ]);
   if(!m.ok)return false;
 
@@ -1181,6 +1205,11 @@ async function loadAll(){
     amount:Number(x.amount||0),memo:x.memo||'',lid:x.legacy_id||null,
     seq:x.created_at?new Date(x.created_at).getTime():0}));
 
+  data.targets={};
+  (tg.data||[]).forEach(x=>{
+    data.targets[(x.biz||DEF_BIZ)+'|'+x.month]={amount:Number(x.amount||0),memo:x.memo||''};
+  });
+
   return true;
 }
 
@@ -1197,6 +1226,13 @@ const fixTotal=(m,b)=>fixListIn(m,b).reduce((a,c)=>a+fixAmt(c,m),0);
 const expListIn=(m,b)=>(data.expenses||[]).filter(e=>(e.date||'').startsWith(m)&&bizOK(e,b));
 const expTotal=(m,b)=>expListIn(m,b).reduce((a,e)=>a+Number(e.amount||0),0);
 const payrollTotal=m=>liveStaff().reduce((a,s)=>a+payCalc(s,m).total,0);
+/* ── 목표 매출 ── */
+const tgOf=(b,m)=>(data.targets||{})[b+'|'+m]||{};
+const tgAmt=(b,m)=>Number(tgOf(b,m).amount||0);
+const tgTotal=(m,b)=>b?tgAmt(b,m):bizAll().reduce((a,x)=>a+tgAmt(x,m),0);
+/** 'YYYY-MM' 다음 달 */
+const nextMonth=m=>{const[Y,M]=m.split('-').map(Number);
+  return M===12?`${Y+1}-01`:`${Y}-${pad(M+1)}`;};
 
 /* ── 최초 1회 기본 직원 시딩 (테이블이 완전히 비어 있을 때만) ── */
 async function seedIfEmpty(){
@@ -1236,7 +1272,7 @@ function subscribeLive(){
   // RLS 로 못 읽는 테이블은 구독하지 않습니다 (직원 계정에서 채널 오류 방지)
   const tables=['staff_members','staff_records','staff_evals']
     .concat(isAdmin?['staff_payroll','staff_commissions','staff_warnings',
-                     'staff_fixed_costs','staff_fixed_payments','staff_expenses']:[]);
+                     'staff_fixed_costs','staff_fixed_payments','staff_expenses','staff_targets']:[]);
   tables.forEach(tb=>ch.on('postgres_changes',{event:'*',schema:'public',table:tb},scheduleReload));
   ch.subscribe(st=>{
     if(st==='SUBSCRIBED'){liveCh=ch;setNet('live');}
@@ -1608,6 +1644,37 @@ function renderEx(){
           +(c.dueDay?` (${c.dueDay}${t('fixDueUnit')})`:'')).join(' · ')}</div>`
       : `<div class="duebox" style="border-color:var(--jade);background:#F1F7F5;color:var(--jade)">${t('fixAllPaid')}</div>`;
 
+  /* ── 매출 목표 (이번 달 + 다음 달) ── */
+  const nm=nextMonth(m);
+  const tgRows=bf?[bf]:bizAll();
+  $('tgHead').innerHTML=`<tr>
+    <th style="width:34%">${t('lBiz')}</th>
+    <th class="num" style="width:33%">${m} · ${t('tgThis')}</th>
+    <th class="num" style="width:33%">${nm} · ${t('tgNext')}</th></tr>`;
+  $('tgTable').innerHTML=tgRows.map(bz=>`<tr>
+    <td><b style="color:${bizColor(bz)}">${esc(bizLabel(bz))}</b></td>
+    <td><input type="number" step="1000" min="0" data-tg="${esc(bz)}" data-m="${m}"
+      value="${tgAmt(bz,m)||''}" placeholder="0"></td>
+    <td><input type="number" step="1000" min="0" data-tg="${esc(bz)}" data-m="${nm}"
+      value="${tgAmt(bz,nm)||''}" placeholder="0"></td></tr>`).join('');
+  const tgThis=tgRows.reduce((a,bz)=>a+tgAmt(bz,m),0);
+  const tgNext=tgRows.reduce((a,bz)=>a+tgAmt(bz,nm),0);
+  $('tgFoot').innerHTML=tgRows.length>1?`<tr>
+    <th style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('payTotalRow')}</th>
+    <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:14px">${money(tgThis)}</th>
+    <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:14px">${money(tgNext)}</th></tr>`:'';
+
+  /* 목표 대비 예상 이익 = 목표 매출 − 이달 총지출 */
+  const spend=monthly+exp, profit=tgThis-spend;
+  $('tgProfit').innerHTML=!tgThis?`<div class="profit"><span class="eq">${t('tgNone')}</span></div>`
+    :`<div class="profit ${profit>=0?'plus':'minus'}">
+        <span class="eq">${m} ${t('tgGoal')} ${money(tgThis)} − ${t('cGrandSum')} ${money(spend)}${
+          withPay?'':' ('+t('exNoPay')+')'} =</span>
+        <span>${t('tgProfit')}</span> <b>${money(profit)}</b>
+        ${profit>=0?`<span class="eq">· ${t('tgMargin')} ${Math.round(profit/tgThis*100)}%</span>`
+                   :`<span class="eq">· ${t('tgShort')} ${money(spend-tgThis)}</span>`}
+      </div>`;
+
   /* 고정비 표 */
   $('fixHead').innerHTML=`<tr>
     <th style="width:18%">${t('fixName')}</th>
@@ -1740,12 +1807,21 @@ function comboOpen(inp,filter){
   const sec=(title,vals)=>vals.length?`<div class="chd">${title}</div>`+vals.map(row).join(''):'';
   pop.innerHTML=sec(t('catPreset'),presets.filter(v=>!anyHit||match(v)))
               +sec(t('catMine'),mine.filter(v=>!anyHit||match(v)));
-  const r=inp.getBoundingClientRect();
-  pop.style.left=Math.min(r.left,innerWidth-190)+'px';
-  pop.style.top=(r.bottom+3)+'px';
-  pop.style.minWidth=Math.max(r.width,150)+'px';
+  pop.style.minWidth=Math.max(inp.getBoundingClientRect().width,150)+'px';
   pop.classList.add('on');
   comboEl=inp;
+  comboPlace();
+}
+/** 스크롤·리사이즈 때 목록을 닫지 말고 따라 움직이게 합니다.
+    (버튼을 누를 때 브라우저가 화면을 살짝 스크롤하는 것만으로 닫히던 문제) */
+function comboPlace(){
+  if(!comboEl)return;
+  const pop=$('comboPop'), r=comboEl.getBoundingClientRect();
+  if(r.bottom<0||r.top>innerHeight){comboClose();return;}   // 화면 밖으로 나가면 닫습니다
+  const h=pop.offsetHeight||0;
+  const below=innerHeight-r.bottom;
+  pop.style.left=Math.max(6,Math.min(r.left,innerWidth-pop.offsetWidth-6))+'px';
+  pop.style.top=(below<h+10&&r.top>h+10?r.top-h-3:r.bottom+3)+'px';   // 아래가 좁으면 위로
 }
 const comboClose=()=>{$('comboPop').classList.remove('on');comboEl=null;};
 document.addEventListener('focusin',e=>{
@@ -1770,8 +1846,8 @@ $('comboPop').addEventListener('click',e=>{
   inp.dispatchEvent(new Event('change',{bubbles:true}));
 });
 document.addEventListener('keydown',e=>{if(e.key==='Escape')comboClose();});
-window.addEventListener('scroll',()=>{if(comboEl)comboClose();},true);
-window.addEventListener('resize',()=>{if(comboEl)comboClose();});
+window.addEventListener('scroll',comboPlace,true);
+window.addEventListener('resize',comboPlace);
 
 function buildExSelects(){
   const opts=sel=>bizAll().map(b=>`<option value="${esc(b)}">${esc(bizLabel(b))}</option>`).join('');
@@ -1915,6 +1991,17 @@ $('exList').addEventListener('click',async e=>{
   await op(t('opExp')+' · '+t('opDel'),()=>sb.from('staff_expenses').delete().eq('id',id));
 });
 
+$('tgTable').addEventListener('change',async e=>{
+  const el=e.target.closest('[data-tg]'); if(!el)return;
+  const bz=el.dataset.tg, mo=el.dataset.m;
+  const amt=el.value===''?0:Math.max(0,Number(el.value));
+  data.targets=data.targets||{};
+  data.targets[bz+'|'+mo]={amount:amt,memo:(tgOf(bz,mo).memo)||''};
+  renderEx();
+  await op(t('opTarget'),()=>sb.from('staff_targets').upsert({
+    biz:bz,month:mo,amount:amt,memo:data.targets[bz+'|'+mo].memo
+  },{onConflict:'biz,month'}));
+});
 $('exMonth').addEventListener('change',()=>{if(isAdmin)renderEx();});
 $('exPrint').addEventListener('click',()=>window.print());
 $('exCsvBtn').addEventListener('click',()=>{
@@ -1925,6 +2012,8 @@ $('exCsvBtn').addEventListener('click',()=>{
     rows.push([m,bizLabel(c.biz),'고정비',c.category,c.name,fixAmt(c,m),c.dueDay??'',p.paid?'Y':'N',p.date||'','',c.memo||'']);});
   expListIn(m,bf).forEach(e=>rows.push([m,bizLabel(e.biz),'지출',e.category,e.item,e.amount,'','','',e.date,e.memo||'']));
   if(!bf)rows.push([m,'','급여','','(전체 직원 지급 합계)',payrollTotal(m),'','','','','']);
+  (bf?[bf]:bizAll()).forEach(bz=>{
+    if(tgAmt(bz,m))rows.push([m,bizLabel(bz),'목표매출','','',tgAmt(bz,m),'','','','',tgOf(bz,m).memo||'']);});
   const csv='\uFEFF'+[head,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
@@ -2500,7 +2589,8 @@ function fillBackup(force){
       const cut=k.lastIndexOf('|'), c=data.fixedCosts.find(x=>String(x.id)===k.slice(0,cut));
       return [(c?lidOf('fx',c):k.slice(0,cut))+'|'+k.slice(cut+1),strip(v)];
     })),
-    expenses:(data.expenses||[]).map(strip)});
+    expenses:(data.expenses||[]).map(strip),
+    targets:Object.fromEntries(Object.entries(data.targets||{}).map(([k,v])=>[k,strip(v)]))});
   const ms=[...new Set(data.records.map(r=>r.date.slice(0,7)))].sort();
   $('bkStat').textContent=`${t('bkStaffN')} ${data.staff.length}${t('cnt')} · ${t('bkRecN')} ${data.records.length}${t('cntRec')}`
     +(ms.length?` · ${ms[0]} ~ ${ms[ms.length-1]}`:'')+` · ${$('bkText').value.length.toLocaleString()} ${t('bkChars')}`;
@@ -2645,6 +2735,17 @@ async function importBackup(o){
         ()=>sb.from('staff_expenses').upsert(part,{onConflict:'legacy_id',ignoreDuplicates:true}));
       if(!r.ok)return false;
     }
+    // 8) 매출 목표 — 사업장 + 월 복합키
+    const tgRows2=Object.entries(o.targets||{}).map(([k,v])=>{
+      const cut=k.lastIndexOf('|'), bz=k.slice(0,cut), mo=k.slice(cut+1);
+      if(!bz||!mo)return null;
+      return {biz:bz,month:mo,amount:Number(v.amount||0),memo:v.memo||''};
+    }).filter(Boolean);
+    for(const part of chunk(tgRows2,400)){
+      const r=await op(t('opImport')+' · '+t('opTarget'),
+        ()=>sb.from('staff_targets').upsert(part,{onConflict:'biz,month'}));
+      if(!r.ok)return false;
+    }
   }
 
   // 6) 평가 의견 — 직원+월 복합키
@@ -2681,7 +2782,7 @@ $('bkReplace').addEventListener('click',async()=>{
   const del=await op(t('opDel'),()=>sb.from('staff_members').delete().neq('id',NONE));
   if(!del.ok)return;
   // 고정비 · 지출은 직원과 연결돼 있지 않으므로 따로 지웁니다
-  for(const tb of ['staff_fixed_costs','staff_expenses']){
+  for(const tb of ['staff_fixed_costs','staff_expenses','staff_targets']){
     const d=await op(t('opDel')+' · '+tb,()=>sb.from(tb).delete().neq('id',NONE));
     if(!d.ok)return;
   }
