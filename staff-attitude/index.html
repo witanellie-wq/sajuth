@@ -255,6 +255,7 @@
   .adm-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;
     background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;cursor:pointer;}
   body:not(.adm) .adm-only{display:none!important;}
+  body.adm #admOpenBtn{display:none!important;}
   body.adm .lockbox{display:none!important;}
   body.adm .lockbox-wrap{display:none!important;}
 
@@ -380,6 +381,8 @@
   <div class="hd-right">
     <div class="today" id="todayLabel"></div>
     <button class="adm-badge adm-only" id="admLockBtn" data-i="admLock"></button>
+    <button class="adm-badge admOpen" id="admOpenBtn" data-i="admLogin"
+      style="background:#FBF4E3;color:var(--amber);border-color:#EBDCB6"></button>
     <div class="lang">
       <button data-lang="ko">한국어</button>
       <button data-lang="th">ไทย</button>
@@ -692,6 +695,10 @@
       <button class="modal-x" id="bkClose">×</button>
     </div>
     <p class="note" style="margin:0 0 14px" data-ih="bkDesc"></p>
+    <div class="lockbox" style="margin-bottom:16px">
+      <p data-i="bkNeedAdm"></p>
+      <button class="ghost admOpen" data-i="admUnlock"></button>
+    </div>
     <div class="field">
       <label data-i="bkLabel"></label>
       <textarea id="bkText" spellcheck="false"></textarea>
@@ -704,8 +711,8 @@
         <span data-i="bkOpenFile"></span><input type="file" id="bkOpen" accept=".json,.txt" style="display:none">
       </label>
       <span style="flex:1"></span>
-      <button class="ghost" id="bkMerge" style="border-color:var(--jade);color:var(--jade);font-weight:600" data-i="bkMerge"></button>
-      <button class="ghost" id="bkReplace" style="border-color:var(--coral);color:var(--coral)" data-i="bkReplace"></button>
+      <button class="ghost adm-only" id="bkMerge" style="border-color:var(--jade);color:var(--jade);font-weight:600" data-i="bkMerge"></button>
+      <button class="ghost adm-only" id="bkReplace" style="border-color:var(--coral);color:var(--coral)" data-i="bkReplace"></button>
     </div>
     <p class="note" id="bkNote"></p>
   </div>
@@ -830,7 +837,7 @@ const I={
   admNote:'급여 · 커미션 · 경고 정보는 관리자만 볼 수 있습니다.',
   admBad:'관리자 비밀번호가 맞지 않습니다.',
   admNeed:'🔒 급여 · 경고 정보입니다. 관리자 비밀번호를 입력하세요.',
-  admUnlock:'관리자 비밀번호 입력', admLock:'🔓 관리자 · 잠그기',
+  admUnlock:'관리자 비밀번호 입력', admLock:'🔓 관리자 · 잠그기', admLogin:'🔒 관리자 로그인',
   netLive:'실시간 동기화 중', netCon:'연결 중…', netOff:'연결 끊김',
   netFail:'⚠ 서버에 저장하지 못했습니다', netRetry:'다시 시도',
   netFailN:'건 저장 실패 — 창을 닫지 마세요',
@@ -947,7 +954,7 @@ const I={
   admNote:'ข้อมูลเงินเดือน คอมมิชชั่น และการเตือน ดูได้เฉพาะผู้ดูแล',
   admBad:'รหัสผ่านผู้ดูแลไม่ถูกต้อง',
   admNeed:'🔒 เป็นข้อมูลเงินเดือน / การเตือน กรุณาใส่รหัสผ่านผู้ดูแล',
-  admUnlock:'ใส่รหัสผ่านผู้ดูแล', admLock:'🔓 ผู้ดูแล · ล็อก',
+  admUnlock:'ใส่รหัสผ่านผู้ดูแล', admLock:'🔓 ผู้ดูแล · ล็อก', admLogin:'🔒 เข้าสู่ระบบผู้ดูแล',
   netLive:'ซิงก์แบบเรียลไทม์', netCon:'กำลังเชื่อมต่อ…', netOff:'ขาดการเชื่อมต่อ',
   netFail:'⚠ บันทึกขึ้นเซิร์ฟเวอร์ไม่สำเร็จ', netRetry:'ลองอีกครั้ง',
   netFailN:'รายการบันทึกไม่สำเร็จ — อย่าเพิ่งปิดหน้าต่าง',
