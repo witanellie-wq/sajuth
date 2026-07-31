@@ -762,6 +762,8 @@ const I={
   bkRead:'파일을 읽었습니다. 가져오기 또는 덮어쓰기를 누르세요.',
   bkStaffN:'직원', bkRecN:'기록', bkChars:'자',
   bkNeedAdm:'가져오기 · 덮어쓰기는 관리자 비밀번호가 필요합니다.',
+  bkPasted:'붙여넣은 내용입니다 — 아래 가져오기를 누르세요',
+  bkSkipped:'건너뜀(직원 확인 불가)',
   bkUploading:'서버에 올리는 중…', bkConfirmReplace:'서버의 모든 데이터를 지우고 이 내용으로 바꿉니다. 되돌릴 수 없습니다. 계속할까요?',
   cnt:'명', cntRec:'건', day:'일', min:'분',
   warnSec:'경고 · 해고 관리', warnPolicy:'정책 · 서면 경고 3회 누적 시 해고 사유 (경고는 발부일로부터 12개월 유효)',
@@ -874,6 +876,8 @@ const I={
   bkRead:'อ่านไฟล์แล้ว กด นำเข้า หรือ เขียนทับ',
   bkStaffN:'พนักงาน', bkRecN:'บันทึก', bkChars:'ตัวอักษร',
   bkNeedAdm:'การนำเข้า / เขียนทับ ต้องใช้รหัสผ่านผู้ดูแล',
+  bkPasted:'นี่คือข้อความที่วางไว้ — กดนำเข้าด้านล่าง',
+  bkSkipped:'ข้าม (ไม่พบพนักงาน)',
   bkUploading:'กำลังอัปโหลดขึ้นเซิร์ฟเวอร์…', bkConfirmReplace:'ข้อมูลทั้งหมดบนเซิร์ฟเวอร์จะถูกลบและแทนที่ ย้อนกลับไม่ได้ ต้องการดำเนินการต่อหรือไม่?',
   cnt:'คน', cntRec:'รายการ', day:'วัน', min:'นาที',
   warnSec:'การเตือน · การเลิกจ้าง', warnPolicy:'นโยบาย · หนังสือเตือนสะสมครบ 3 ครั้ง = เลิกจ้างได้ (เตือนมีอายุ 12 เดือนนับจากวันออก)',
@@ -2450,7 +2454,7 @@ document.body.addEventListener('click',e=>{
 });
 
 /* ══════════ 백업 · 가져오기 ══════════ */
-$('bkModalOpen').addEventListener('click',()=>{$('bkModal').classList.add('on');fillBackup();});
+$('bkModalOpen').addEventListener('click',()=>{$('bkModal').classList.add('on');bkDirty=false;fillBackup(true);});
 $('bkClose').addEventListener('click',()=>$('bkModal').classList.remove('on'));
 $('bkModal').addEventListener('click',e=>{if(e.target===$('bkModal'))$('bkModal').classList.remove('on');});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('bkModal').classList.remove('on');$('admModal').classList.remove('on');}});
@@ -2458,8 +2462,15 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'){$('bkModal').classL
 const bkStamp=()=>{const d=new Date();
   return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;};
 
-function fillBackup(){
-  if(document.activeElement===$('bkText'))return;
+/* 사용자가 무언가 붙여넣거나 파일을 연 뒤에는 절대 덮어쓰지 않습니다.
+   (예전에는 render() 가 돌 때마다 지워져서 가져오기가 빈 데이터로 실행됐습니다) */
+let bkDirty=false;
+function bkMark(){
+  $('bkStat').innerHTML=`<b style="color:var(--jade)">${t('bkPasted')}</b>`;
+}
+$('bkText').addEventListener('input',()=>{bkDirty=true;bkMark();});
+function fillBackup(force){
+  if(!force&&(bkDirty||document.activeElement===$('bkText')))return;
   const strip=o=>{const{_id,_sid,...rest}=o;return rest;};
   $('bkText').value=JSON.stringify({app:'hnhy-attitude',v:3,exported:new Date().toISOString(),
     staff:data.staff.map(strip),records:data.records.map(strip),
@@ -2491,7 +2502,7 @@ function parseBackup(){
   return o;
 }
 $('bkCopy').addEventListener('click',async()=>{
-  fillBackup();
+  fillBackup();   // 붙여넣은 내용이 있으면 그대로 둡니다
   try{await navigator.clipboard.writeText($('bkText').value);bkSay(t('bkCopied'),'var(--jade)');}
   catch(e){$('bkText').select();bkSay(t('bkManual'),'var(--amber)');}
 });
@@ -2505,15 +2516,17 @@ $('bkFile').addEventListener('click',()=>{
 $('bkOpen').addEventListener('change',e=>{
   const f=e.target.files[0]; if(!f)return;
   const rd=new FileReader();
-  rd.onload=()=>{$('bkText').value=rd.result;bkSay(t('bkRead'),'var(--jade)');};
+  rd.onload=()=>{$('bkText').value=rd.result;bkDirty=true;bkMark();bkSay(t('bkRead'),'var(--jade)');};
   rd.readAsText(f,'utf-8'); e.target.value='';
 });
 
 const chunk=(a,n)=>{const o=[];for(let i=0;i<a.length;i+=n)o.push(a.slice(i,i+n));return o;};
 
 /** 백업 JSON → Supabase 업로드 (합치기). legacy_id 로 중복을 막습니다. */
+let importSkipped=0;
 async function importBackup(o){
   bkSay(t('bkUploading'),'var(--amber)');
+  importSkipped=0;
 
   // 1) 직원 — 이름이 없을 때만 새로 넣습니다 (기존 직원 정보는 건드리지 않음)
   const have=new Set(data.staff.map(s=>s.name));
@@ -2549,6 +2562,8 @@ async function importBackup(o){
   const sid=n=>sidOf(n);
 
   // 2) 근태 기록
+  const skipped=(o.records||[]).filter(r=>!(r&&r.date&&sid(r.staff))).length;
+  if(skipped)importSkipped=skipped;
   const recRows=(o.records||[]).filter(r=>r&&r.date&&sid(r.staff)).map(r=>({
     staff_id:sid(r.staff),date:r.date,sched:r.sched||'',actual:r.actual||'',
     out_time:r.out||'',late:r.late==null?null:Number(r.late),type:r.type||'정상',
@@ -2628,7 +2643,7 @@ async function importBackup(o){
     if(!r.ok)return false;
   }
 
-  await loadAll(); renderStaff(); render();
+  await loadAll(); bkDirty=false; renderStaff(); render();
   return true;
 }
 
@@ -2637,7 +2652,8 @@ $('bkMerge').addEventListener('click',async()=>{
   const o=parseBackup(); if(!o)return;
   const before=data.records.length, sBefore=data.staff.length;
   if(await importBackup(o))
-    bkSay(`✓ ${t('bkRecN')} +${data.records.length-before} · ${t('bkStaffN')} +${data.staff.length-sBefore}`,'var(--jade)');
+    bkSay(`✓ ${t('bkRecN')} +${data.records.length-before} · ${t('bkStaffN')} +${data.staff.length-sBefore}`
+      +(importSkipped?` · <span style="color:var(--coral)">${t('bkSkipped')} ${importSkipped}</span>`:''),'var(--jade)');
 });
 
 $('bkReplace').addEventListener('click',async()=>{
