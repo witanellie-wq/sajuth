@@ -214,6 +214,12 @@
     padding:0 3px;font-family:inherit;}
   .acctcopy:hover{color:var(--jade);}
   #acTable input{padding:7px 9px;font-size:13px;}
+  .raise{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;
+    display:inline-block;margin-top:3px;}
+  .raise.up{background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;}
+  .raise.down{background:#FBF0EF;color:var(--coral);border:1px solid #F0D5D2;}
+  .wh-soon{background:#FBF4E3;color:var(--amber);border:1px solid #EBDCB6;
+    font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;}
   .intern-fields{display:flex;gap:4px;align-items:center;}
   .intern-fields input{width:130px;}
   .intern-fields.hide{display:none;}
@@ -646,6 +652,25 @@
   </section>
 
   <section class="panel adm-only" style="margin-top:20px">
+    <h2 data-i="whTitle"></h2>
+    <div class="hr-add no-print" style="margin-top:0;padding-top:0;border-top:none">
+      <div class="field" style="width:150px;margin:0"><label data-i="lStaff"></label>
+        <select id="whStaff"></select></div>
+      <div class="field" style="width:135px;margin:0"><label data-i="whFrom"></label>
+        <input type="month" id="whMonth"></div>
+      <div class="field" style="width:110px;margin:0"><label data-i="lPayType"></label>
+        <select id="whType"></select></div>
+      <div class="field" style="width:115px;margin:0"><label data-i="lAmount"></label>
+        <input type="number" id="whAmt" min="0" step="10"></div>
+      <div class="field" style="flex:1;min-width:130px;margin:0"><label data-i="whReason"></label>
+        <input type="text" id="whMemo"></div>
+      <button class="save" id="whAdd" style="width:auto;margin:0;padding:9px 18px;align-self:flex-end" data-i="add"></button>
+    </div>
+    <div id="whList" style="margin-top:16px"></div>
+    <p class="note" data-ih="whNote"></p>
+  </section>
+
+  <section class="panel adm-only" style="margin-top:20px">
     <h2 data-i="bkTitleAcct"></h2>
     <div style="overflow-x:auto"><table><thead id="acHead"></thead><tbody id="acTable"></tbody></table></div>
     <p class="note" data-ih="acNote"></p>
@@ -857,6 +882,12 @@ const I={
   lBiz:'사업장', bizAll:'전체 사업장', exNoPay:'급여 제외', exNoBiz:'사업장 구분 없음',
   catPh:'직접 입력 가능', catPreset:'기본 분류', catMine:'직접 만든 분류',
   expMemo:'비고', memoPhShort:'메모', fixBaseCol:'기본 금액',
+  whTitle:'급여 변경 이력', whFrom:'적용 시작 월', whReason:'사유',
+  whReasonPh:'예: 인턴 종료 · 정직원 전환', whFirst:'최초 급여',
+  whNone:'급여 변경 이력이 없습니다. 인상할 때 아래에서 등록하세요.',
+  whSoon:'예정', whUp:'인상', whDown:'인하', opWage:'급여 변경',
+  whDelConfirm:'이 급여 변경을 삭제할까요? 해당 월부터 이전 금액으로 되돌아갑니다.',
+  whNote:'급여를 올리면 여기에 <b>적용 시작 월</b>과 함께 등록하세요 — 예: 8월부터 인상이면 <b>2026-08</b>.<br><b>그 달 급여표는 그 달에 유효했던 금액으로 계산됩니다.</b> 8월 급여를 올려도 7월 급여표는 예전 금액 그대로입니다.<br>미래 달로 미리 등록해두면 <span class="wh-soon">예정</span> 으로 표시되고, 그 달이 되면 자동으로 적용됩니다. 인상된 달의 급여표에는 <span class="raise up">▲ 인상</span> 배지가 붙습니다.<br><b>최초 급여</b> 줄은 이력이 생기기 전 금액이라 시작 월을 바꿀 수 없습니다. 금액만 고치면 과거 전체에 적용됩니다.',
   bkTitleAcct:'급여 계좌', acBank:'은행', acNo:'계좌번호', acHolder:'예금주', acCopy:'계좌번호 복사',
   acBankPh:'예: SCB / Kasikorn', acNoPh:'예: 123-4-56789-0', acHolderPh:'이름과 같으면 비워두세요',
   acNote:'급여 이체할 때 쓰는 계좌입니다. <b>급여 · 커미션</b> 탭의 직원 이름 아래에도 같이 표시되고, 옆의 <b>⧉</b> 를 누르면 계좌번호만 복사됩니다.<br>예금주가 직원 이름과 같으면 비워두셔도 됩니다. 퇴사 처리한 직원은 이 표에 나오지 않습니다.',
@@ -980,6 +1011,12 @@ const I={
   lBiz:'กิจการ', bizAll:'ทุกกิจการ', exNoPay:'ไม่รวมเงินเดือน', exNoBiz:'ไม่แยกตามกิจการ',
   catPh:'พิมพ์เองได้', catPreset:'ประเภทพื้นฐาน', catMine:'ประเภทที่สร้างเอง',
   expMemo:'หมายเหตุ', memoPhShort:'บันทึกย่อ', fixBaseCol:'ยอดตั้งต้น',
+  whTitle:'ประวัติการปรับค่าจ้าง', whFrom:'เริ่มใช้เดือน', whReason:'เหตุผล',
+  whReasonPh:'เช่น จบฝึกงาน · บรรจุเป็นพนักงานประจำ', whFirst:'ค่าจ้างเริ่มต้น',
+  whNone:'ยังไม่มีประวัติการปรับค่าจ้าง เพิ่มได้ที่ด้านล่างเมื่อมีการปรับ',
+  whSoon:'รอมีผล', whUp:'ปรับขึ้น', whDown:'ปรับลง', opWage:'ปรับค่าจ้าง',
+  whDelConfirm:'ต้องการลบรายการปรับค่าจ้างนี้หรือไม่? เดือนนั้นจะกลับไปใช้ยอดเดิม',
+  whNote:'เมื่อปรับค่าจ้าง ให้บันทึกที่นี่พร้อม <b>เดือนที่เริ่มใช้</b> — เช่น ขึ้นตั้งแต่เดือนสิงหาคมให้ใส่ <b>2026-08</b><br><b>ตารางเงินเดือนของแต่ละเดือนจะคำนวณด้วยยอดที่ใช้อยู่ในเดือนนั้น</b> ขึ้นค่าจ้างเดือนสิงหาคมก็ไม่กระทบเดือนกรกฎาคม<br>ใส่ล่วงหน้าไว้ได้ ระบบจะขึ้น <span class="wh-soon">รอมีผล</span> และมีผลเองเมื่อถึงเดือนนั้น เดือนที่ปรับจะมีป้าย <span class="raise up">▲ ปรับขึ้น</span><br>แถว <b>ค่าจ้างเริ่มต้น</b> คือยอดก่อนมีประวัติ จึงแก้เดือนไม่ได้ แก้เฉพาะยอดซึ่งจะมีผลย้อนหลังทั้งหมด',
   bkTitleAcct:'บัญชีรับเงินเดือน', acBank:'ธนาคาร', acNo:'เลขที่บัญชี', acHolder:'ชื่อบัญชี',
   acCopy:'คัดลอกเลขบัญชี',
   acBankPh:'เช่น SCB / กสิกร', acNoPh:'เช่น 123-4-56789-0', acHolderPh:'ถ้าตรงกับชื่อพนักงานเว้นว่างได้',
@@ -1035,7 +1072,7 @@ const DEFAULT_STAFF=[
 ];
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
-                  fixedCosts:[],fixedPays:{},expenses:[],targets:{}});
+                  fixedCosts:[],fixedPays:{},expenses:[],targets:{},wageHist:{}});
 let data=EMPTY();
 const EMPTYPES=[['정직원','tRegular'],['수습','tProbation'],['인턴','tIntern'],['알바','tPart']];
 /* 지출 분류 — [한국어, 태국어] (DB 에는 한국어 값이 들어갑니다) */
@@ -1073,6 +1110,24 @@ const money=n=>'฿'+Number(n||0).toLocaleString();
 const liveStaff=()=>data.staff.filter(s=>!s.resigned);
 const hoursOf=r=>{const a=mins(r.actual),o=mins(r.out);return a!=null&&o!=null&&o>a?(o-a)/60:0;};
 const defPayType=s=>s.payType||(s.type==='알바'?'시급':'일급');
+/** 'YYYY-MM' 이전 달 */
+const prevMonth=m=>{const[Y,M]=m.split('-').map(Number);
+  return M===1?`${Y-1}-12`:`${Y}-${String(M-1).padStart(2,'0')}`;};
+/** 그 달에 유효했던 급여 — 이력이 없으면 직원의 현재 급여를 씁니다 */
+function wageAt(s,month){
+  const h=(data.wageHist||{})[s._id]||[];
+  let cur=null;
+  for(const x of h){ if(x.fromMonth<=month)cur=x; else break; }
+  return cur ? {wage:Number(cur.wage||0),payType:cur.payType||defPayType(s),from:cur.fromMonth,memo:cur.memo}
+             : {wage:Number(s.wage||0),payType:defPayType(s),from:null,memo:''};
+}
+/** 그 달에 급여가 바뀌었는가 (전월 대비) */
+function wageChange(s,month){
+  const now=wageAt(s,month), before=wageAt(s,prevMonth(month));
+  if(!now.from||now.from!==month)return null;              // 이 달부터 적용된 게 아니면 변화 없음
+  if(before.wage===now.wage&&before.payType===now.payType)return null;
+  return {from:before,to:now,up:now.wage>before.wage};
+}
 const num=v=>v==null||v===''?null:Number(v);
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -1161,7 +1216,7 @@ async function loadAll(){
   if(!sb)return;
   const q=(tb,fn)=>op(t('opLoad')+' · '+tb,fn,false);
   const admQ=(tb,fn)=>isAdmin?q(tb,fn):Promise.resolve({ok:true,data:[]});
-  const [m,r,p,c,w,e,fc,fp,ex,tg]=await Promise.all([
+  const [m,r,p,c,w,e,fc,fp,ex,tg,wh]=await Promise.all([
     q('staff_members',()=>sb.from('staff_members').select('*')
         .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
     q('staff_records',()=>sb.from('staff_records').select('*')
@@ -1175,7 +1230,9 @@ async function loadAll(){
     admQ('staff_fixed_payments',()=>sb.from('staff_fixed_payments').select('*').limit(LIM)),
     admQ('staff_expenses',()=>sb.from('staff_expenses').select('*')
         .order('date',{ascending:false}).order('created_at',{ascending:false}).limit(LIM)),
-    admQ('staff_targets',()=>sb.from('staff_targets').select('*').limit(LIM))
+    admQ('staff_targets',()=>sb.from('staff_targets').select('*').limit(LIM)),
+    admQ('staff_wage_history',()=>sb.from('staff_wage_history').select('*')
+        .order('from_month',{ascending:true}).limit(LIM))
   ]);
   if(!m.ok)return false;
 
@@ -1231,6 +1288,14 @@ async function loadAll(){
   (tg.data||[]).forEach(x=>{
     data.targets[(x.biz||DEF_BIZ)+'|'+x.month]={amount:Number(x.amount||0),memo:x.memo||''};
   });
+
+  data.wageHist={};
+  (wh.data||[]).forEach(x=>{
+    (data.wageHist[x.staff_id]=data.wageHist[x.staff_id]||[]).push({
+      id:x.id,fromMonth:x.from_month,payType:x.pay_type||'일급',
+      wage:Number(x.wage||0),memo:x.memo||''});
+  });
+  Object.values(data.wageHist).forEach(a=>a.sort((p,q)=>p.fromMonth.localeCompare(q.fromMonth)));
 
   return true;
 }
@@ -1294,7 +1359,7 @@ function subscribeLive(){
   // RLS 로 못 읽는 테이블은 구독하지 않습니다 (직원 계정에서 채널 오류 방지)
   const tables=['staff_members','staff_records','staff_evals']
     .concat(isAdmin?['staff_payroll','staff_commissions','staff_warnings',
-                     'staff_fixed_costs','staff_fixed_payments','staff_expenses','staff_targets']:[]);
+                     'staff_fixed_costs','staff_fixed_payments','staff_expenses','staff_targets','staff_wage_history']:[]);
   tables.forEach(tb=>ch.on('postgres_changes',{event:'*',schema:'public',table:tb},scheduleReload));
   ch.subscribe(st=>{
     if(st==='SUBSCRIBED'){liveCh=ch;setNet('live');}
@@ -1369,8 +1434,8 @@ function stat(name,month){
 const commOf=(name,month)=>(data.commissions||[]).filter(c=>c.staff===name&&(c.date||'').startsWith(month))
   .reduce((a,c)=>a+Number(c.amount||0),0);
 function estPay(s,month){
-  const w=Number(s.wage||0); if(!w)return null;
-  const x=stat(s.name,month), pt=defPayType(s);
+  const {wage:w,payType:pt}=wageAt(s,month); if(!w)return null;
+  const x=stat(s.name,month);
   if(pt==='월급')return w;
   if(pt==='시급')return Math.round(x.hours*w);
   return x.days*w;
@@ -1479,6 +1544,7 @@ function renderStaff(){
   ['staff','stSel','evStaff'].forEach(id=>{const el=$(id),v=el.value;el.innerHTML=opts;el.value=v||0;});
   const nopts=data.staff.map(s=>`<option value="${esc(s.name)}">${esc(s.name)}${tag(s)}</option>`).join('');
   ['cmStaff','edStaff'].forEach(id=>{const el=$(id),v=el.value;el.innerHTML=nopts;if(v)el.value=v;});
+  {const el=$('whStaff'),v=el.value;el.innerHTML=opts;el.value=v||0;}
   syncSched();
 }
 function syncSched(){const s=data.staff[+$('staff').value];if(s){$('sched').value=s.sched;updateReadout();}}
@@ -1616,7 +1682,7 @@ function render(){
     $('stLog').innerHTML=all.length?all.map(entryHTML).join(''):`<div class="empty">${t('noRec')}</div>`;
   }
 
-  renderHR(); if(isAdmin){renderAcct(); renderEmp(); renderPay(); renderComm(); renderEx();}
+  renderHR(); if(isAdmin){renderWage(); renderAcct(); renderEmp(); renderPay(); renderComm(); renderEx();}
   fillBackup(); renderSheet();
 }
 
@@ -2206,6 +2272,7 @@ $('hrAdd').addEventListener('click',async()=>{
   renderStaff(); render();
 });
 function buildEmpSelects(){
+  $('whType').innerHTML=PAYTYPES.map(([v,k])=>`<option value="${v}">${t(k)}</option>`).join('');
   $('hrType').innerHTML=EMPTYPES.map(([v,k])=>`<option value="${v}">${t(k)}</option>`).join('');
   $('hrPayType').innerHTML=PAYTYPES.map(([v,k])=>`<option value="${v}"${v==='일급'?' selected':''}>${t(k)}</option>`).join('');
   $('hrType').onchange=()=>{$('hrPayType').value=$('hrType').value==='알바'?'시급':'일급';};
@@ -2220,6 +2287,110 @@ function internStatus(s){
   const left=Math.ceil((end-now)/(24*60*60*1000));
   return left>=0?{on:true,left}:{on:false,left};
 }
+function renderWage(){
+  const rows=[];
+  liveStaff().forEach(s=>{
+    (data.wageHist[s._id]||[]).slice().reverse().forEach(h=>rows.push({s,h}));
+  });
+  const cm=todayISO().slice(0,7);
+  $('whList').innerHTML=rows.length?`<table>
+    <thead><tr><th style="width:20%">${t('cStaff')}</th><th style="width:14%">${t('whFrom')}</th>
+      <th style="width:12%">${t('lPayType')}</th><th class="num" style="width:14%">${t('lAmount')}</th>
+      <th>${t('whReason')}</th><th style="width:38px"></th></tr></thead>
+    <tbody>${rows.map(({s,h})=>{
+      const first=h.fromMonth==='2000-01';
+      const soon=!first&&h.fromMonth>cm;
+      return `<tr${soon?' style="background:#FDFBF5"':''}>
+        <td><b>${esc(s.name)}</b></td>
+        <td><input type="month" data-wh="fromMonth" data-id="${h.id}"
+          value="${first?'':h.fromMonth}" ${first?'disabled':''} style="width:100%"
+          title="${first?t('whFirst'):''}"></td>
+        <td><select data-wh="payType" data-id="${h.id}">${
+          PAYTYPES.map(([v,k])=>`<option value="${v}"${h.payType===v?' selected':''}>${t(k)}</option>`).join('')
+        }</select></td>
+        <td><input type="number" step="10" min="0" data-wh="wage" data-id="${h.id}" value="${h.wage||''}"
+          style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
+        <td><input type="text" data-wh="memo" data-id="${h.id}" value="${esc(h.memo||'')}"
+          placeholder="${first?t('whFirst'):t('whReasonPh')}" style="width:100%">
+          ${soon?`<span class="wh-soon">${t('whSoon')}</span>`:''}</td>
+        <td style="text-align:right">${first?'':`<button class="del" data-whdel="${h.id}">×</button>`}</td>
+      </tr>`;}).join('')}</tbody></table>`
+    :`<div class="empty">${t('whNone')}</div>`;
+}
+const whOf=id=>{for(const arr of Object.values(data.wageHist||{})){
+  const x=arr.find(h=>String(h.id)===String(id)); if(x)return x;} return null;};
+
+$('whList').addEventListener('change',async e=>{
+  const el=e.target.closest('[data-wh]'); if(!el)return;
+  const h=whOf(el.dataset.id); if(!h)return;
+  const f=el.dataset.wh, patch={};
+  if(f==='fromMonth'){ if(!el.value)  {el.value=h.fromMonth;return;} h.fromMonth=el.value; patch.from_month=el.value; }
+  else if(f==='wage'){ h.wage=el.value===''?0:Math.max(0,Number(el.value)); patch.wage=h.wage; }
+  else if(f==='payType'){ h.payType=el.value; patch.pay_type=h.payType; }
+  else { h.memo=el.value; patch.memo=h.memo; }
+  Object.values(data.wageHist).forEach(a=>a.sort((p,q)=>p.fromMonth.localeCompare(q.fromMonth)));
+  await op(t('opWage'),()=>sb.from('staff_wage_history').update(patch).eq('id',h.id));
+  await syncCurrentWage();
+  renderWage(); render();
+});
+$('whList').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-whdel]'); if(!b)return;
+  if(!confirm(t('whDelConfirm')))return;
+  const id=b.dataset.whdel;
+  Object.keys(data.wageHist).forEach(k=>{
+    data.wageHist[k]=data.wageHist[k].filter(h=>String(h.id)!==String(id));});
+  renderWage(); render();
+  await op(t('opWage')+' · '+t('opDel'),()=>sb.from('staff_wage_history').delete().eq('id',id));
+  await syncCurrentWage();
+  renderWage(); render();
+});
+
+/** staff_members.wage 를 '가장 최근 적용분' 으로 맞춰 둡니다 (백업·표시용) */
+async function syncCurrentWage(){
+  for(const s of data.staff){
+    const h=(data.wageHist[s._id]||[]);
+    if(!h.length)continue;
+    const last=h[h.length-1];
+    if(Number(s.wage||0)!==Number(last.wage)||s.payType!==last.payType){
+      s.wage=Number(last.wage); s.payType=last.payType;
+      await op(t('opStaff'),()=>sb.from('staff_members')
+        .update({wage:s.wage,pay_type:s.payType}).eq('id',s._id));
+    }
+  }
+}
+
+$('whAdd').addEventListener('click',async()=>{
+  const s=data.staff[+$('whStaff').value];
+  if(!s){alert(t('addStaffFirst'));return;}
+  const mo=$('whMonth').value;
+  if(!mo){$('whMonth').focus();return;}
+  const amt=Number($('whAmt').value||0);
+  if(!amt){$('whAmt').focus();return;}
+  const pt=$('whType').value||defPayType(s);
+
+  // 이력이 하나도 없으면 지금 급여를 '최초 급여' 로 먼저 남깁니다
+  if(!(data.wageHist[s._id]||[]).length&&Number(s.wage||0)>0){
+    const base={staff_id:s._id,from_month:'2000-01',pay_type:defPayType(s),
+      wage:Number(s.wage),memo:t('whFirst')};
+    const r0=await op(t('opWage'),()=>sb.from('staff_wage_history').insert(base).select().single());
+    if(r0.ok&&r0.data)(data.wageHist[s._id]=data.wageHist[s._id]||[]).push({
+      id:r0.data.id,fromMonth:'2000-01',payType:base.pay_type,wage:base.wage,memo:base.memo});
+  }
+  const row={staff_id:s._id,from_month:mo,pay_type:pt,wage:amt,memo:$('whMemo').value.trim()};
+  const res=await op(t('opWage'),()=>sb.from('staff_wage_history')
+    .upsert(row,{onConflict:'staff_id,from_month'}).select().single());
+  if(res.ok&&res.data){
+    const arr=data.wageHist[s._id]=data.wageHist[s._id]||[];
+    const i=arr.findIndex(h=>h.fromMonth===mo);
+    const item={id:res.data.id,fromMonth:mo,payType:pt,wage:amt,memo:row.memo};
+    if(i>=0)arr[i]=item; else arr.push(item);
+    arr.sort((p,q)=>p.fromMonth.localeCompare(q.fromMonth));
+  }
+  $('whAmt').value=''; $('whMemo').value='';
+  await syncCurrentWage();
+  renderWage(); render();
+});
+
 function renderAcct(){
   $('acHead').innerHTML=`<tr>
     <th style="width:22%">${t('cStaff')}</th>
@@ -2265,10 +2436,12 @@ function renderEmp(){
     const badge=ist?(ist.on
       ?`<span class="intern-badge">${t('internLeft')} ${ist.left}${t('internDur')}</span>`
       :`<span class="intern-badge done">${t('internEnded')}</span>`):'';
-    const x=stat(s.name,gm), pt=defPayType(s), pay=estPay(s,gm);
+    const x=stat(s.name,gm), wa=wageAt(s,gm), pt=wa.payType, pay=estPay(s,gm);
     const unit=pt==='월급'?t('pM')
-      :pt==='시급'?`${x.hours.toFixed(1)}${t('hrs')} × ${money(s.wage)}`
-      :`${x.days}${t('day')} × ${money(s.wage)}`;
+      :pt==='시급'?`${x.hours.toFixed(1)}${t('hrs')} × ${money(wa.wage)}`
+      :`${x.days}${t('day')} × ${money(wa.wage)}`;
+    const chg=wageChange(s,gm);
+    const upcoming=(data.wageHist[s._id]||[]).filter(h=>h.fromMonth>gm)[0];
     return `<tr>
       <td><b>${esc(s.name)}</b></td>
       <td><select data-emp="type" data-i2="${i}">
@@ -2280,10 +2453,10 @@ function renderEmp(){
         <input type="date" data-emp="internEnd" data-i2="${i}" value="${s.internEnd||''}" title="${t('toD')}">
         ${badge}
       </div></td>
-      <td><select data-emp="payType" data-i2="${i}">
-        ${PAYTYPES.map(([v,k])=>`<option value="${v}"${pt===v?' selected':''}>${t(k)}</option>`).join('')}
-      </select></td>
-      <td><input type="number" min="0" step="10" data-emp="wage" data-i2="${i}" value="${s.wage||''}" placeholder="${t('notSet')}"></td>
+      <td>${t(({'월급':'pM','일급':'pD','시급':'pH'})[pt]||'pD')}</td>
+      <td><b class="pay-est">${wa.wage?money(wa.wage):`<span style="color:var(--ink-soft);font-weight:400;font-size:11px">${t('notSet')}</span>`}</b>
+        ${chg?`<br><span class="raise ${chg.up?'up':'down'}">${chg.up?'▲':'▼'} ${money(chg.from.wage)} → ${money(chg.to.wage)}</span>`:''}
+        ${upcoming?`<br><span class="wh-soon">${upcoming.fromMonth} ${money(upcoming.wage)}</span>`:''}</td>
       <td class="num">${pay!=null?`<span class="pay-est">${money(pay)}</span><br><span style="font-size:10px;color:var(--ink-soft)">${unit}</span>`:`<span style="color:var(--ink-soft);font-size:11px">${t('notSet')}</span>`}</td>
     </tr>`;
   }).join('')||`<tr><td colspan="6">${t('addStaffFirst')}</td></tr>`;
@@ -2437,14 +2610,17 @@ function renderPay(){
   const list=liveStaff();
   let sum=0, paidSum=0, paidN=0, unpaidN=0;
   $('payTable').innerHTML=list.map(s=>{
-    const c=payCalc(s,m), x=stat(s.name,m), k=esc(s.name), pt=defPayType(s);
+    const c=payCalc(s,m), x=stat(s.name,m), k=esc(s.name);
+    const wa=wageAt(s,m), pt=wa.payType, chg=wageChange(s,m);
     sum+=c.total;
     if(c.p.paid){paidSum+=c.total;paidN++;}else{unpaidN++;}
     const inp=(f,ph)=>`<input type="number" step="10" data-pay="${f}" data-k="${k}"
       value="${c.p[f]==null||c.p[f]===''?'':c.p[f]}" placeholder="${ph}"
       style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace;padding:6px 8px;font-size:12.5px">`;
     return `<tr${c.p.paid?' style="background:#F4F8F6"':''}>
-      <td><b>${esc(s.name)}</b><br><span style="font-size:10.5px;color:var(--ink-soft)">${t(({'월급':'pM','일급':'pD','시급':'pH'})[pt])} ${s.wage?money(s.wage):t('notSet')}</span>
+      <td><b>${esc(s.name)}</b><br><span style="font-size:10.5px;color:var(--ink-soft)">${t(({'월급':'pM','일급':'pD','시급':'pH'})[pt])} ${wa.wage?money(wa.wage):t('notSet')}</span>
+        ${chg?`<br><span class="raise ${chg.up?'up':'down'}" title="${esc(chg.to.memo||'')}">${
+          chg.up?'▲ '+t('whUp'):'▼ '+t('whDown')} ${money(chg.from.wage)} → ${money(chg.to.wage)}</span>`:''}
         ${s.bankAcct?`<br><span class="acct" title="${esc(s.bankName||'')}${s.bankHolder?' · '+esc(s.bankHolder):''}">${
           s.bankName?esc(s.bankName)+' ':''}${esc(s.bankAcct)}<button class="acctcopy no-print"
           data-copy="${esc(s.bankAcct)}" title="${t('acCopy')}">⧉</button></span>`:''}</td>
@@ -2651,7 +2827,10 @@ function fillBackup(force){
       return [(c?lidOf('fx',c):k.slice(0,cut))+'|'+k.slice(cut+1),strip(v)];
     })),
     expenses:(data.expenses||[]).map(strip),
-    targets:Object.fromEntries(Object.entries(data.targets||{}).map(([k,v])=>[k,strip(v)]))});
+    targets:Object.fromEntries(Object.entries(data.targets||{}).map(([k,v])=>[k,strip(v)])),
+    // 급여 이력은 직원 이름으로 키를 잡아야 다른 DB 로 옮겨도 이어집니다
+    wageHist:Object.fromEntries(data.staff.filter(x=>(data.wageHist[x._id]||[]).length)
+      .map(x=>[x.name,(data.wageHist[x._id]||[]).map(h=>{const{id,...r}=h;return r;})]))});
   const ms=[...new Set(data.records.map(r=>r.date.slice(0,7)))].sort();
   $('bkStat').textContent=`${t('bkStaffN')} ${data.staff.length}${t('cnt')} · ${t('bkRecN')} ${data.records.length}${t('cntRec')}`
     +(ms.length?` · ${ms[0]} ~ ${ms[ms.length-1]}`:'')+` · ${$('bkText').value.length.toLocaleString()} ${t('bkChars')}`;
@@ -2805,6 +2984,18 @@ async function importBackup(o){
     for(const part of chunk(tgRows2,400)){
       const r=await op(t('opImport')+' · '+t('opTarget'),
         ()=>sb.from('staff_targets').upsert(part,{onConflict:'biz,month'}));
+      if(!r.ok)return false;
+    }
+    // 9) 급여 변경 이력 — 직원 + 적용월 복합키
+    const whRows=[];
+    Object.entries(o.wageHist||{}).forEach(([nm,arr])=>{
+      const id=sid(nm); if(!id||!Array.isArray(arr))return;
+      arr.forEach(h=>{ if(h&&h.fromMonth)whRows.push({staff_id:id,from_month:h.fromMonth,
+        pay_type:h.payType||'일급',wage:Number(h.wage||0),memo:h.memo||''}); });
+    });
+    for(const part of chunk(whRows,400)){
+      const r=await op(t('opImport')+' · '+t('opWage'),
+        ()=>sb.from('staff_wage_history').upsert(part,{onConflict:'staff_id,from_month'}));
       if(!r.ok)return false;
     }
   }
