@@ -208,6 +208,12 @@
     background:#EAF0F6;color:#4A6FA5;white-space:nowrap;}
   .intern-badge.done{background:#EFF1EE;color:var(--ink-soft);}
   .pay-est{font-family:'IBM Plex Mono',monospace;font-weight:600;color:var(--jade);}
+  .acct{display:inline-block;font-family:'IBM Plex Mono',monospace;font-size:10.5px;
+    color:var(--slate);margin-top:2px;}
+  .acctcopy{background:none;border:none;color:var(--line);cursor:pointer;font-size:12px;
+    padding:0 3px;font-family:inherit;}
+  .acctcopy:hover{color:var(--jade);}
+  #acTable input{padding:7px 9px;font-size:13px;}
   .intern-fields{display:flex;gap:4px;align-items:center;}
   .intern-fields input{width:130px;}
   .intern-fields.hide{display:none;}
@@ -639,6 +645,12 @@
     <p class="note" data-ih="hrNote"></p>
   </section>
 
+  <section class="panel adm-only" style="margin-top:20px">
+    <h2 data-i="bkTitleAcct"></h2>
+    <div style="overflow-x:auto"><table><thead id="acHead"></thead><tbody id="acTable"></tbody></table></div>
+    <p class="note" data-ih="acNote"></p>
+  </section>
+
   <section class="panel" style="margin-top:20px">
     <h2 data-i="empTerms"></h2>
     <div class="lockbox no-print">
@@ -845,6 +857,9 @@ const I={
   lBiz:'사업장', bizAll:'전체 사업장', exNoPay:'급여 제외', exNoBiz:'사업장 구분 없음',
   catPh:'직접 입력 가능', catPreset:'기본 분류', catMine:'직접 만든 분류',
   expMemo:'비고', memoPhShort:'메모', fixBaseCol:'기본 금액',
+  bkTitleAcct:'급여 계좌', acBank:'은행', acNo:'계좌번호', acHolder:'예금주', acCopy:'계좌번호 복사',
+  acBankPh:'예: SCB / Kasikorn', acNoPh:'예: 123-4-56789-0', acHolderPh:'이름과 같으면 비워두세요',
+  acNote:'급여 이체할 때 쓰는 계좌입니다. <b>급여 · 커미션</b> 탭의 직원 이름 아래에도 같이 표시되고, 옆의 <b>⧉</b> 를 누르면 계좌번호만 복사됩니다.<br>예금주가 직원 이름과 같으면 비워두셔도 됩니다. 퇴사 처리한 직원은 이 표에 나오지 않습니다.',
   tgTitle:'매출 목표', tgThis:'이달 목표', tgNext:'다음 달 목표', opTarget:'매출 목표',
   tgGoal:'목표 매출', tgProfit:'예상 이익', tgMargin:'이익률', tgShort:'부족',
   tgNone:'목표 매출을 입력하면 총지출과 비교해 예상 이익이 여기에 나옵니다.',
@@ -965,6 +980,10 @@ const I={
   lBiz:'กิจการ', bizAll:'ทุกกิจการ', exNoPay:'ไม่รวมเงินเดือน', exNoBiz:'ไม่แยกตามกิจการ',
   catPh:'พิมพ์เองได้', catPreset:'ประเภทพื้นฐาน', catMine:'ประเภทที่สร้างเอง',
   expMemo:'หมายเหตุ', memoPhShort:'บันทึกย่อ', fixBaseCol:'ยอดตั้งต้น',
+  bkTitleAcct:'บัญชีรับเงินเดือน', acBank:'ธนาคาร', acNo:'เลขที่บัญชี', acHolder:'ชื่อบัญชี',
+  acCopy:'คัดลอกเลขบัญชี',
+  acBankPh:'เช่น SCB / กสิกร', acNoPh:'เช่น 123-4-56789-0', acHolderPh:'ถ้าตรงกับชื่อพนักงานเว้นว่างได้',
+  acNote:'บัญชีที่ใช้โอนเงินเดือน จะแสดงใต้ชื่อพนักงานในแท็บ <b>เงินเดือน · คอมมิชชั่น</b> ด้วย และกด <b>⧉</b> เพื่อคัดลอกเฉพาะเลขบัญชี<br>ถ้าชื่อบัญชีตรงกับชื่อพนักงานจะเว้นว่างไว้ก็ได้ พนักงานที่ลาออกแล้วจะไม่แสดงในตารางนี้',
   tgTitle:'เป้ายอดขาย', tgThis:'เป้าเดือนนี้', tgNext:'เป้าเดือนหน้า', opTarget:'เป้ายอดขาย',
   tgGoal:'เป้ายอดขาย', tgProfit:'กำไรคาดการณ์', tgMargin:'อัตรากำไร', tgShort:'ขาด',
   tgNone:'ใส่เป้ายอดขายแล้วระบบจะเทียบกับรายจ่ายรวมและแสดงกำไรคาดการณ์ที่นี่',
@@ -1069,13 +1088,16 @@ const staffFromRow=r=>({
   wage:r.wage==null?undefined:Number(r.wage),
   internStart:r.intern_start||undefined, internEnd:r.intern_end||undefined,
   resigned:!!r.resigned, resignDate:r.resign_date||undefined,
+  bankName:r.bank_name||'', bankAcct:r.bank_account||'', bankHolder:r.bank_holder||'',
   sortOrder:r.sort_order??0
 });
 const staffToRow=s=>({
   name:s.name, sched:s.sched||'10:30', off:s.off||[], emp_type:s.type||'정직원',
   pay_type:s.payType||null, wage:s.wage==null?null:Number(s.wage),
   intern_start:s.internStart||null, intern_end:s.internEnd||null,
-  resigned:!!s.resigned, resign_date:s.resignDate||null, sort_order:s.sortOrder??0
+  resigned:!!s.resigned, resign_date:s.resignDate||null,
+  bank_name:s.bankName||'', bank_account:s.bankAcct||'', bank_holder:s.bankHolder||'',
+  sort_order:s.sortOrder??0
 });
 const recFromRow=(r,nm)=>({
   id:r.id, _sid:r.staff_id, staff:nm, date:r.date,
@@ -1594,7 +1616,7 @@ function render(){
     $('stLog').innerHTML=all.length?all.map(entryHTML).join(''):`<div class="empty">${t('noRec')}</div>`;
   }
 
-  renderHR(); if(isAdmin){renderEmp(); renderPay(); renderComm(); renderEx();}
+  renderHR(); if(isAdmin){renderAcct(); renderEmp(); renderPay(); renderComm(); renderEx();}
   fillBackup(); renderSheet();
 }
 
@@ -2198,6 +2220,35 @@ function internStatus(s){
   const left=Math.ceil((end-now)/(24*60*60*1000));
   return left>=0?{on:true,left}:{on:false,left};
 }
+function renderAcct(){
+  $('acHead').innerHTML=`<tr>
+    <th style="width:22%">${t('cStaff')}</th>
+    <th style="width:20%">${t('acBank')}</th>
+    <th style="width:32%">${t('acNo')}</th>
+    <th style="width:26%">${t('acHolder')}</th></tr>`;
+  $('acTable').innerHTML=liveStaff().map(s=>{
+    const i=data.staff.indexOf(s);
+    return `<tr>
+      <td><b>${esc(s.name)}</b></td>
+      <td><input type="text" data-ac="bankName" data-i2="${i}" value="${esc(s.bankName||'')}"
+        placeholder="${t('acBankPh')}" style="width:100%"></td>
+      <td><input type="text" data-ac="bankAcct" data-i2="${i}" value="${esc(s.bankAcct||'')}"
+        placeholder="${t('acNoPh')}" style="width:100%;font-family:'IBM Plex Mono',monospace"></td>
+      <td><input type="text" data-ac="bankHolder" data-i2="${i}" value="${esc(s.bankHolder||'')}"
+        placeholder="${t('acHolderPh')}" style="width:100%"></td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="4">${t('addStaffFirst')}</td></tr>`;
+}
+$('acTable').addEventListener('change',async e=>{
+  const el=e.target.closest('[data-ac]'); if(!el)return;
+  const s=data.staff[+el.dataset.i2]; if(!s)return;
+  const f=el.dataset.ac, v=el.value.trim();
+  s[f]=v;
+  const col={bankName:'bank_name',bankAcct:'bank_account',bankHolder:'bank_holder'}[f];
+  renderAcct(); renderPay();
+  await pushStaff(s,{[col]:v});
+});
+
 function renderEmp(){
   const gm=$('gridMonth')?.value||todayISO().slice(0,7);
   $('empHead').innerHTML=`<tr>
@@ -2393,7 +2444,10 @@ function renderPay(){
       value="${c.p[f]==null||c.p[f]===''?'':c.p[f]}" placeholder="${ph}"
       style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace;padding:6px 8px;font-size:12.5px">`;
     return `<tr${c.p.paid?' style="background:#F4F8F6"':''}>
-      <td><b>${esc(s.name)}</b><br><span style="font-size:10.5px;color:var(--ink-soft)">${t(({'월급':'pM','일급':'pD','시급':'pH'})[pt])} ${s.wage?money(s.wage):t('notSet')}</span></td>
+      <td><b>${esc(s.name)}</b><br><span style="font-size:10.5px;color:var(--ink-soft)">${t(({'월급':'pM','일급':'pD','시급':'pH'})[pt])} ${s.wage?money(s.wage):t('notSet')}</span>
+        ${s.bankAcct?`<br><span class="acct" title="${esc(s.bankName||'')}${s.bankHolder?' · '+esc(s.bankHolder):''}">${
+          s.bankName?esc(s.bankName)+' ':''}${esc(s.bankAcct)}<button class="acctcopy no-print"
+          data-copy="${esc(s.bankAcct)}" title="${t('acCopy')}">⧉</button></span>`:''}</td>
       <td class="num" style="font-size:12px">${x.days}${t('day')}${x.hours?`<br><span style="color:var(--ink-soft)">${x.hours.toFixed(1)}${t('hrs')}</span>`:''}</td>
       <td>${inp('base',c.auto||0)}</td>
       <td>${inp('comm',c.autoC||0)}</td>
@@ -2446,6 +2500,13 @@ $('payTable').addEventListener('click',async e=>{
   if(p.paid&&!p.date)p.date=todayISO();
   renderPay();
   await savePayroll(name,m,p);
+});
+$('payTable').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-copy]'); if(!b)return;
+  try{ await navigator.clipboard.writeText(b.dataset.copy);
+       const o=b.textContent; b.textContent='✓';
+       setTimeout(()=>{b.textContent=o;},1200);
+  }catch(err){ alert(b.dataset.copy); }
 });
 $('payPrint').addEventListener('click',()=>window.print());
 
