@@ -218,6 +218,26 @@
     display:inline-block;margin-top:3px;}
   .raise.up{background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;}
   .raise.down{background:#FBF0EF;color:var(--coral);border:1px solid #F0D5D2;}
+  .rbbox{border:1px solid var(--violet);background:#F7F5FB;border-radius:var(--r);
+    padding:13px 15px;margin-bottom:4px;}
+  .rbbox h4{margin:0 0 10px;font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--violet);
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .rbbox h4 b{font-family:'IBM Plex Mono',monospace;font-size:14px;}
+  .rbrow{display:flex;align-items:center;gap:10px;padding:6px 0;border-top:1px dotted #D8D2E6;
+    flex-wrap:wrap;font-size:12.5px;}
+  .rbrow .nm{font-weight:700;min-width:96px;}
+  .rbrow .amt{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--violet);}
+  .rbrow .cnt{color:var(--ink-soft);font-size:11.5px;}
+  .rbbtn{background:var(--violet);color:#fff;border:none;border-radius:20px;padding:5px 13px;
+    font-size:11.5px;font-weight:700;cursor:pointer;font-family:inherit;margin-left:auto;}
+  .rbbtn:hover{background:#493C72;}
+  .rbbtn.ghost2{background:#fff;color:var(--violet);border:1px solid var(--violet);}
+  .rbdet{font-size:11.5px;color:var(--ink-soft);padding:3px 0 3px 12px;display:flex;gap:8px;flex-wrap:wrap;}
+  .rbdet .d{font-family:'IBM Plex Mono',monospace;}
+  .rbdone{background:#F1F7F5;border-color:#CFE2DC;}
+  .rbdone h4{color:var(--jade);}
+  .payer-tag{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px;white-space:nowrap;
+    background:#F0EDF6;color:var(--violet);border:1px solid #DCD5EC;}
   .wh-soon{background:#FBF4E3;color:var(--amber);border:1px solid #EBDCB6;
     font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;}
   .intern-fields{display:flex;gap:4px;align-items:center;}
@@ -608,12 +628,15 @@
         <input type="text" id="exCat" class="hascombo" data-combo="exp"></div>
       <div class="field" style="flex:1;min-width:140px;margin:0"><label data-i="expItem"></label>
         <input type="text" id="exItem"></div>
-      <div class="field" style="flex:1;min-width:120px;margin:0"><label data-i="expMemo"></label>
+      <div class="field" style="width:130px;margin:0"><label data-i="rbPayer"></label>
+        <input type="text" id="exPayer" class="hascombo" data-combo="payer" value="회사"></div>
+      <div class="field" style="flex:1;min-width:110px;margin:0"><label data-i="expMemo"></label>
         <input type="text" id="exMemo"></div>
       <div class="field" style="width:115px;margin:0"><label data-i="expAmt"></label>
         <input type="number" id="exAmt" min="0" step="10"></div>
       <button class="save" id="exAdd" style="width:auto;margin:0;padding:9px 18px;align-self:flex-end" data-i="add"></button>
     </div>
+    <div id="rbBox" style="margin-top:16px"></div>
     <div id="exList" style="margin-top:16px"></div>
     <div id="exByCat" style="margin-top:16px"></div>
     <p class="note" data-ih="expNote"></p>
@@ -875,12 +898,16 @@ const I={
   expDate:'날짜', expItem:'내용', expCat:'분류', expAmt:'금액 (฿)',
   expNone:'이 달 지출 기록이 없습니다.', expTotal:'지출 합계', expByCat:'분류별 소계',
   expItemPh:'예: 니트릴 장갑 2박스 · 면봉',
-  expNote:'한 번만 나가는 돈(소모품 구입, 장비 수리, 세금 납부 등)을 그때그때 적어두는 곳입니다. <b>등록한 날짜가 속한 달</b>의 요약에 자동 합산됩니다. 분류는 <b>직접 입력</b>할 수 있고, 사업장도 함께 고르면 위 표에서 나눠 볼 수 있습니다.<br>이미 넣은 항목은 <b>표에서 바로 고칠 수 있습니다</b> — 날짜 · 사업장 · 분류 · 내용 · 금액 모두 고치는 즉시 저장됩니다.',
+  expNote:'한 번만 나가는 돈(소모품 구입, 장비 수리, 세금 납부 등)을 그때그때 적어두는 곳입니다. <b>등록한 날짜가 속한 달</b>의 요약에 자동 합산됩니다. 분류는 <b>직접 입력</b>할 수 있고, 사업장도 함께 고르면 위 표에서 나눠 볼 수 있습니다.<br>이미 넣은 항목은 <b>표에서 바로 고칠 수 있습니다</b> — 날짜 · 사업장 · 분류 · 내용 · 결제자 · 비고 · 금액 모두 고치는 즉시 저장됩니다.<br><b>결제자</b>를 회사가 아닌 사람 이름으로 바꾸면 <b>사비 결제</b>로 잡혀, 위 <b>정산 대기</b> 목록에 올라갑니다. 지출 자체는 누가 냈든 총지출에 그대로 들어가고, 정산은 따로 관리됩니다.<br>정산 대기는 <b>달과 상관없이</b> 갚을 때까지 남습니다 — 지난달에 사비로 산 것도 계속 보입니다.',
   exCsv:'지출 CSV', exNoteSum:'급여는 급여 · 커미션 탭에서 계산된 지급 합계입니다.',
   markPaid:'지급 처리', markPaidHint:'누르면 지급 완료로 기록됩니다',
   undoPaidHint:'누르면 미지급으로 되돌립니다',
   lBiz:'사업장', bizAll:'전체 사업장', exNoPay:'급여 제외', exNoBiz:'사업장 구분 없음',
   catPh:'직접 입력 가능', catPreset:'기본 분류', catMine:'직접 만든 분류',
+  rbTitle:'사비 결제 · 정산 대기', rbAllMonths:'(월 상관없이 갚을 때까지 남습니다)',
+  rbPayer:'결제자', rbSettle:'정산', rbSettleAll:'전체 정산 처리', rbPending:'정산 대기',
+  rbDone:'정산 완료', rbDoneShort:'정산', rbUndo:'되돌리기', opRb:'정산',
+  rbConfirm:'오늘 날짜로 정산 완료 처리할까요?', acCompany:'회사',
   expMemo:'비고', memoPhShort:'메모', fixBaseCol:'기본 금액',
   whTitle:'급여 변경 이력', whFrom:'적용 시작 월', whReason:'사유',
   whReasonPh:'예: 인턴 종료 · 정직원 전환', whFirst:'최초 급여',
@@ -1004,12 +1031,16 @@ const I={
   expDate:'วันที่', expItem:'รายละเอียด', expCat:'ประเภท', expAmt:'จำนวนเงิน (฿)',
   expNone:'เดือนนี้ยังไม่มีรายการค่าใช้จ่าย', expTotal:'รวมค่าใช้จ่าย', expByCat:'แยกตามประเภท',
   expItemPh:'เช่น: ถุงมือไนไตร 2 กล่อง · คอตตอนบัด',
-  expNote:'ใช้บันทึกเงินที่จ่ายครั้งเดียว (ซื้อวัสดุ ซ่อมอุปกรณ์ จ่ายภาษี ฯลฯ) ระบบจะรวมเข้า<b>เดือนตามวันที่ที่บันทึก</b>โดยอัตโนมัติ',
+  expNote:'ใช้บันทึกเงินที่จ่ายครั้งเดียว (ซื้อวัสดุ ซ่อมอุปกรณ์ จ่ายภาษี ฯลฯ) ระบบจะรวมเข้า<b>เดือนตามวันที่ที่บันทึก</b>โดยอัตโนมัติ<br>ถ้าเปลี่ยน <b>ผู้จ่าย</b> เป็นชื่อคนแทนบริษัท จะถือเป็นการ<b>สำรองจ่าย</b> และขึ้นในรายการ <b>รอคืนเงิน</b> ด้านบน · ค่าใช้จ่ายยังนับรวมในรายจ่ายทั้งหมดตามปกติ ส่วนการคืนเงินจัดการแยกต่างหาก<br>รายการรอคืนเงินจะค้างอยู่<b>ไม่ขึ้นกับเดือน</b> จนกว่าจะคืน',
   exCsv:'ส่งออก CSV', exNoteSum:'ยอดเงินเดือนมาจากยอดจ่ายรวมในแท็บเงินเดือน · คอมมิชชั่น',
   markPaid:'บันทึกว่าจ่ายแล้ว', markPaidHint:'กดเพื่อบันทึกว่าจ่ายแล้ว',
   undoPaidHint:'กดเพื่อเปลี่ยนกลับเป็นยังไม่จ่าย',
   lBiz:'กิจการ', bizAll:'ทุกกิจการ', exNoPay:'ไม่รวมเงินเดือน', exNoBiz:'ไม่แยกตามกิจการ',
   catPh:'พิมพ์เองได้', catPreset:'ประเภทพื้นฐาน', catMine:'ประเภทที่สร้างเอง',
+  rbTitle:'สำรองจ่าย · รอคืนเงิน', rbAllMonths:'(ค้างอยู่จนกว่าจะคืน ไม่ขึ้นกับเดือน)',
+  rbPayer:'ผู้จ่าย', rbSettle:'คืนแล้ว', rbSettleAll:'คืนทั้งหมด', rbPending:'รอคืนเงิน',
+  rbDone:'คืนเงินแล้ว', rbDoneShort:'คืนแล้ว', rbUndo:'ย้อนกลับ', opRb:'คืนเงิน',
+  rbConfirm:'บันทึกว่าคืนเงินแล้ววันนี้หรือไม่?', acCompany:'บริษัท',
   expMemo:'หมายเหตุ', memoPhShort:'บันทึกย่อ', fixBaseCol:'ยอดตั้งต้น',
   whTitle:'ประวัติการปรับค่าจ้าง', whFrom:'เริ่มใช้เดือน', whReason:'เหตุผล',
   whReasonPh:'เช่น จบฝึกงาน · บรรจุเป็นพนักงานประจำ', whFirst:'ค่าจ้างเริ่มต้น',
@@ -1088,6 +1119,7 @@ const catLabel=(list,k)=>{const p=list.find(x=>x[0]===k);return p?t(p[1]):(k||''
 const BIZ=[['하나하얀','하나하얀 HANAHAYAN'],['위튼','위튼 타일랜드 WITAN']];
 const BIZCOLOR={'하나하얀':'#2E7D6B','위튼':'#5B4B8A'};
 const DEF_BIZ=BIZ[0][0];
+const COMPANY='회사';   // 결제자가 이 값이면 정산할 게 없습니다
 const bizLabel=b=>{const p=BIZ.find(x=>x[0]===b);return p?p[1]:(b||DEF_BIZ);};
 const bizColor=b=>BIZCOLOR[b]||'#69758A';
 /** 현재 화면에 있는 사업장 목록 (설정에 없는 값도 데이터에 있으면 포함) */
@@ -1281,6 +1313,7 @@ async function loadAll(){
 
   data.expenses=(ex.data||[]).map(x=>({
     id:x.id,date:x.date,biz:x.biz||DEF_BIZ,category:x.category||'기타',item:x.item||'',
+    payer:x.paid_by||COMPANY,reimbursedAt:x.reimbursed_at||null,
     amount:Number(x.amount||0),memo:x.memo||'',lid:x.legacy_id||null,
     seq:x.created_at?new Date(x.created_at).getTime():0}));
 
@@ -1313,6 +1346,19 @@ const fixTotal=(m,b)=>fixListIn(m,b).reduce((a,c)=>a+fixAmt(c,m),0);
 const expListIn=(m,b)=>(data.expenses||[]).filter(e=>(e.date||'').startsWith(m)&&bizOK(e,b));
 const expTotal=(m,b)=>expListIn(m,b).reduce((a,e)=>a+Number(e.amount||0),0);
 const payrollTotal=m=>liveStaff().reduce((a,s)=>a+payCalc(s,m).total,0);
+/* ── 사비 결제 · 정산 ──
+   달과 무관하게 '아직 안 갚은 것 전부' 를 봅니다 (지난달 건도 갚을 때까지 남습니다) */
+const needsRb=e=>(e.payer||COMPANY)!==COMPANY;
+const pendingRb=b=>(data.expenses||[]).filter(e=>needsRb(e)&&!e.reimbursedAt&&bizOK(e,b));
+const doneRb=b=>(data.expenses||[]).filter(e=>needsRb(e)&&e.reimbursedAt&&bizOK(e,b));
+/** 결제자별 미정산 합계 */
+function rbByPayer(b){
+  const g={};
+  pendingRb(b).forEach(e=>{(g[e.payer]=g[e.payer]||[]).push(e);});
+  return Object.entries(g).map(([payer,list])=>({payer,list,
+    sum:list.reduce((a,e)=>a+Number(e.amount||0),0)})).sort((x,y)=>y.sum-x.sum);
+}
+const payerOptions=()=>[...new Set([COMPANY,...(data.expenses||[]).map(e=>e.payer||COMPANY)])].filter(Boolean);
 /* ── 목표 매출 ── */
 const tgOf=(b,m)=>(data.targets||{})[b+'|'+m]||{};
 const tgAmt=(b,m)=>Number(tgOf(b,m).amount||0);
@@ -1824,13 +1870,48 @@ function renderEx(){
     <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:14px">${money(fix)}</th>
     <th colspan="3" style="border-top:1px solid var(--ink);border-bottom:none"></th></tr>`:'';
 
+  /* ── 사비 결제 · 정산 (달과 무관하게 미정산 전체) ── */
+  const groups=rbByPayer(bf), rbSum=groups.reduce((a,g)=>a+g.sum,0);
+  const done=doneRb(bf).slice().sort((a,b)=>(b.reimbursedAt||'').localeCompare(a.reimbursedAt||''));
+  $('rbBox').innerHTML=(groups.length?`
+    <div class="rbbox">
+      <h4>💳 ${t('rbTitle')} <b>${money(rbSum)}</b>
+        <span style="font-weight:400;color:var(--ink-soft);font-size:11px">${t('rbAllMonths')}</span></h4>
+      ${groups.map(g=>`
+        <div class="rbrow">
+          <span class="nm">${esc(g.payer)}</span>
+          <span class="amt">${money(g.sum)}</span>
+          <span class="cnt">${g.list.length}${t('cntRec')}</span>
+          <button class="rbbtn" data-rball="${esc(g.payer)}">${t('rbSettleAll')}</button>
+        </div>
+        ${g.list.slice().sort((a,b)=>(a.date||'').localeCompare(b.date||'')).map(e=>`
+          <div class="rbdet"><span class="d">${e.date}</span>
+            <span>${esc(e.item||'')}</span>
+            <span style="color:var(--ink)">${money(e.amount)}</span>
+            <button class="rbbtn ghost2" style="margin-left:auto;padding:2px 9px;font-size:10.5px"
+              data-rbone="${e.id}">${t('rbSettle')}</button></div>`).join('')}
+      `).join('')}
+    </div>`:'')
+    +(done.length?`
+    <div class="rbbox rbdone" style="margin-top:8px">
+      <h4>✓ ${t('rbDone')} <span style="font-weight:400;color:var(--ink-soft);font-size:11px">${done.length}${t('cntRec')}</span></h4>
+      ${done.slice(0,8).map(e=>`<div class="rbdet"><span class="d">${e.reimbursedAt}</span>
+        <span class="payer-tag">${esc(e.payer)}</span>
+        <span>${esc(e.item||'')}</span>
+        <span style="color:var(--ink)">${money(e.amount)}</span>
+        <button class="rbbtn ghost2" style="margin-left:auto;padding:2px 9px;font-size:10.5px;border-color:var(--line);color:var(--ink-soft)"
+          data-rbundo="${e.id}">${t('rbUndo')}</button></div>`).join('')}
+      ${done.length>8?`<div class="rbdet" style="opacity:.6">… +${done.length-8}</div>`:''}
+    </div>`:'');
+
   /* 소모품 · 기타 지출 */
   const el=expListIn(m,bf).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.seq||0)-(a.seq||0));
   $('exList').innerHTML=el.length?`<table>
     <thead><tr><th style="width:140px">${t('expDate')}</th><th style="width:15%">${t('lBiz')}</th>
       <th style="width:15%">${t('expCat')}</th>
-      <th>${t('expItem')}</th><th style="width:22%">${t('expMemo')}</th>
-      <th class="num" style="width:120px">${t('expAmt')}</th>
+      <th>${t('expItem')}</th><th style="width:13%">${t('rbPayer')}</th>
+      <th style="width:16%">${t('expMemo')}</th>
+      <th class="num" style="width:115px">${t('expAmt')}</th>
       <th style="width:38px"></th></tr></thead>
     <tbody>${el.map(e=>`<tr>
       <td><input type="date" data-ex="date" data-id="${e.id}" value="${e.date}" style="width:100%"></td>
@@ -1838,12 +1919,17 @@ function renderEx(){
       <td><input type="text" data-ex="category" data-id="${e.id}"
         class="hascombo" data-combo="exp" value="${esc(e.category)}"></td>
       <td><input type="text" data-ex="item" data-id="${e.id}" value="${esc(e.item||'')}" style="width:100%"></td>
+      <td><input type="text" data-ex="payer" data-id="${e.id}" value="${esc(e.payer||COMPANY)}"
+        class="hascombo" data-combo="payer">
+        ${needsRb(e)?(e.reimbursedAt
+          ? `<span class="raise up" title="${e.reimbursedAt}">✓ ${t('rbDoneShort')}</span>`
+          : `<span class="payer-tag">${t('rbPending')}</span>`):''}</td>
       <td><input type="text" data-ex="memo" data-id="${e.id}" value="${esc(e.memo||'')}"
         placeholder="${t('memoPhShort')}" style="width:100%"></td>
       <td><input type="number" step="10" min="0" data-ex="amount" data-id="${e.id}" value="${e.amount||''}"
         style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
       <td style="text-align:right"><button class="del" data-exdel="${e.id}">×</button></td></tr>`).join('')}</tbody>
-    <tfoot><tr><th colspan="5" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('expTotal')}</th>
+    <tfoot><tr><th colspan="6" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('expTotal')}</th>
       <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:13.5px">${money(exp)}</th>
       <th style="border-top:1px solid var(--ink);border-bottom:none"></th></tr></tfoot></table>`
     :`<div class="empty">${t('expNone')}</div>`;
@@ -1869,7 +1955,8 @@ function isPastDue(m,day){
 
 /* ══════════ 분류 콤보 — 직접 입력하면서 목록도 언제든 열립니다 ══════════ */
 const COMBO={fix:{list:()=>FIXCATS,used:()=>data.fixedCosts.map(c=>c.category)},
-             exp:{list:()=>EXCATS,used:()=>(data.expenses||[]).map(e=>e.category)}};
+             exp:{list:()=>EXCATS,used:()=>(data.expenses||[]).map(e=>e.category)},
+             payer:{list:()=>[[COMPANY,'acCompany']],used:()=>payerOptions()}};
 let comboEl=null;
 /** filter=true 는 '타이핑 중' 일 때만. 그냥 클릭해서 열면 값이 들어 있어도 전체를 보여줍니다
     (기존 값을 다른 것으로 바꾸려면 전체가 보여야 하니까요) */
@@ -1947,6 +2034,7 @@ function buildExSelects(){
   $('exItem').placeholder=t('expItemPh');
   $('fxCat').placeholder=t('catPh');
   $('exCat').placeholder=t('catPh');
+  $('exPayer').placeholder=t('acCompany');
 }
 $('exBiz').addEventListener('change',()=>{if(isAdmin)renderEx();});
 
@@ -2049,10 +2137,12 @@ $('exAdd').addEventListener('click',async()=>{
   if(!item){$('exItem').focus();return;}
   const row={date:$('exDate').value||todayISO(),biz:$('exBizIn').value||DEF_BIZ,
     category:$('exCat').value.trim()||'기타',item,amount:amt,
+    paid_by:$('exPayer').value.trim()||COMPANY,
     memo:$('exMemo').value.trim(),legacy_id:newLid('ex')};
   const res=await op(t('opExp'),()=>sb.from('staff_expenses').insert(row).select().single());
   if(res.ok&&res.data)data.expenses.unshift({id:res.data.id,date:res.data.date,biz:row.biz,
-    category:row.category,item,amount:amt,memo:row.memo,lid:row.legacy_id,seq:Date.now()});
+    category:row.category,item,amount:amt,memo:row.memo,payer:row.paid_by,reimbursedAt:null,
+    lid:row.legacy_id,seq:Date.now()});
   $('exAmt').value=''; $('exItem').value=''; $('exMemo').value='';
   renderEx();
 });
@@ -2066,9 +2156,33 @@ $('exList').addEventListener('change',async e=>{
   else if(k==='category'){ x.category=el.value.trim()||'기타'; patch.category=x.category; }
   else if(k==='item'){ x.item=el.value.trim(); patch.item=x.item; }
   else if(k==='memo'){ x.memo=el.value; patch.memo=x.memo; }
+  else if(k==='payer'){
+    x.payer=el.value.trim()||COMPANY; patch.paid_by=x.payer;
+    if(x.payer===COMPANY&&x.reimbursedAt){x.reimbursedAt=null;patch.reimbursed_at=null;}
+  }
   else if(k==='amount'){ x.amount=el.value===''?0:Math.max(0,Number(el.value)); patch.amount=x.amount; }
   renderEx();
   await op(t('opExp'),()=>sb.from('staff_expenses').update(patch).eq('id',x.id));
+});
+async function setRb(ids,date){
+  ids.forEach(id=>{const x=(data.expenses||[]).find(v=>String(v.id)===String(id));
+    if(x)x.reimbursedAt=date;});
+  renderEx();
+  for(const id of ids)
+    await op(t('opRb'),()=>sb.from('staff_expenses').update({reimbursed_at:date}).eq('id',id));
+}
+$('rbBox').addEventListener('click',async e=>{
+  const all=e.target.closest('[data-rball]');
+  if(all){
+    const g=rbByPayer($('exBiz').value||'').find(x=>x.payer===all.dataset.rball);
+    if(!g)return;
+    if(!confirm(`${g.payer} · ${money(g.sum)} (${g.list.length}${t('cntRec')})\n\n${t('rbConfirm')}`))return;
+    await setRb(g.list.map(x=>x.id),todayISO()); return;
+  }
+  const one=e.target.closest('[data-rbone]');
+  if(one){ await setRb([one.dataset.rbone],todayISO()); return; }
+  const undo=e.target.closest('[data-rbundo]');
+  if(undo){ await setRb([undo.dataset.rbundo],null); }
 });
 $('exList').addEventListener('click',async e=>{
   const b=e.target.closest('[data-exdel]'); if(!b)return;
@@ -2098,7 +2212,9 @@ $('exCsvBtn').addEventListener('click',()=>{
   const rows=[];
   fixListIn(m,bf).forEach(c=>{const p=fixPay(c,m);
     rows.push([m,bizLabel(c.biz),'고정비',c.category,c.name,fixAmt(c,m),c.dueDay??'',p.paid?'Y':'N',p.date||'','',c.memo||'']);});
-  expListIn(m,bf).forEach(e=>rows.push([m,bizLabel(e.biz),'지출',e.category,e.item,e.amount,'','','',e.date,e.memo||'']));
+  expListIn(m,bf).forEach(e=>rows.push([m,bizLabel(e.biz),'지출',e.category,e.item,e.amount,'',
+    needsRb(e)?(e.reimbursedAt?'정산완료':'정산대기'):'',e.reimbursedAt||'',e.date,
+    (e.payer&&e.payer!==COMPANY?'['+e.payer+'] ':'')+(e.memo||'')]));
   if(!bf)rows.push([m,'','급여','','(전체 직원 지급 합계)',payrollTotal(m),'','','','','']);
   (bf?[bf]:bizAll()).forEach(bz=>{
     if(tgAmt(bz,m))rows.push([m,bizLabel(bz),'목표매출','','',tgAmt(bz,m),'','','','',tgOf(bz,m).memo||'']);});
@@ -2969,7 +3085,9 @@ async function importBackup(o){
     // 7) 소모품 · 기타 지출
     const exRows=(o.expenses||[]).filter(e=>e&&e.date).map(e=>({
       date:e.date,biz:e.biz||DEF_BIZ,category:e.category||'기타',item:e.item||'',
-      amount:Number(e.amount||0),memo:e.memo||'',legacy_id:lidOf('ex',e)}));
+      amount:Number(e.amount||0),memo:e.memo||'',
+      paid_by:e.payer||COMPANY,reimbursed_at:e.reimbursedAt||null,
+      legacy_id:lidOf('ex',e)}));
     for(const part of chunk(exRows,400)){
       const r=await op(t('opImport')+' · '+t('opExp'),
         ()=>sb.from('staff_expenses').upsert(part,{onConflict:'legacy_id',ignoreDuplicates:true}));
