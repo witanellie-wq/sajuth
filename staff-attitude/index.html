@@ -904,6 +904,7 @@ const I={
   undoPaidHint:'누르면 미지급으로 되돌립니다',
   lBiz:'사업장', bizAll:'전체 사업장', exNoPay:'급여 제외', exNoBiz:'사업장 구분 없음',
   catPh:'직접 입력 가능', catPreset:'기본 분류', catMine:'직접 만든 분류',
+  payerBase:'기본', payerMine:'전에 쓴 결제자', payerPh:'회사 또는 사람 이름',
   rbTitle:'사비 결제 · 정산 대기', rbAllMonths:'(월 상관없이 갚을 때까지 남습니다)',
   rbPayer:'결제자', rbSettle:'정산', rbSettleAll:'전체 정산 처리', rbPending:'정산 대기',
   rbDone:'정산 완료', rbDoneShort:'정산', rbUndo:'되돌리기', opRb:'정산',
@@ -1037,6 +1038,7 @@ const I={
   undoPaidHint:'กดเพื่อเปลี่ยนกลับเป็นยังไม่จ่าย',
   lBiz:'กิจการ', bizAll:'ทุกกิจการ', exNoPay:'ไม่รวมเงินเดือน', exNoBiz:'ไม่แยกตามกิจการ',
   catPh:'พิมพ์เองได้', catPreset:'ประเภทพื้นฐาน', catMine:'ประเภทที่สร้างเอง',
+  payerBase:'ค่าเริ่มต้น', payerMine:'ผู้จ่ายที่เคยใช้', payerPh:'บริษัท หรือ ชื่อคน',
   rbTitle:'สำรองจ่าย · รอคืนเงิน', rbAllMonths:'(ค้างอยู่จนกว่าจะคืน ไม่ขึ้นกับเดือน)',
   rbPayer:'ผู้จ่าย', rbSettle:'คืนแล้ว', rbSettleAll:'คืนทั้งหมด', rbPending:'รอคืนเงิน',
   rbDone:'คืนเงินแล้ว', rbDoneShort:'คืนแล้ว', rbUndo:'ย้อนกลับ', opRb:'คืนเงิน',
@@ -1954,9 +1956,13 @@ function isPastDue(m,day){
 }
 
 /* ══════════ 분류 콤보 — 직접 입력하면서 목록도 언제든 열립니다 ══════════ */
-const COMBO={fix:{list:()=>FIXCATS,used:()=>data.fixedCosts.map(c=>c.category)},
-             exp:{list:()=>EXCATS,used:()=>(data.expenses||[]).map(e=>e.category)},
-             payer:{list:()=>[[COMPANY,'acCompany']],used:()=>payerOptions()}};
+const COMBO={
+  fix:  {list:()=>FIXCATS, used:()=>data.fixedCosts.map(c=>c.category),
+         head:['catPreset','catMine']},
+  exp:  {list:()=>EXCATS,  used:()=>(data.expenses||[]).map(e=>e.category),
+         head:['catPreset','catMine']},
+  payer:{list:()=>[[COMPANY,'acCompany']], used:()=>payerOptions(),
+         head:['payerBase','payerMine']}};
 let comboEl=null;
 /** filter=true 는 '타이핑 중' 일 때만. 그냥 클릭해서 열면 값이 들어 있어도 전체를 보여줍니다
     (기존 값을 다른 것으로 바꾸려면 전체가 보여야 하니까요) */
@@ -1980,8 +1986,9 @@ function comboOpen(inp,filter){
       v===cur?'✓ ':''}${esc(v)}${pr&&LANG!=='ko'?`<small>${esc(t(pr[1]))}</small>`:''}</button>`;
   };
   const sec=(title,vals)=>vals.length?`<div class="chd">${title}</div>`+vals.map(row).join(''):'';
-  pop.innerHTML=sec(t('catPreset'),presets.filter(v=>!anyHit||match(v)))
-              +sec(t('catMine'),mine.filter(v=>!anyHit||match(v)));
+  const[h1,h2]=cfg.head||['catPreset','catMine'];
+  pop.innerHTML=sec(t(h1),presets.filter(v=>!anyHit||match(v)))
+              +sec(t(h2),mine.filter(v=>!anyHit||match(v)));
   pop.style.minWidth=Math.max(inp.getBoundingClientRect().width,150)+'px';
   pop.classList.add('on');
   comboEl=inp;
@@ -2034,7 +2041,7 @@ function buildExSelects(){
   $('exItem').placeholder=t('expItemPh');
   $('fxCat').placeholder=t('catPh');
   $('exCat').placeholder=t('catPh');
-  $('exPayer').placeholder=t('acCompany');
+  $('exPayer').placeholder=t('payerPh');
 }
 $('exBiz').addEventListener('change',()=>{if(isAdmin)renderEx();});
 
