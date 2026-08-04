@@ -247,6 +247,12 @@
   .doccard i{font-style:normal;display:block;font-family:'Noto Sans Thai',sans-serif;
     font-size:11px;color:var(--ink-soft);margin-top:1px;}
   .doccard small{display:block;font-size:10.5px;color:var(--ink-soft);margin-top:5px;line-height:1.5;}
+  .doccard .dl{display:flex;gap:6px;margin-top:9px;}
+  .doccard .dl a{flex:1;text-align:center;border:1px solid var(--line);border-radius:20px;
+    padding:4px 0;font-size:11px;font-weight:700;color:var(--jade);background:#fff;
+    text-decoration:none;}
+  .doccard .dl a:hover{background:var(--jade);color:#fff;border-color:var(--jade);}
+  .doccard.on .dl a{border-color:#4A5A72;}
   .doccard .cd{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;
     color:var(--slate);}
   #docSheet h2.fm-title{margin:0;font-size:19px;font-weight:700;text-align:center;
@@ -1028,10 +1034,12 @@ const I={
   whSoon:'예정', whUp:'인상', whDown:'인하', opWage:'급여 변경',
   whDelConfirm:'이 급여 변경을 삭제할까요? 해당 월부터 이전 금액으로 되돌아갑니다.',
   whNote:'급여를 올리면 여기에 <b>적용 시작 월</b>과 함께 등록하세요 — 예: 8월부터 인상이면 <b>2026-08</b>.<br><b>그 달 급여표는 그 달에 유효했던 금액으로 계산됩니다.</b> 8월 급여를 올려도 7월 급여표는 예전 금액 그대로입니다.<br>미래 달로 미리 등록해두면 <span class="wh-soon">예정</span> 으로 표시되고, 그 달이 되면 자동으로 적용됩니다. 인상된 달의 급여표에는 <span class="raise up">▲ 인상</span> 배지가 붙습니다.<br><b>최초 급여</b> 줄은 이력이 생기기 전 금액이라 시작 월을 바꿀 수 없습니다. 금액만 고치면 과거 전체에 적용됩니다.',
+  dlPdf:'PDF', dlDocx:'Word', dlPdfBtn:'⬇ A4 PDF 내려받기', dlDocxBtn:'⬇ Word 원본',
+  printScreen:'화면 그대로 인쇄',
   tabDoc:'서식', docTitle:'인사 서식 · 계약서', docWarnPick:'경고 기록',
   docBlank:'빈 양식으로', docFromApp:'앱의 경고 기록에서 자동 입력됨',
   docMissing:'forms.js 를 불러오지 못했습니다.',
-  docNote:'태국 근로자보호법 기준으로 작성된 한국어 · 태국어 병기 서식입니다. 문서를 고르고 <b>인쇄 / PDF</b> 로 뽑아 서명받으세요.<br><b>서면 경고서</b>는 직원과 경고 기록을 고르면 <b>발부일 · 차수 · 위반 사실 · 기존 유효 경고 이력</b>이 자동으로 채워집니다 (월 근태표의 경고 · 해고 관리에서 발부한 기록). 빈 양식이 필요하면 경고 기록을 <b>빈 양식으로</b> 두세요.<br>계약서의 점선 칸은 손으로 쓰거나 서명 전에 채우는 자리입니다. 회사 등기명 · 법인등록번호 · 서명권자는 <b>05 실행 가이드</b> 를 먼저 읽고 확정하세요.<br>⚖️ 서명 전에 방콕 현지 노무 변호사나 회계법인의 검토를 한 번 받으시길 권합니다.',
+  docNote:'태국 근로자보호법 기준으로 작성된 한국어 · 태국어 병기 서식입니다.<br><b>인쇄는 카드의 ⬇ PDF 또는 ⬇ Word 를 내려받아 뽑으세요</b> — A4 로 이미 맞춰져 있어 브라우저 인쇄 설정과 상관없이 그대로 나옵니다. Word 원본은 내용을 고쳐 쓸 때 쓰세요.<br><b>서면 경고서</b>는 직원과 경고 기록을 고르면 <b>발부일 · 차수 · 위반 사실 · 기존 유효 경고 이력</b>이 자동으로 채워집니다 (월 근태표의 경고 · 해고 관리에서 발부한 기록). 빈 양식이 필요하면 경고 기록을 <b>빈 양식으로</b> 두세요.<br>계약서의 점선 칸은 손으로 쓰거나 서명 전에 채우는 자리입니다. 회사 등기명 · 법인등록번호 · 서명권자는 <b>05 실행 가이드</b> 를 먼저 읽고 확정하세요.<br>⚖️ 서명 전에 방콕 현지 노무 변호사나 회계법인의 검토를 한 번 받으시길 권합니다.',
   bkTitleAcct:'급여 계좌', acBank:'은행', acNo:'계좌번호', acHolder:'예금주', acCopy:'계좌번호 복사',
   acBankPh:'예: SCB / Kasikorn', acNoPh:'예: 123-4-56789-0', acHolderPh:'이름과 같으면 비워두세요',
   acNote:'급여 이체할 때 쓰는 계좌입니다. <b>급여 · 커미션</b> 탭의 직원 이름 아래에도 같이 표시되고, 옆의 <b>⧉</b> 를 누르면 계좌번호만 복사됩니다.<br>예금주가 직원 이름과 같으면 비워두셔도 됩니다. 퇴사 처리한 직원은 이 표에 나오지 않습니다.',
@@ -1166,10 +1174,12 @@ const I={
   whSoon:'รอมีผล', whUp:'ปรับขึ้น', whDown:'ปรับลง', opWage:'ปรับค่าจ้าง',
   whDelConfirm:'ต้องการลบรายการปรับค่าจ้างนี้หรือไม่? เดือนนั้นจะกลับไปใช้ยอดเดิม',
   whNote:'เมื่อปรับค่าจ้าง ให้บันทึกที่นี่พร้อม <b>เดือนที่เริ่มใช้</b> — เช่น ขึ้นตั้งแต่เดือนสิงหาคมให้ใส่ <b>2026-08</b><br><b>ตารางเงินเดือนของแต่ละเดือนจะคำนวณด้วยยอดที่ใช้อยู่ในเดือนนั้น</b> ขึ้นค่าจ้างเดือนสิงหาคมก็ไม่กระทบเดือนกรกฎาคม<br>ใส่ล่วงหน้าไว้ได้ ระบบจะขึ้น <span class="wh-soon">รอมีผล</span> และมีผลเองเมื่อถึงเดือนนั้น เดือนที่ปรับจะมีป้าย <span class="raise up">▲ ปรับขึ้น</span><br>แถว <b>ค่าจ้างเริ่มต้น</b> คือยอดก่อนมีประวัติ จึงแก้เดือนไม่ได้ แก้เฉพาะยอดซึ่งจะมีผลย้อนหลังทั้งหมด',
+  dlPdf:'PDF', dlDocx:'Word', dlPdfBtn:'⬇ ดาวน์โหลด PDF A4', dlDocxBtn:'⬇ ไฟล์ Word ต้นฉบับ',
+  printScreen:'พิมพ์จากหน้าจอ',
   tabDoc:'แบบฟอร์ม', docTitle:'แบบฟอร์มบุคคล · สัญญา', docWarnPick:'ประวัติการเตือน',
   docBlank:'ใช้แบบฟอร์มเปล่า', docFromApp:'กรอกอัตโนมัติจากบันทึกการเตือนในระบบ',
   docMissing:'โหลด forms.js ไม่สำเร็จ',
-  docNote:'แบบฟอร์มสองภาษา (เกาหลี · ไทย) จัดทำตาม พ.ร.บ.คุ้มครองแรงงาน เลือกเอกสารแล้วกด <b>พิมพ์ / PDF</b> เพื่อให้ลงนาม<br><b>หนังสือตักเตือน</b> จะกรอก <b>วันที่ออก · ครั้งที่ · พฤติการณ์ · ประวัติการเตือนที่ยังมีผล</b> ให้อัตโนมัติเมื่อเลือกพนักงานและรายการเตือน หากต้องการแบบฟอร์มเปล่าให้เลือก <b>ใช้แบบฟอร์มเปล่า</b><br>ช่องจุดไข่ปลาในสัญญาเว้นไว้สำหรับเขียนมือหรือกรอกก่อนลงนาม<br>⚖️ ควรให้ทนายแรงงานหรือสำนักงานบัญชีในกรุงเทพฯ ตรวจสอบก่อนลงนาม',
+  docNote:'แบบฟอร์มสองภาษา (เกาหลี · ไทย) จัดทำตาม พ.ร.บ.คุ้มครองแรงงาน<br><b>สำหรับพิมพ์ ให้ดาวน์โหลด ⬇ PDF หรือ ⬇ Word จากการ์ด</b> — จัดหน้า A4 มาแล้ว ไม่ขึ้นกับการตั้งค่าพิมพ์ของเบราว์เซอร์<br><b>หนังสือตักเตือน</b> จะกรอก <b>วันที่ออก · ครั้งที่ · พฤติการณ์ · ประวัติการเตือนที่ยังมีผล</b> ให้อัตโนมัติเมื่อเลือกพนักงานและรายการเตือน หากต้องการแบบฟอร์มเปล่าให้เลือก <b>ใช้แบบฟอร์มเปล่า</b><br>ช่องจุดไข่ปลาในสัญญาเว้นไว้สำหรับเขียนมือหรือกรอกก่อนลงนาม<br>⚖️ ควรให้ทนายแรงงานหรือสำนักงานบัญชีในกรุงเทพฯ ตรวจสอบก่อนลงนาม',
   bkTitleAcct:'บัญชีรับเงินเดือน', acBank:'ธนาคาร', acNo:'เลขที่บัญชี', acHolder:'ชื่อบัญชี',
   acCopy:'คัดลอกเลขบัญชี',
   acBankPh:'เช่น SCB / กสิกร', acNoPh:'เช่น 123-4-56789-0', acHolderPh:'ถ้าตรงกับชื่อพนักงานเว้นว่างได้',
@@ -2994,10 +3004,14 @@ function renderDocs(){
   if(!docCur)docCur=keys[0];
   $('docList').innerHTML='<div class="doccards">'+keys.map(k=>{
     const d=F[k];
-    return `<button class="doccard${k===docCur?' on':''}" data-doc="${k}">
+    return `<div class="doccard${k===docCur?' on':''}" data-doc="${k}">
       <span class="cd">${esc(d.code||'')}</span>
       <b>${esc(d.ko)}</b><i>${esc(d.th||'')}</i>
-      <small>${esc(d.note||'')}</small></button>`;
+      <small>${esc(d.note||'')}</small>
+      ${(d.pdf||d.docx)?`<span class="dl">
+        ${d.pdf?`<a href="${d.pdf}" download onclick="event.stopPropagation()">${t('dlPdf')}</a>`:''}
+        ${d.docx?`<a href="${d.docx}" download onclick="event.stopPropagation()">${t('dlDocx')}</a>`:''}
+      </span>`:''}</div>`;
   }).join('')+'</div>';
 
   /* 도구 막대 — 경고서만 직원 · 경고 선택 */
@@ -3016,7 +3030,9 @@ function renderDocs(){
           w.date} · ${esc((w.reason||'').slice(0,26))}</option>`).join('')}
       </select>`:'')
     +(d.guide?'':`<span style="flex:1"></span>
-      <button class="ghost" id="docPrint">${t('print')}</button>`);
+      ${d.pdf?`<a class="ghost" href="${d.pdf}" download style="text-decoration:none">${t('dlPdfBtn')}</a>`:''}
+      ${d.docx?`<a class="ghost" href="${d.docx}" download style="text-decoration:none">${t('dlDocxBtn')}</a>`:''}
+      <button class="ghost" id="docPrint">${t('printScreen')}</button>`);
 
   $('docSheet').innerHTML=fillForm(docCur,d.html||'');
 }
