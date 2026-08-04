@@ -236,6 +236,44 @@
   .rbdet .d{font-family:'IBM Plex Mono',monospace;}
   .rbdone{background:#F1F7F5;border-color:#CFE2DC;}
   .rbdone h4{color:var(--jade);}
+  /* ── 인사 서식 ── */
+  .doccards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:10px;}
+  .doccard{text-align:left;border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;
+    background:#FCFDFC;cursor:pointer;font-family:inherit;}
+  .doccard:hover{border-color:var(--ink);}
+  .doccard.on{border-color:var(--ink);background:var(--ink);}
+  .doccard.on b,.doccard.on i,.doccard.on small{color:#fff;}
+  .doccard b{display:block;font-size:13.5px;font-weight:700;}
+  .doccard i{font-style:normal;display:block;font-family:'Noto Sans Thai',sans-serif;
+    font-size:11px;color:var(--ink-soft);margin-top:1px;}
+  .doccard small{display:block;font-size:10.5px;color:var(--ink-soft);margin-top:5px;line-height:1.5;}
+  .doccard .cd{font-family:'IBM Plex Mono',monospace;font-size:9.5px;letter-spacing:.06em;
+    color:var(--slate);}
+  #docSheet h2.fm-title{margin:0;font-size:19px;font-weight:700;text-align:center;
+    font-family:'Noto Sans Thai','Noto Sans KR',sans-serif;}
+  #docSheet h2.fm-title.ko{font-size:14px;font-weight:500;color:var(--ink-soft);
+    font-family:'Noto Sans KR',sans-serif;margin:2px 0 18px;
+    padding-bottom:12px;border-bottom:2px solid var(--ink);}
+  #docSheet h3.fm-sec{font-size:12.5px;font-weight:700;margin:22px 0 8px;padding-bottom:5px;
+    border-bottom:1px solid var(--line);}
+  #docSheet h3.fm-sec span{display:block;font-weight:500;font-size:11.5px;color:var(--ink-soft);margin-top:2px;}
+  #docSheet h4{font-size:12px;margin:16px 0 6px;}
+  #docSheet p{font-size:12px;line-height:1.75;margin:5px 0;}
+  #docSheet p.li{margin:3px 0 3px 6px;}
+  #docSheet blockquote{margin:12px 0;padding:10px 14px;border-left:3px solid var(--amber);
+    background:#FDFBF5;font-size:11.5px;line-height:1.7;}
+  #docSheet code{font-family:'IBM Plex Mono',monospace;font-size:11px;background:#EFF1EE;padding:1px 4px;border-radius:2px;}
+  #docSheet hr{border:none;border-top:1px solid var(--line);margin:20px 0;}
+  table.fm-t{width:100%;border-collapse:collapse;margin:8px 0 14px;}
+  table.fm-t th,table.fm-t td{border:1px solid var(--line);padding:6px 9px;font-size:11.5px;
+    line-height:1.65;vertical-align:top;text-align:left;}
+  table.fm-t th{background:#F4F6F3;font-weight:700;font-size:10.5px;color:var(--ink);}
+  table.fm-t td{min-height:20px;}
+  .fm-fill{background:#F1F7F5!important;}
+  .fm-fill b{color:var(--jade);}
+  .fm-auto{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;
+    background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;margin-left:6px;}
+  @media print{ #docSheet{border:none;padding:0;margin:0;} .fm-fill{background:none!important;} }
   .payer-tag{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px;white-space:nowrap;
     background:#F0EDF6;color:var(--violet);border:1px solid #DCD5EC;}
   .wh-soon{background:#FBF4E3;color:var(--amber);border:1px solid #EBDCB6;
@@ -387,6 +425,7 @@
     nav,.toolbar,.del,.save,header,.no-print,.modal,.bk-open,.lang,.netbar,.gate{display:none!important;}
     body{background:#fff;} .wrap{padding:0;max-width:none;}
     .sheet{border:none;padding:0;margin:0;} .view{display:none!important;} .view.on{display:block!important;}
+    #v-doc .panel{display:none!important;}
   }
 </style>
 </head>
@@ -442,6 +481,7 @@
   <button data-v="ex" data-i="tabEx"></button>
   <button data-v="ev" data-i="tabEv"></button>
   <button data-v="hr" data-i="tabHr"></button>
+  <button data-v="doc" data-i="tabDoc"></button>
 </nav>
 
 <!-- ══ 1. 기록 입력 ══ -->
@@ -715,6 +755,25 @@
 
 </div>
 
+<!-- ══ 8. 인사 서식 (관리자) ══ -->
+<div class="view" id="v-doc">
+  <section class="panel lockbox-wrap">
+    <div class="lockbox no-print">
+      <p data-i="admNeed"></p>
+      <button class="ghost admOpen" data-i="admUnlock"></button>
+    </div>
+  </section>
+
+  <section class="panel adm-only no-print">
+    <h2 data-i="docTitle"></h2>
+    <div id="docList"></div>
+    <div class="toolbar" id="docTools" style="margin:16px 0 0"></div>
+    <p class="note" data-ih="docNote"></p>
+  </section>
+
+  <div class="sheet adm-only" id="docSheet"></div>
+</div>
+
 <!-- ══ 기록 수정 모달 ══ -->
 <div class="modal" id="edModal">
   <div class="modal-box">
@@ -808,6 +867,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
+<script src="forms.js"></script>
 <script>
 /* ══════════ i18n ══════════ */
 const I={
@@ -916,6 +976,10 @@ const I={
   whSoon:'예정', whUp:'인상', whDown:'인하', opWage:'급여 변경',
   whDelConfirm:'이 급여 변경을 삭제할까요? 해당 월부터 이전 금액으로 되돌아갑니다.',
   whNote:'급여를 올리면 여기에 <b>적용 시작 월</b>과 함께 등록하세요 — 예: 8월부터 인상이면 <b>2026-08</b>.<br><b>그 달 급여표는 그 달에 유효했던 금액으로 계산됩니다.</b> 8월 급여를 올려도 7월 급여표는 예전 금액 그대로입니다.<br>미래 달로 미리 등록해두면 <span class="wh-soon">예정</span> 으로 표시되고, 그 달이 되면 자동으로 적용됩니다. 인상된 달의 급여표에는 <span class="raise up">▲ 인상</span> 배지가 붙습니다.<br><b>최초 급여</b> 줄은 이력이 생기기 전 금액이라 시작 월을 바꿀 수 없습니다. 금액만 고치면 과거 전체에 적용됩니다.',
+  tabDoc:'서식', docTitle:'인사 서식 · 계약서', docWarnPick:'경고 기록',
+  docBlank:'빈 양식으로', docFromApp:'앱의 경고 기록에서 자동 입력됨',
+  docMissing:'forms.js 를 불러오지 못했습니다.',
+  docNote:'태국 근로자보호법 기준으로 작성된 한국어 · 태국어 병기 서식입니다. 문서를 고르고 <b>인쇄 / PDF</b> 로 뽑아 서명받으세요.<br><b>서면 경고서</b>는 직원과 경고 기록을 고르면 <b>발부일 · 차수 · 위반 사실 · 기존 유효 경고 이력</b>이 자동으로 채워집니다 (월 근태표의 경고 · 해고 관리에서 발부한 기록). 빈 양식이 필요하면 경고 기록을 <b>빈 양식으로</b> 두세요.<br>계약서의 점선 칸은 손으로 쓰거나 서명 전에 채우는 자리입니다. 회사 등기명 · 법인등록번호 · 서명권자는 <b>05 실행 가이드</b> 를 먼저 읽고 확정하세요.<br>⚖️ 서명 전에 방콕 현지 노무 변호사나 회계법인의 검토를 한 번 받으시길 권합니다.',
   bkTitleAcct:'급여 계좌', acBank:'은행', acNo:'계좌번호', acHolder:'예금주', acCopy:'계좌번호 복사',
   acBankPh:'예: SCB / Kasikorn', acNoPh:'예: 123-4-56789-0', acHolderPh:'이름과 같으면 비워두세요',
   acNote:'급여 이체할 때 쓰는 계좌입니다. <b>급여 · 커미션</b> 탭의 직원 이름 아래에도 같이 표시되고, 옆의 <b>⧉</b> 를 누르면 계좌번호만 복사됩니다.<br>예금주가 직원 이름과 같으면 비워두셔도 됩니다. 퇴사 처리한 직원은 이 표에 나오지 않습니다.',
@@ -1050,6 +1114,10 @@ const I={
   whSoon:'รอมีผล', whUp:'ปรับขึ้น', whDown:'ปรับลง', opWage:'ปรับค่าจ้าง',
   whDelConfirm:'ต้องการลบรายการปรับค่าจ้างนี้หรือไม่? เดือนนั้นจะกลับไปใช้ยอดเดิม',
   whNote:'เมื่อปรับค่าจ้าง ให้บันทึกที่นี่พร้อม <b>เดือนที่เริ่มใช้</b> — เช่น ขึ้นตั้งแต่เดือนสิงหาคมให้ใส่ <b>2026-08</b><br><b>ตารางเงินเดือนของแต่ละเดือนจะคำนวณด้วยยอดที่ใช้อยู่ในเดือนนั้น</b> ขึ้นค่าจ้างเดือนสิงหาคมก็ไม่กระทบเดือนกรกฎาคม<br>ใส่ล่วงหน้าไว้ได้ ระบบจะขึ้น <span class="wh-soon">รอมีผล</span> และมีผลเองเมื่อถึงเดือนนั้น เดือนที่ปรับจะมีป้าย <span class="raise up">▲ ปรับขึ้น</span><br>แถว <b>ค่าจ้างเริ่มต้น</b> คือยอดก่อนมีประวัติ จึงแก้เดือนไม่ได้ แก้เฉพาะยอดซึ่งจะมีผลย้อนหลังทั้งหมด',
+  tabDoc:'แบบฟอร์ม', docTitle:'แบบฟอร์มบุคคล · สัญญา', docWarnPick:'ประวัติการเตือน',
+  docBlank:'ใช้แบบฟอร์มเปล่า', docFromApp:'กรอกอัตโนมัติจากบันทึกการเตือนในระบบ',
+  docMissing:'โหลด forms.js ไม่สำเร็จ',
+  docNote:'แบบฟอร์มสองภาษา (เกาหลี · ไทย) จัดทำตาม พ.ร.บ.คุ้มครองแรงงาน เลือกเอกสารแล้วกด <b>พิมพ์ / PDF</b> เพื่อให้ลงนาม<br><b>หนังสือตักเตือน</b> จะกรอก <b>วันที่ออก · ครั้งที่ · พฤติการณ์ · ประวัติการเตือนที่ยังมีผล</b> ให้อัตโนมัติเมื่อเลือกพนักงานและรายการเตือน หากต้องการแบบฟอร์มเปล่าให้เลือก <b>ใช้แบบฟอร์มเปล่า</b><br>ช่องจุดไข่ปลาในสัญญาเว้นไว้สำหรับเขียนมือหรือกรอกก่อนลงนาม<br>⚖️ ควรให้ทนายแรงงานหรือสำนักงานบัญชีในกรุงเทพฯ ตรวจสอบก่อนลงนาม',
   bkTitleAcct:'บัญชีรับเงินเดือน', acBank:'ธนาคาร', acNo:'เลขที่บัญชี', acHolder:'ชื่อบัญชี',
   acCopy:'คัดลอกเลขบัญชี',
   acBankPh:'เช่น SCB / กสิกร', acNoPh:'เช่น 123-4-56789-0', acHolderPh:'ถ้าตรงกับชื่อพนักงานเว้นว่างได้',
@@ -1580,7 +1648,7 @@ $('nowOut').addEventListener('click',()=>{const d=new Date();$('outT').value=`${
 document.querySelectorAll('nav button').forEach(b=>b.addEventListener('click',()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
   document.querySelectorAll('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+b.dataset.v));
-  if((b.dataset.v==='pay'||b.dataset.v==='ex')&&!isAdmin)openAdm();
+  if(['pay','ex','doc'].includes(b.dataset.v)&&!isAdmin)openAdm();
   render();
 }));
 const goTab=v=>document.querySelector(`nav button[data-v="${v}"]`).click();
@@ -1730,7 +1798,7 @@ function render(){
     $('stLog').innerHTML=all.length?all.map(entryHTML).join(''):`<div class="empty">${t('noRec')}</div>`;
   }
 
-  renderHR(); if(isAdmin){renderWage(); renderAcct(); renderEmp(); renderPay(); renderComm(); renderEx();}
+  renderHR(); if(isAdmin){renderDocs(); renderWage(); renderAcct(); renderEmp(); renderPay(); renderComm(); renderEx();}
   fillBackup(); renderSheet();
 }
 
@@ -2848,6 +2916,94 @@ $('cmList').addEventListener('click',async e=>{
   data.commissions=(data.commissions||[]).filter(c=>String(c.id)!==String(id));
   renderComm(); renderPay();
   await op(t('opComm')+' · '+t('opDel'),()=>sb.from('staff_commissions').delete().eq('id',id));
+});
+
+/* ══════════════════════════════════════════════════════════════════════════
+   인사 서식 — docx 원본을 그대로 옮긴 인쇄용 서식 (forms.js)
+   경고서는 앱에 쌓인 경고 기록에서 자동으로 채워집니다.
+   ══════════════════════════════════════════════════════════════════════════ */
+const FORMS=()=>window.STAFF_FORMS||{};
+let docCur=null, docStaff='', docWarn='';
+
+function renderDocs(){
+  const F=FORMS(), keys=Object.keys(F);
+  if(!keys.length){$('docList').innerHTML=`<div class="empty">${t('docMissing')}</div>`;return;}
+  if(!docCur)docCur=keys[0];
+  $('docList').innerHTML='<div class="doccards">'+keys.map(k=>{
+    const d=F[k];
+    return `<button class="doccard${k===docCur?' on':''}" data-doc="${k}">
+      <span class="cd">${esc(d.code||'')}</span>
+      <b>${esc(d.ko)}</b><i>${esc(d.th||'')}</i>
+      <small>${esc(d.note||'')}</small></button>`;
+  }).join('')+'</div>';
+
+  /* 도구 막대 — 경고서만 직원 · 경고 선택 */
+  const d=F[docCur]||{};
+  const warnable=docCur==='04';
+  const staffOpts=liveStaff().map(x=>`<option value="${esc(x.name)}"${x.name===docStaff?' selected':''}>${esc(x.name)}</option>`).join('');
+  const wl=(data.warnings||[]).filter(w=>w.staff===docStaff&&w.level==='서면')
+    .sort((a,b)=>b.date.localeCompare(a.date));
+  $('docTools').innerHTML=(warnable?`
+      <label style="margin:0 4px 0 0;font-size:11.5px">${t('lStaff')}</label>
+      <select id="docStaffSel" style="min-width:150px"><option value="">—</option>${staffOpts}</select>
+      <label style="margin:0 4px 0 10px;font-size:11.5px">${t('docWarnPick')}</label>
+      <select id="docWarnSel" style="min-width:230px">
+        <option value="">${t('docBlank')}</option>
+        ${wl.map(w=>`<option value="${w.id}"${String(w.id)===String(docWarn)?' selected':''}>${
+          w.date} · ${esc((w.reason||'').slice(0,26))}</option>`).join('')}
+      </select>`:'')
+    +(d.guide?'':`<span style="flex:1"></span>
+      <button class="ghost" id="docPrint">${t('print')}</button>`);
+
+  $('docSheet').innerHTML=fillForm(docCur,d.html||'');
+}
+
+/** 경고서 자동 채움 — 나머지 문서는 원본 그대로 */
+function fillForm(key,html){
+  if(key!=='04')return html;
+  const w=(data.warnings||[]).find(x=>String(x.id)===String(docWarn));
+  const s=data.staff.find(x=>x.name===(w?w.staff:docStaff));
+  const blank='<span style="color:var(--line)">………………………</span>';
+  let nth='', prior='';
+  if(w){
+    // 이 경고 시점 기준으로 몇 번째 유효 서면 경고인가
+    const list=(data.warnings||[]).filter(x=>x.staff===w.staff&&x.level==='서면'
+      &&x.date<=w.date&&warnValid(x,w.date)).sort((a,b)=>a.date.localeCompare(b.date));
+    const n=list.findIndex(x=>String(x.id)===String(w.id))+1;
+    nth=[1,2,3].map(i=>`${i===n?'☑':'☐'} ${i}${i===3?' (ครั้งสุดท้าย)':''}`).join('&nbsp;&nbsp;');
+    prior=list.filter(x=>String(x.id)!==String(w.id)).map((x,i)=>{
+      const exp=new Date(x.date); exp.setFullYear(exp.getFullYear()+1);
+      return `<tr><td>${i+1}</td><td>&nbsp;</td><td>${esc(x.reason||'')}</td>
+        <td>${x.date} / ${exp.toISOString().slice(0,10)}</td></tr>`;
+    }).join('')||`<tr><td colspan="4" style="color:var(--ink-soft)">${t('warnNone')}</td></tr>`;
+  }else{
+    nth='☐ 1&nbsp;&nbsp;☐ 2&nbsp;&nbsp;☐ 3 (ครั้งสุดท้าย)';
+    prior='<tr><td>1</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>'
+         +'<tr><td>2</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>';
+  }
+  return html
+    .replace('{{ISSUE_DATE}}', w?w.date:blank)
+    .replace('{{NTH}}', nth)
+    .replace('{{NAME}}', s?esc(s.name):(docStaff?esc(docStaff):blank))
+    .replace('{{HIRE}}', (s&&s.hireDate)?s.hireDate:blank)
+    .replace('{{ISSUER}}', blank)
+    .replace('{{REASON}}', w&&w.reason
+      ? `<b>${esc(w.reason)}</b><br><span style="color:var(--ink-soft);font-size:11px">${
+          t('docFromApp')} · ${w.date}</span>`
+      : '&nbsp;')
+    .replace('{{PRIOR}}', prior);
+}
+
+$('docList').addEventListener('click',e=>{
+  const b=e.target.closest('[data-doc]'); if(!b)return;
+  docCur=b.dataset.doc; docWarn=''; renderDocs();
+});
+$('docTools').addEventListener('change',e=>{
+  if(e.target.id==='docStaffSel'){docStaff=e.target.value;docWarn='';renderDocs();}
+  else if(e.target.id==='docWarnSel'){docWarn=e.target.value;renderDocs();}
+});
+$('docTools').addEventListener('click',e=>{
+  if(e.target.id==='docPrint')window.print();
 });
 
 /* ══════════ 기록 수정 모달 ══════════ */
