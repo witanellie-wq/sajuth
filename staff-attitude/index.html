@@ -273,7 +273,6 @@
   .fm-fill b{color:var(--jade);}
   .fm-auto{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;
     background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;margin-left:6px;}
-  @media print{ #docSheet{border:none;padding:0;margin:0;} .fm-fill{background:none!important;} }
   .payer-tag{font-size:10.5px;font-weight:700;padding:1px 7px;border-radius:20px;white-space:nowrap;
     background:#F0EDF6;color:var(--violet);border:1px solid #DCD5EC;}
   .wh-soon{background:#FBF4E3;color:var(--amber);border:1px solid #EBDCB6;
@@ -421,11 +420,64 @@
   .sign div{border-top:1px solid var(--ink);padding-top:7px;font-size:11px;color:var(--ink-soft);}
   .sign div em{font-style:normal;display:block;height:34px;}
 
+  @page{ size:A4 portrait; margin:12mm 12mm 14mm; }
+  /* ══════════ 인쇄 — A4 기준 ══════════
+     화면은 1120px 폭이라 그대로 뽑으면 A4(여백 빼고 186mm)를 넘칩니다.
+     표를 table-layout:fixed 로 잡고 글자를 pt 로 내려 잘리지 않게 합니다. */
   @media print{
-    nav,.toolbar,.del,.save,header,.no-print,.modal,.bk-open,.lang,.netbar,.gate{display:none!important;}
-    body{background:#fff;} .wrap{padding:0;max-width:none;}
-    .sheet{border:none;padding:0;margin:0;} .view{display:none!important;} .view.on{display:block!important;}
+    nav,.toolbar,.del,.save,header,.no-print,.modal,.bk-open,.lang,.netbar,.gate,
+    .lockbox,.lockbox-wrap,.hr-add,.rbbtn,.acctcopy,.paybtn,.rm,.wbtn,.dw{display:none!important;}
+    html,body{width:auto!important;background:#fff!important;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact;}
+    .wrap{padding:0!important;margin:0!important;max-width:none!important;width:100%!important;}
+    .view{display:none!important;} .view.on{display:block!important;}
     #v-doc .panel{display:none!important;}
+    .panel{border:none!important;padding:0!important;margin:0 0 10mm!important;background:#fff!important;}
+    .panel h2{font-size:10pt;margin:0 0 4mm;}
+
+    /* 표 — 화면 폭을 따라가지 않도록 */
+    table{width:100%!important;max-width:100%!important;table-layout:fixed;border-collapse:collapse;}
+    th,td{word-break:break-word;overflow-wrap:anywhere;}
+    thead{display:table-header-group;}          /* 여러 장이면 머리글 반복 */
+    tr{page-break-inside:avoid;}
+    .grid-scroll,#exList,#cmList,#whList,[style*="overflow-x"]{overflow:visible!important;}
+
+    /* 인사 서식 · 평가서 */
+    .sheet{border:none!important;padding:0!important;margin:0!important;box-shadow:none!important;}
+    #docSheet{font-size:9pt;}
+    #docSheet h2.fm-title{font-size:15pt;margin:0;}
+    #docSheet h2.fm-title.ko{font-size:10.5pt;margin:1mm 0 5mm;padding-bottom:3mm;}
+    #docSheet h3.fm-sec{font-size:9.5pt;margin:5mm 0 2mm;padding-bottom:1mm;
+      page-break-after:avoid;break-after:avoid;}
+    #docSheet h3.fm-sec span{font-size:8.5pt;}
+    #docSheet h4{font-size:9pt;margin:3mm 0 1mm;page-break-after:avoid;}
+    #docSheet p{font-size:8.6pt;line-height:1.55;margin:1.5mm 0;}
+    #docSheet blockquote{font-size:8.2pt;padding:2mm 3mm;margin:3mm 0;}
+    table.fm-t{margin:2mm 0 4mm;}
+    table.fm-t th,table.fm-t td{font-size:8pt;line-height:1.5;padding:1.2mm 1.8mm;border:0.4pt solid #999;}
+    table.fm-t th{background:#F2F4F1!important;font-size:7.6pt;}
+    .fm-fill{background:none!important;} .fm-fill b{color:#000!important;}
+
+    /* 월 근태표 — 31칸이라 가장 빡빡합니다 */
+    table.grid{border-spacing:1px;table-layout:auto;}
+    table.grid th.d{font-size:5.5pt;width:auto;}
+    table.grid td.nm,table.grid th.nm{font-size:7.5pt;min-width:0;}
+    table.grid .cell{width:auto;min-width:5.2mm;height:5.2mm;font-size:6pt;line-height:5.2mm;}
+    .legend,.legend2{font-size:7pt;gap:3mm;}
+
+    /* 급여 · 지출 — 입력칸을 글자처럼 */
+    #payTable input,#fixTable input,#exList input,#acTable input,#whList input,#tgTable input,
+    #payTable select,#fixTable select,#exList select,#whList select{
+      border:none!important;background:none!important;padding:0!important;
+      font-size:8pt!important;-webkit-appearance:none;appearance:none;}
+    .sumcards{grid-template-columns:repeat(5,1fr)!important;gap:2mm;}
+    .sumcard{padding:2mm 2.5mm;} .sumcard i{font-size:11pt;} .sumcard b{font-size:6.5pt;}
+    .rbbox,.duebox,.profit{padding:2mm 3mm;font-size:8pt;}
+
+    /* 평가서 */
+    .sign{margin-top:8mm;gap:8mm;} .sign div{font-size:8pt;} .sign div em{height:12mm;}
+    .meta-grid b{font-size:6.5pt;} .meta-grid i{font-size:9pt;}
+    .note{font-size:7.2pt;line-height:1.5;}
   }
 </style>
 </head>
@@ -1684,6 +1736,17 @@ $('saveBtn').addEventListener('click',async()=>{
   $('saveBtn').textContent=t('saved'); setTimeout(()=>$('saveBtn').textContent=t('save'),1400);
 });
 
+/** A4 인쇄 — 표가 넓은 화면은 가로(landscape)로 뽑습니다 */
+function printAs(orient){
+  const st=document.createElement('style');
+  st.textContent=`@page{size:A4 ${orient};margin:${orient==='landscape'?'8mm 8mm 10mm':'12mm 12mm 14mm'};}`;
+  document.head.appendChild(st);
+  const done=()=>{setTimeout(()=>st.remove(),300);window.removeEventListener('afterprint',done);};
+  window.addEventListener('afterprint',done);
+  window.print();
+  setTimeout(done,3000);   // afterprint 를 안 주는 브라우저 대비
+}
+
 /* ══════════ render ══════════ */
 const entryHTML=r=>`<div class="entry ${sev(r)}">
   <div class="meta">${r.date.slice(2)}<br>${r.actual||'—'}</div>
@@ -2280,7 +2343,7 @@ $('tgTable').addEventListener('change',async e=>{
   },{onConflict:'biz,month'}));
 });
 $('exMonth').addEventListener('change',()=>{if(isAdmin)renderEx();});
-$('exPrint').addEventListener('click',()=>window.print());
+$('exPrint').addEventListener('click',()=>printAs('landscape'));
 $('exCsvBtn').addEventListener('click',()=>{
   const m=$('exMonth').value, bf=$('exBiz').value||'';
   const head=['month','business','kind','category','name_item','amount','due_day','paid','paid_date','date','memo'];
@@ -2875,7 +2938,7 @@ $('payTable').addEventListener('click',async e=>{
        setTimeout(()=>{b.textContent=o;},1200);
   }catch(err){ alert(b.dataset.copy); }
 });
-$('payPrint').addEventListener('click',()=>window.print());
+$('payPrint').addEventListener('click',()=>printAs('landscape'));
 
 function renderComm(){
   const m=$('payMonth').value||todayISO().slice(0,7);
@@ -3003,7 +3066,7 @@ $('docTools').addEventListener('change',e=>{
   else if(e.target.id==='docWarnSel'){docWarn=e.target.value;renderDocs();}
 });
 $('docTools').addEventListener('click',e=>{
-  if(e.target.id==='docPrint')window.print();
+  if(e.target.id==='docPrint')printAs('portrait');
 });
 
 /* ══════════ 기록 수정 모달 ══════════ */
@@ -3334,8 +3397,8 @@ document.body.addEventListener('click',async e=>{
 });
 ['logMonth','gridMonth','stSel','evStaff','evMonth'].forEach(id=>$(id).addEventListener('change',render));
 $('payMonth').addEventListener('change',()=>{if(isAdmin){renderPay();renderComm();}});
-$('gridPrint').addEventListener('click',()=>window.print());
-$('evPrint').addEventListener('click',()=>window.print());
+$('gridPrint').addEventListener('click',()=>printAs('landscape'));
+$('evPrint').addEventListener('click',()=>printAs('portrait'));
 $('csvBtn').addEventListener('click',()=>{
   const rs=data.records.filter(r=>r.date.startsWith($('logMonth').value));
   const head=['date','staff','sched','actual','late_min','type',...CRIT.map(c=>c[0]),'avg','memo'];
