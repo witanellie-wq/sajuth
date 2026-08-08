@@ -968,8 +968,8 @@ const I={
   cCount:'기록 수', cRegOff:'정기 휴무 요일', cNote:'',
   sumHint:'지각 / 무단 / 누적분 / 태도',
   lgNormal:'정상 / 승인', lgPre:'지각 (사전 통보)', lgUnex:'무단 지각', lgAbsent:'무단 결근',
-  lgSick:'병가', lgOffRec:'휴무 (기록)', lgOffReg:'정기 휴무 (요일)', lgNone:'기록 없음',
-  moNote:'<b>빈 칸(·)을 클릭하면 그날이 휴무로 표시됩니다</b> — 휴무 칸을 다시 클릭하면 취소됩니다. 정기 휴무(연회색)는 직원 관리에서 요일로 설정하세요.<br>기록이 있는 칸에 마우스를 올리면 상세가 보입니다. 오른쪽 합계는 <b>지각 / 무단 / 누적 지각(분) / 태도 평균</b> 순입니다.',
+  lgPreAbs:'결근 (사전 통보)', lgSick:'병가', lgOffRec:'휴무 (기록)', lgOffReg:'정기 휴무 (요일)', lgNone:'기록 없음',
+  moNote:'<b>사전통보 결근(▽)</b>은 미리 알리고 못 나온 날입니다 — 무단결근(⊗)과 달리 무단 건수에 안 들어가고 노랑으로 표시되며, 출근일에서는 빠집니다.<br><b>빈 칸(·)을 클릭하면 그날이 휴무로 표시됩니다</b> — 휴무 칸을 다시 클릭하면 취소됩니다. 정기 휴무(연회색)는 직원 관리에서 요일로 설정하세요.<br>기록이 있는 칸에 마우스를 올리면 상세가 보입니다. 오른쪽 합계는 <b>지각 / 무단 / 누적 지각(분) / 태도 평균</b> 순입니다.',
   hrNote:'이름을 수정하면 기존 기록의 이름도 함께 바뀝니다. 퇴사자는 <b>퇴사 처리</b>를 눌러 두면 기록은 남고 집계에서 빠집니다.<br><b>정기 휴무 요일</b>을 켜두면 월 근태표에서 그 요일이 자동으로 <b>휴</b>로 채워집니다 — 매일 입력할 필요 없습니다. 그날 예외로 출근했거나 특별 휴무를 쓴 날만 따로 기록하면, 그 기록이 자동 표시보다 우선합니다.',
   trend:'누적 지각(분) 추이 · 무단 건수는 붉은 점',
   noRec:'기록이 없습니다.', noRecMonth:'이 달 기록이 없습니다.', addStaffFirst:'직원을 추가하세요.',
@@ -1107,8 +1107,8 @@ const I={
   cCount:'จำนวนบันทึก', cRegOff:'วันหยุดประจำสัปดาห์', cNote:'',
   sumHint:'สาย / ไม่แจ้ง / นาที / คะแนน',
   lgNormal:'ตรงเวลา / อนุมัติ', lgPre:'สาย (แจ้งล่วงหน้า)', lgUnex:'สายโดยไม่แจ้ง', lgAbsent:'ขาดงาน',
-  lgSick:'ลาป่วย', lgOffRec:'วันหยุด (บันทึก)', lgOffReg:'วันหยุดประจำ (ตามวัน)', lgNone:'ไม่มีบันทึก',
-  moNote:'<b>คลิกช่องว่าง (·) เพื่อทำเครื่องหมายวันหยุด</b> — คลิกซ้ำเพื่อยกเลิก วันหยุดประจำ (สีเทาอ่อน) ตั้งค่าได้ที่หน้าจัดการพนักงาน<br>วางเมาส์บนช่องที่มีบันทึกเพื่อดูรายละเอียด ตัวเลขด้านขวาเรียงตาม <b>สาย / ไม่แจ้ง / สายรวม (นาที) / คะแนนเฉลี่ย</b>',
+  lgPreAbs:'ขาดงาน (แจ้งล่วงหน้า)', lgSick:'ลาป่วย', lgOffRec:'วันหยุด (บันทึก)', lgOffReg:'วันหยุดประจำ (ตามวัน)', lgNone:'ไม่มีบันทึก',
+  moNote:'<b>ขาดงานแบบแจ้งล่วงหน้า (▽)</b> คือวันที่แจ้งไว้ก่อนแล้วไม่มาทำงาน — ต่างจากขาดงาน (⊗) ตรงที่ไม่นับเป็นการไม่แจ้ง แสดงเป็นสีเหลือง และไม่นับเป็นวันทำงาน<br><b>คลิกช่องว่าง (·) เพื่อทำเครื่องหมายวันหยุด</b> — คลิกซ้ำเพื่อยกเลิก วันหยุดประจำ (สีเทาอ่อน) ตั้งค่าได้ที่หน้าจัดการพนักงาน<br>วางเมาส์บนช่องที่มีบันทึกเพื่อดูรายละเอียด ตัวเลขด้านขวาเรียงตาม <b>สาย / ไม่แจ้ง / สายรวม (นาที) / คะแนนเฉลี่ย</b>',
   hrNote:'ถ้าแก้ชื่อ ชื่อในบันทึกเดิมจะเปลี่ยนตามด้วย สำหรับผู้ที่ลาออก ให้กด <b>ตั้งเป็นลาออก</b> บันทึกจะยังอยู่และแยกออกจากสรุป<br>เปิด <b>วันหยุดประจำสัปดาห์</b> ไว้ ตารางรายเดือนจะเติม <b>휴</b> ให้อัตโนมัติ — ไม่ต้องบันทึกทุกวัน หากวันนั้นมาทำงานหรือหยุดพิเศษ ให้บันทึกแยก บันทึกจะมีผลเหนือกว่าการแสดงอัตโนมัติ',
   trend:'แนวโน้มสายรวม (นาที) · จุดแดงคือจำนวนครั้งที่ไม่แจ้ง',
   noRec:'ไม่มีบันทึก', noRecMonth:'เดือนนี้ยังไม่มีบันทึก', addStaffFirst:'กรุณาเพิ่มพนักงาน',
@@ -1238,9 +1238,12 @@ const t=k=>I[LANG][k]??I.ko[k]??k;
 
 /* 유형 · 평가항목 · 경고단계 — [한국어, 태국어] */
 const TYPES=[['정상','ตรงเวลา'],['무단','ไม่แจ้ง'],['사전통보','แจ้งล่วงหน้า'],['승인','อนุมัติ'],
-             ['병가','ลาป่วย'],['무단결근','ขาดงาน'],['휴무','วันหยุด']];
-const MARK={'정상':'●','승인':'●','사전통보':'△','무단':'✕','무단결근':'⊗','병가':'병','휴무':'휴'};
-const NOTIME=['무단결근','병가','휴무'];
+             ['병가','ลาป่วย'],['사전통보결근','ลาแจ้งล่วงหน้า'],['무단결근','ขาดงาน'],
+             ['휴무','วันหยุด']];
+/* △ = 지각(사전통보) / ▽ = 결근(사전통보) — 짝을 이루도록 뒤집은 기호 */
+const MARK={'정상':'●','승인':'●','사전통보':'△','사전통보결근':'▽','무단':'✕','무단결근':'⊗',
+            '병가':'병','휴무':'휴'};
+const NOTIME=['무단결근','사전통보결근','병가','휴무'];
 const CRIT=[['시간 준수','ตรงต่อเวลา'],['고객 응대','การบริการลูกค้า'],['위생·정리','ความสะอาด'],
             ['지시 이행','ทำตามที่มอบหมาย'],['팀 협업','การทำงานเป็นทีม']];
 const TIERS=[['정상','ปกติ'],['구두 주의','ตักเตือนด้วยวาจา'],['1차 서면 경고','หนังสือเตือนครั้งที่ 1'],
@@ -1586,7 +1589,7 @@ function sev(r){
   if(r.type==='휴무')return 'svOff';
   if(r.type==='병가')return 'svSick';
   let s=(r.type==='무단'||r.type==='무단결근')?3
-       :(r.type==='사전통보')?2
+       :(r.type==='사전통보'||r.type==='사전통보결근')?2
        :(r.late>0)?2:1;
   if(r.avg!=null){
     const a=SCORE_SEV(r.avg);
@@ -1617,7 +1620,7 @@ function stat(name,month){
   const avg=avgs.length?avgs.reduce((a,b)=>a+b,0)/avgs.length:null;
   const adj=avg!=null?Math.max(0,avg-unex*0.3):null;
   const grade=adj==null?'–':adj>=4.5?'A':adj>=3.5?'B':adj>=2.5?'C':'D';
-  const days=rs.filter(r=>!['휴무','병가','무단결근'].includes(r.type)).length;
+  const days=rs.filter(r=>!['휴무','병가','무단결근','사전통보결근'].includes(r.type)).length;
   let off=rs.filter(r=>r.type==='휴무').length;
   const nd=daysInMonth(month);
   for(let d=1;d<=nd;d++){
@@ -1625,8 +1628,9 @@ function stat(name,month){
     if(!rs.some(r=>r.date===iso)&&isRegOff(name,iso))off++;
   }
   const sick=rs.filter(r=>r.type==='병가').length;
+  const preAbs=rs.filter(r=>r.type==='사전통보결근').length;
   const hours=rs.reduce((a,r)=>a+hoursOf(r),0);
-  return{rs,days,off,sick,hours,lateCnt,unex,totalLate,avg,adj,grade,tier:Math.min(unex,4)};
+  return{rs,days,off,sick,preAbs,hours,lateCnt,unex,totalLate,avg,adj,grade,tier:Math.min(unex,4)};
 }
 
 /* ══════════ 급여 · 커미션 ══════════ */
@@ -1796,7 +1800,8 @@ function render(){
   /* 범례 */
   $('legend').innerHTML=[
     ['#DDECE7','var(--jade)','●','lgNormal'],['#F7EBCE','var(--amber)','△','lgPre'],
-    ['#F2D5D2','var(--coral)','✕','lgUnex'],['#F2D5D2','var(--coral)','⊗','lgAbsent'],
+    ['#F2D5D2','var(--coral)','✕','lgUnex'],['#F7EBCE','var(--amber)','▽','lgPreAbs'],
+    ['#F2D5D2','var(--coral)','⊗','lgAbsent'],
     ['#E4DFEF','var(--violet)','병','lgSick'],['#D8DDE4','var(--slate)','휴','lgOffRec'],
     ['#EAEDF1','#A7B0BC','휴','lgOffReg'],['#EDEFEC','#B9BFBA','·','lgNone']
   ].map(([bg,fg,m,k])=>`<span><b style="background:${bg};color:${fg}">${m}</b>${t(k)}</span>`).join('');
@@ -2827,6 +2832,7 @@ function renderSheet(){
       <th class="num">무단<u style="display:block">ไม่แจ้ง</u></th>
       <th class="num">누적 지각(분)<u style="display:block">สายรวม (นาที)</u></th>
       <th class="num">사전 통보<u style="display:block">แจ้งล่วงหน้า</u></th>
+      <th class="num">사전 결근<u style="display:block">ลาแจ้งล่วงหน้า</u></th>
       <th class="num">병가<u style="display:block">ลาป่วย</u></th>
       <th class="num">휴무<u style="display:block">วันหยุด</u></th>
       <th>경고 단계<u style="display:block">ระดับการเตือน</u></th></tr></thead>
@@ -2835,6 +2841,7 @@ function renderSheet(){
       <td class="num${x.unex?' bad':''}">${x.unex}</td>
       <td class="num${x.totalLate?' bad':''}">${x.totalLate}</td>
       <td class="num">${x.rs.filter(r=>r.type==='사전통보').length}</td>
+      <td class="num">${x.preAbs||''}</td>
       <td class="num">${x.sick}</td>
       <td class="num off">${x.off}</td>
       <td><span class="tier t${x.tier}">${TIERS[x.tier][0]} · ${TIERS[x.tier][1]}</span></td>
