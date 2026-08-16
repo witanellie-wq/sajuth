@@ -214,6 +214,9 @@
     padding:0 3px;font-family:inherit;}
   .acctcopy:hover{color:var(--jade);}
   #acTable input{padding:7px 9px;font-size:13px;}
+  #pyTable input,#pyTable select{padding:6px 8px;font-size:13px;}
+  #pyTable input[data-py="bankAcct"]{font-family:'IBM Plex Mono',monospace;}
+  tr.py-off{opacity:.5;}
   .raise{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;
     display:inline-block;margin-top:3px;}
   .raise.up{background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;}
@@ -737,6 +740,30 @@
   </section>
 
   <section class="panel adm-only" style="margin-top:20px">
+    <h2 data-i="pyTitle"></h2>
+    <div style="overflow-x:auto"><table>
+      <thead id="pyHead"></thead><tbody id="pyTable"></tbody></table></div>
+    <div class="hr-add no-print">
+      <div class="field" style="flex:1;min-width:130px;margin:0"><label data-i="pyName"></label>
+        <input type="text" id="pyN"></div>
+      <div class="field" style="width:150px;margin:0"><label data-i="lBiz"></label>
+        <select id="pyBiz"></select></div>
+      <div class="field" style="width:120px;margin:0"><label data-i="pyCat"></label>
+        <input type="text" id="pyC" class="hascombo" data-combo="pye"></div>
+      <div class="field" style="width:120px;margin:0"><label data-i="acBank"></label>
+        <input type="text" id="pyBk"></div>
+      <div class="field" style="flex:1;min-width:140px;margin:0"><label data-i="acNo"></label>
+        <input type="text" id="pyNo"></div>
+      <div class="field" style="width:130px;margin:0"><label data-i="acHolder"></label>
+        <input type="text" id="pyHd"></div>
+      <div class="field" style="flex:1;min-width:110px;margin:0"><label data-i="expMemo"></label>
+        <input type="text" id="pyMm"></div>
+      <button class="save" id="pyAdd" style="width:auto;margin:0;padding:9px 18px;align-self:flex-end" data-i="add"></button>
+    </div>
+    <p class="note" data-ih="pyNote"></p>
+  </section>
+
+  <section class="panel adm-only" style="margin-top:20px">
     <h2 data-i="expTitle"></h2>
     <div class="hr-add no-print" style="margin-top:0;padding-top:0;border-top:none">
       <div class="field" style="width:145px;margin:0"><label data-i="expDate"></label>
@@ -1072,6 +1099,14 @@ const I={
   opFix:'고정비', opExp:'지출',
   fcRent:'임대료', fcUtil:'공과금', fcTel:'통신', fcIns:'보험', fcSub:'구독 · 서비스', fcTax:'세금', fcEtc:'기타',
   ecSupply:'소모품', ecStock:'제품 · 재고', ecEquip:'장비 · 수리', ecMkt:'마케팅', ecFee:'세금 · 수수료', ecEtc:'기타',
+  /* ── 기타 이체 계좌 (직원 외) ── */
+  pyTitle:'기타 이체 계좌 (직원 외)', pyName:'받는 곳', pyCat:'분류',
+  pyNamePh:'예: 건물주 김OO / True 인터넷', pyHolderPh:'계좌에 적힌 이름',
+  pyHide:'보관', pyNone:'등록된 계좌가 없습니다. 아래에서 추가하세요.',
+  pyDelConfirm:'이 계좌를 삭제할까요? 나중에 다시 쓸 수도 있으면 삭제 대신 [보관] 을 누르세요.',
+  opPayee:'기타 계좌',
+  pcVendor:'거래처', pcTax:'세금 · 세무', pcPerson:'개인',
+  pyNote:'직원이 아닌 곳으로 <b>이체할 계좌를 모아 두는 곳</b>입니다 — 건물주 · 인터넷 회사 · 거래처 · 세무사처럼요. (직원 급여 계좌는 <b>직원 관리</b> 탭에 있습니다.)<br>계좌번호 옆의 <b>⧉</b> 를 누르면 번호만 복사돼 은행 앱에 바로 붙여넣을 수 있습니다.<br>표 안의 <b>모든 칸은 직접 고칠 수 있고</b>, 고치는 즉시 저장됩니다. <b>분류</b>는 직접 입력해도 됩니다.<br>위쪽 <b>사업장</b> 선택에 따라 해당 사업장 계좌만 보입니다.<br>더 안 쓰는 곳은 <b>보관</b> 을 누르세요 — 표 아래에 흐리게 남아 언제든 되살릴 수 있습니다. <b>삭제</b> 는 완전히 지웁니다.',
   /* ── 게이트 · 관리자 · 동기화 ── */
   gateTitle:'직원 근태 관리', gateNote:'매장 공용 비밀번호를 입력하세요.',
   gatePw:'비밀번호', gateEnter:'들어가기',
@@ -1215,6 +1250,14 @@ const I={
   fcSub:'บริการรายเดือน', fcTax:'ภาษี', fcEtc:'อื่นๆ',
   ecSupply:'วัสดุสิ้นเปลือง', ecStock:'สินค้า · สต็อก', ecEquip:'อุปกรณ์ · ซ่อมแซม',
   ecMkt:'การตลาด', ecFee:'ภาษี · ค่าธรรมเนียม', ecEtc:'อื่นๆ',
+  /* ── บัญชีโอนอื่น ๆ (ไม่ใช่พนักงาน) ── */
+  pyTitle:'บัญชีโอนอื่น ๆ (ไม่ใช่พนักงาน)', pyName:'ผู้รับเงิน', pyCat:'ประเภท',
+  pyNamePh:'เช่น เจ้าของตึก / True อินเทอร์เน็ต', pyHolderPh:'ชื่อบัญชีตามธนาคาร',
+  pyHide:'เก็บเข้าคลัง', pyNone:'ยังไม่มีบัญชี เพิ่มด้านล่างได้เลย',
+  pyDelConfirm:'ต้องการลบบัญชีนี้หรือไม่? ถ้าอาจใช้อีกในอนาคต ให้กด [เก็บเข้าคลัง] แทนการลบ',
+  opPayee:'บัญชีอื่น',
+  pcVendor:'คู่ค้า · ร้านค้า', pcTax:'ภาษี · บัญชี', pcPerson:'บุคคล',
+  pyNote:'ที่<b>รวมบัญชีสำหรับโอนเงินให้ผู้รับที่ไม่ใช่พนักงาน</b> เช่น เจ้าของตึก · บริษัทอินเทอร์เน็ต · คู่ค้า · สำนักงานบัญชี (บัญชีเงินเดือนพนักงานอยู่ในแท็บ <b>จัดการพนักงาน</b>)<br>กด <b>⧉</b> ข้างเลขบัญชีเพื่อคัดลอกเฉพาะเลข แล้ววางในแอปธนาคารได้ทันที<br><b>ทุกช่องในตารางแก้ไขได้</b> และบันทึกทันทีที่แก้ · <b>ประเภท</b> พิมพ์เองก็ได้<br>ตารางจะแสดงตาม <b>กิจการ</b> ที่เลือกด้านบน<br>ที่ไม่ใช้แล้วให้กด <b>เก็บเข้าคลัง</b> — จะยังอยู่จาง ๆ ด้านล่างและเรียกกลับมาได้ ส่วน <b>ลบ</b> จะลบถาวร',
   /* ── เกต · ผู้ดูแล · ซิงก์ ── */
   gateTitle:'ระบบบันทึกการเข้างาน', gateNote:'กรุณาใส่รหัสผ่านส่วนกลางของร้าน',
   gatePw:'รหัสผ่าน', gateEnter:'เข้าสู่ระบบ',
@@ -1259,7 +1302,7 @@ const DEFAULT_STAFF=[
 ];
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
-                  fixedCosts:[],fixedPays:{},expenses:[],targets:{},wageHist:{}});
+                  fixedCosts:[],fixedPays:{},expenses:[],targets:{},wageHist:{},payees:[]});
 let data=EMPTY();
 const EMPTYPES=[['정직원','tRegular'],['수습','tProbation'],['인턴','tIntern'],['알바','tPart']];
 /* 지출 분류 — [한국어, 태국어] (DB 에는 한국어 값이 들어갑니다) */
@@ -1267,6 +1310,9 @@ const FIXCATS=[['임대료','fcRent'],['공과금','fcUtil'],['통신','fcTel'],
                ['구독·서비스','fcSub'],['세금','fcTax'],['기타','fcEtc']];
 const EXCATS=[['소모품','ecSupply'],['제품·재고','ecStock'],['장비·수리','ecEquip'],
               ['마케팅','ecMkt'],['세금·수수료','ecFee'],['기타','ecEtc']];
+/* 기타 이체 계좌 분류 — 직원이 아닌 곳으로 보내는 돈 */
+const PYCATS=[['임대료','fcRent'],['거래처','pcVendor'],['공과금','fcUtil'],['통신','fcTel'],
+              ['세금·세무','pcTax'],['개인','pcPerson'],['기타','fcEtc']];
 const CATCOLOR=['#2E7D6B','#C98A0E','#5B4B8A','#BE4237','#69758A','#4A6FA5','#A38A5C'];
 /* 분류는 자유 입력입니다 — 아래는 추천 목록일 뿐이고, 없는 분류를 직접 쓰면 그대로 저장됩니다.
    추천 목록에 있는 값만 언어에 따라 번역해 보여주고, 직접 쓴 값은 쓴 그대로 보입니다. */
@@ -1281,7 +1327,8 @@ const bizColor=b=>BIZCOLOR[b]||'#69758A';
 /** 현재 화면에 있는 사업장 목록 (설정에 없는 값도 데이터에 있으면 포함) */
 const bizAll=()=>[...new Set([...BIZ.map(x=>x[0]),
   ...data.fixedCosts.map(c=>c.biz||DEF_BIZ),
-  ...(data.expenses||[]).map(e=>e.biz||DEF_BIZ)])];
+  ...(data.expenses||[]).map(e=>e.biz||DEF_BIZ),
+  ...(data.payees||[]).map(p=>p.biz||DEF_BIZ)])];
 /** 분류 추천 목록 = 기본 추천 + 이미 쓰고 있는 분류 */
 const catOptions=(list,used)=>[...new Set([...list.map(x=>x[0]),...used])].filter(Boolean);
 const PAYTYPES=[['월급','pM'],['일급','pD'],['시급','pH']];
@@ -1404,7 +1451,7 @@ async function loadAll(){
   if(!sb)return;
   const q=(tb,fn)=>op(t('opLoad')+' · '+tb,fn,false);
   const admQ=(tb,fn)=>isAdmin?q(tb,fn):Promise.resolve({ok:true,data:[]});
-  const [m,r,p,c,w,e,fc,fp,ex,tg,wh]=await Promise.all([
+  const [m,r,p,c,w,e,fc,fp,ex,tg,wh,py]=await Promise.all([
     q('staff_members',()=>sb.from('staff_members').select('*')
         .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
     q('staff_records',()=>sb.from('staff_records').select('*')
@@ -1420,7 +1467,9 @@ async function loadAll(){
         .order('date',{ascending:false}).order('created_at',{ascending:false}).limit(LIM)),
     admQ('staff_targets',()=>sb.from('staff_targets').select('*').limit(LIM)),
     admQ('staff_wage_history',()=>sb.from('staff_wage_history').select('*')
-        .order('from_month',{ascending:true}).limit(LIM))
+        .order('from_month',{ascending:true}).limit(LIM)),
+    admQ('staff_payees',()=>sb.from('staff_payees').select('*')
+        .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM))
   ]);
   if(!m.ok)return false;
 
@@ -1485,6 +1534,11 @@ async function loadAll(){
       wage:Number(x.wage||0),memo:x.memo||''});
   });
   Object.values(data.wageHist).forEach(a=>a.sort((p,q)=>p.fromMonth.localeCompare(q.fromMonth)));
+
+  data.payees=(py.data||[]).map(x=>({
+    id:x.id,name:x.name,biz:x.biz||DEF_BIZ,category:x.category||'기타',
+    bankName:x.bank_name||'',bankAcct:x.bank_account||'',bankHolder:x.bank_holder||'',
+    memo:x.memo||'',active:x.active!==false,sortOrder:x.sort_order??0,lid:x.legacy_id||null}));
 
   return true;
 }
@@ -1561,7 +1615,8 @@ function subscribeLive(){
   // RLS 로 못 읽는 테이블은 구독하지 않습니다 (직원 계정에서 채널 오류 방지)
   const tables=['staff_members','staff_records','staff_evals']
     .concat(isAdmin?['staff_payroll','staff_commissions','staff_warnings',
-                     'staff_fixed_costs','staff_fixed_payments','staff_expenses','staff_targets','staff_wage_history']:[]);
+                     'staff_fixed_costs','staff_fixed_payments','staff_expenses','staff_targets',
+                     'staff_wage_history','staff_payees']:[]);
   tables.forEach(tb=>ch.on('postgres_changes',{event:'*',schema:'public',table:tb},scheduleReload));
   ch.subscribe(st=>{
     if(st==='SUBSCRIBED'){liveCh=ch;setNet('live');}
@@ -2039,6 +2094,8 @@ function renderEx(){
     <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:14px">${money(fix)}</th>
     <th colspan="3" style="border-top:1px solid var(--ink);border-bottom:none"></th></tr>`:'';
 
+  renderPayee(bf);
+
   /* ── 사비 결제 · 정산 (달과 무관하게 미정산 전체) ── */
   const groups=rbByPayer(bf), rbSum=groups.reduce((a,g)=>a+g.sum,0);
   const done=doneRb(bf).slice().sort((a,b)=>(b.reimbursedAt||'').localeCompare(a.reimbursedAt||''));
@@ -2128,6 +2185,8 @@ const COMBO={
          head:['catPreset','catMine']},
   exp:  {list:()=>EXCATS,  used:()=>(data.expenses||[]).map(e=>e.category),
          head:['catPreset','catMine']},
+  pye:  {list:()=>PYCATS,  used:()=>(data.payees||[]).map(p=>p.category),
+         head:['catPreset','catMine']},
   payer:{list:()=>[[COMPANY,'acCompany']], used:()=>payerOptions(),
          head:['payerBase','payerMine']}};
 let comboEl=null;
@@ -2200,7 +2259,7 @@ window.addEventListener('resize',comboPlace);
 
 function buildExSelects(){
   const opts=sel=>bizAll().map(b=>`<option value="${esc(b)}">${esc(bizLabel(b))}</option>`).join('');
-  ['fxBiz','exBizIn'].forEach(id=>{const el=$(id),v=el.value;el.innerHTML=opts();if(v)el.value=v;});
+  ['fxBiz','exBizIn','pyBiz'].forEach(id=>{const el=$(id),v=el.value;el.innerHTML=opts();if(v)el.value=v;});
   const f=$('exBiz'), fv=f.value;
   f.innerHTML=`<option value="">${t('bizAll')}</option>`+opts();
   f.value=fv||'';
@@ -2209,6 +2268,11 @@ function buildExSelects(){
   $('fxCat').placeholder=t('catPh');
   $('exCat').placeholder=t('catPh');
   $('exPayer').placeholder=t('payerPh');
+  $('pyN').placeholder=t('pyNamePh');
+  $('pyC').placeholder=t('catPh');
+  $('pyBk').placeholder=t('acBankPh');
+  $('pyNo').placeholder=t('acNoPh');
+  $('pyHd').placeholder=t('pyHolderPh');
 }
 $('exBiz').addEventListener('change',()=>{if(isAdmin)renderEx();});
 
@@ -2302,6 +2366,112 @@ $('fxAdd').addEventListener('click',async()=>{
   renderEx();
 });
 $('fxName').addEventListener('keydown',e=>{if(e.key==='Enter')$('fxAdd').click();});
+
+/* ══════════ 기타 이체 계좌 — 직원 외 (건물주 · 거래처 · 공과금 …) ══════════
+   직원 급여 계좌는 직원 관리 탭에 있습니다. 여기는 직원이 아닌 곳으로 보내는 계좌만 모읍니다.
+   표 안의 모든 칸은 바로 고칠 수 있고, 고치는 즉시 저장됩니다. */
+const pyOf=id=>(data.payees||[]).find(p=>String(p.id)===String(id));
+function renderPayee(bf){
+  const all=(data.payees||[]).filter(p=>bizOK(p,bf));
+  const live=all.filter(p=>p.active!==false), off=all.filter(p=>p.active===false);
+  $('pyHead').innerHTML=`<tr>
+    <th style="width:16%">${t('pyName')}</th>
+    <th style="width:12%">${t('lBiz')}</th>
+    <th style="width:11%">${t('pyCat')}</th>
+    <th style="width:11%">${t('acBank')}</th>
+    <th style="width:19%">${t('acNo')}</th>
+    <th style="width:13%">${t('acHolder')}</th>
+    <th style="width:12%">${t('expMemo')}</th>
+    <th style="width:6%"></th></tr>`;
+  const bizSel=(v,attr)=>`<select ${attr}>${bizAll().map(b=>
+      `<option value="${esc(b)}"${(v||DEF_BIZ)===b?' selected':''}>${esc(bizLabel(b))}</option>`).join('')}</select>`;
+  $('pyTable').innerHTML=live.map(p=>`<tr>
+      <td><input type="text" data-py="name" data-id="${p.id}" value="${esc(p.name)}" style="width:100%"></td>
+      <td>${bizSel(p.biz,`data-py="biz" data-id="${p.id}"`)}</td>
+      <td><input type="text" data-py="category" data-id="${p.id}"
+        class="hascombo" data-combo="pye" value="${esc(p.category||'')}" style="width:100%"></td>
+      <td><input type="text" data-py="bankName" data-id="${p.id}" value="${esc(p.bankName||'')}"
+        placeholder="${t('acBankPh')}" style="width:100%"></td>
+      <td><div style="display:flex;align-items:center;gap:2px">
+        <input type="text" data-py="bankAcct" data-id="${p.id}" value="${esc(p.bankAcct||'')}"
+          placeholder="${t('acNoPh')}" style="flex:1;min-width:0">${
+        p.bankAcct?`<button class="acctcopy no-print" data-copy="${esc(p.bankAcct)}"
+          title="${t('acCopy')}">⧉</button>`:''}</div></td>
+      <td><input type="text" data-py="bankHolder" data-id="${p.id}" value="${esc(p.bankHolder||'')}"
+        placeholder="${t('pyHolderPh')}" style="width:100%"></td>
+      <td><input type="text" data-py="memo" data-id="${p.id}" value="${esc(p.memo||'')}"
+        placeholder="${t('memoPhShort')}" style="width:100%"></td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="rm" data-pyoff="${p.id}">${t('pyHide')}</button>
+        <button class="rm" data-pydel="${p.id}">${t('del')}</button></td>
+    </tr>`).join('')||`<tr><td colspan="8">${t('pyNone')}</td></tr>`;
+  /* 안 쓰는 계좌는 지우지 말고 아래에 흐리게 — 나중에 다시 쓸 수 있습니다 */
+  if(off.length)$('pyTable').insertAdjacentHTML('beforeend',off.map(p=>`
+    <tr class="py-off"><td>${esc(p.name)}</td><td>${esc(bizLabel(p.biz))}</td>
+      <td>${esc(catLabel(PYCATS,p.category))}</td><td>${esc(p.bankName||'')}</td>
+      <td class="acct">${esc(p.bankAcct||'')}</td><td>${esc(p.bankHolder||'')}</td>
+      <td>${esc(p.memo||'')}</td>
+      <td style="text-align:right;white-space:nowrap">
+        <button class="rm" data-pyon="${p.id}">${t('fixResume')}</button>
+        <button class="rm" data-pydel="${p.id}">${t('del')}</button></td></tr>`).join(''));
+}
+
+const PYCOL={name:'name',biz:'biz',category:'category',bankName:'bank_name',
+             bankAcct:'bank_account',bankHolder:'bank_holder',memo:'memo'};
+$('pyTable').addEventListener('change',async e=>{
+  const el=e.target.closest('[data-py]'); if(!el)return;
+  const p=pyOf(el.dataset.id); if(!p)return;
+  const k=el.dataset.py;
+  let v=el.value.trim();
+  if(k==='name'&&!v){el.value=p.name;return;}           // 이름은 비울 수 없습니다
+  if(k==='biz')v=el.value||DEF_BIZ;
+  if(k==='category')v=v||'기타';
+  p[k]=v;
+  renderEx();
+  await op(t('opPayee'),()=>sb.from('staff_payees').update({[PYCOL[k]]:v}).eq('id',p.id));
+});
+$('pyTable').addEventListener('click',async e=>{
+  const cp=e.target.closest('[data-copy]');
+  if(cp){
+    try{ await navigator.clipboard.writeText(cp.dataset.copy);
+         const o=cp.textContent; cp.textContent='✓';
+         setTimeout(()=>{cp.textContent=o;},1200);
+    }catch(err){ alert(cp.dataset.copy); }
+    return;
+  }
+  const tg=e.target.closest('[data-pyoff]')||e.target.closest('[data-pyon]');
+  if(tg){
+    const p=pyOf(tg.dataset.pyoff||tg.dataset.pyon); if(!p)return;
+    p.active=!!tg.dataset.pyon;
+    renderEx();
+    await op(t('opPayee'),()=>sb.from('staff_payees').update({active:p.active}).eq('id',p.id));
+    return;
+  }
+  const del=e.target.closest('[data-pydel]');
+  if(del){
+    if(!confirm(t('pyDelConfirm')))return;
+    const id=del.dataset.pydel;
+    data.payees=(data.payees||[]).filter(p=>String(p.id)!==String(id));
+    renderEx();
+    await op(t('opPayee')+' · '+t('opDel'),()=>sb.from('staff_payees').delete().eq('id',id));
+  }
+});
+$('pyAdd').addEventListener('click',async()=>{
+  const n=$('pyN').value.trim();
+  if(!n){$('pyN').focus();return;}
+  const row={name:n,biz:$('pyBiz').value||DEF_BIZ,category:$('pyC').value.trim()||'기타',
+    bank_name:$('pyBk').value.trim(),bank_account:$('pyNo').value.trim(),
+    bank_holder:$('pyHd').value.trim(),memo:$('pyMm').value.trim(),active:true,
+    sort_order:(data.payees||[]).length,legacy_id:newLid('py')};
+  const res=await op(t('opPayee'),()=>sb.from('staff_payees').insert(row).select().single());
+  if(res.ok&&res.data)(data.payees=data.payees||[]).push({id:res.data.id,name:n,biz:row.biz,
+    category:row.category,bankName:row.bank_name,bankAcct:row.bank_account,
+    bankHolder:row.bank_holder,memo:row.memo,active:true,sortOrder:row.sort_order,lid:row.legacy_id});
+  ['pyN','pyBk','pyNo','pyHd','pyMm'].forEach(id=>{$(id).value='';});
+  renderEx();
+});
+['pyN','pyBk','pyNo','pyHd','pyMm'].forEach(id=>
+  $(id).addEventListener('keydown',e=>{if(e.key==='Enter')$('pyAdd').click();}));
 
 /* ── 소모품 · 기타 지출 ── */
 $('exAdd').addEventListener('click',async()=>{
@@ -3214,6 +3384,7 @@ function fillBackup(force){
       return [(c?lidOf('fx',c):k.slice(0,cut))+'|'+k.slice(cut+1),strip(v)];
     })),
     expenses:(data.expenses||[]).map(strip),
+    payees:(data.payees||[]).map(strip),
     targets:Object.fromEntries(Object.entries(data.targets||{}).map(([k,v])=>[k,strip(v)])),
     // 급여 이력은 직원 이름으로 키를 잡아야 다른 DB 로 옮겨도 이어집니다
     wageHist:Object.fromEntries(data.staff.filter(x=>(data.wageHist[x._id]||[]).length)
@@ -3364,6 +3535,17 @@ async function importBackup(o){
         ()=>sb.from('staff_expenses').upsert(part,{onConflict:'legacy_id',ignoreDuplicates:true}));
       if(!r.ok)return false;
     }
+    // 7-2) 기타 이체 계좌
+    const pyRows=(o.payees||[]).filter(p=>p&&p.name).map((p,i)=>({
+      name:p.name,biz:p.biz||DEF_BIZ,category:p.category||'기타',
+      bank_name:p.bankName||'',bank_account:p.bankAcct||'',bank_holder:p.bankHolder||'',
+      memo:p.memo||'',active:p.active!==false,sort_order:p.sortOrder??i,
+      legacy_id:lidOf('py',p)}));
+    for(const part of chunk(pyRows,400)){
+      const r=await op(t('opImport')+' · '+t('opPayee'),
+        ()=>sb.from('staff_payees').upsert(part,{onConflict:'legacy_id',ignoreDuplicates:true}));
+      if(!r.ok)return false;
+    }
     // 8) 매출 목표 — 사업장 + 월 복합키
     const tgRows2=Object.entries(o.targets||{}).map(([k,v])=>{
       const cut=k.lastIndexOf('|'), bz=k.slice(0,cut), mo=k.slice(cut+1);
@@ -3423,7 +3605,7 @@ $('bkReplace').addEventListener('click',async()=>{
   const del=await op(t('opDel'),()=>sb.from('staff_members').delete().neq('id',NONE));
   if(!del.ok)return;
   // 고정비 · 지출은 직원과 연결돼 있지 않으므로 따로 지웁니다
-  for(const tb of ['staff_fixed_costs','staff_expenses','staff_targets']){
+  for(const tb of ['staff_fixed_costs','staff_expenses','staff_targets','staff_payees']){
     const d=await op(t('opDel')+' · '+tb,()=>sb.from(tb).delete().neq('id',NONE));
     if(!d.ok)return;
   }

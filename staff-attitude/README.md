@@ -17,6 +17,7 @@ staff-attitude/
 ├── patch-05-bank.sql             직원 급여 계좌 칸 추가
 ├── patch-06-wage-history.sql     급여 변경(인상) 이력 — 과거 달 소급 방지
 ├── patch-07-reimburse.sql        사비 결제 · 정산 (결제자 · 정산일)
+├── patch-08-payees.sql           기타 이체 계좌 (직원 외 — 건물주 · 거래처 …)
 ├── forms.js                      인사 서식 5종 (docx 원본에서 변환)
 ├── docs-source/                  서식 원본 docx · md (수정 시 여기를 고치고 재변환)
 ├── vercel.json                   배포 설정 (보안 헤더)
@@ -24,7 +25,7 @@ staff-attitude/
 ```
 
 > SQL 파일은 **번호 순서대로** 한 번씩 실행하면 됩니다. 여러 번 실행해도 안전합니다.
-> 처음부터 새로 세팅한다면 `schema.sql` → `patch-01` → `patch-02` → `patch-03` → `patch-04` → `patch-05` → `patch-06` → `patch-07` 순서입니다.
+> 처음부터 새로 세팅한다면 `schema.sql` → `patch-01` → `patch-02` → `patch-03` → `patch-04` → `patch-05` → `patch-06` → `patch-07` → `patch-08` 순서입니다.
 
 ---
 
