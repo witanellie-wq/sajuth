@@ -18,6 +18,7 @@ staff-attitude/
 ├── patch-06-wage-history.sql     급여 변경(인상) 이력 — 과거 달 소급 방지
 ├── patch-07-reimburse.sql        사비 결제 · 정산 (결제자 · 정산일)
 ├── patch-08-payees.sql           기타 이체 계좌 (직원 외 — 건물주 · 거래처 …)
+├── rename-person.sql             이름 · 직함을 모든 표에서 한꺼번에 바꾸기 (필요할 때만)
 ├── forms.js                      인사 서식 5종 (docx 원본에서 변환)
 ├── docs-source/                  서식 원본 docx · md (수정 시 여기를 고치고 재변환)
 ├── vercel.json                   배포 설정 (보안 헤더)
