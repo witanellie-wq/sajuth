@@ -236,6 +236,16 @@
   input.bcw.on{background:#EEF5F3;font-weight:700;}
   .gwtag{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:20px;
     background:#EAF0F6;color:#4A6FA5;margin-top:2px;}
+  /* 지출 탭의 직원별 커미션 */
+  .commbox{background:#F4F8F6;border:1px solid #CFE2DC;border-radius:3px;padding:11px 13px;margin-top:14px;}
+  .commbox h4{margin:0 0 8px;font-size:12px;color:var(--jade);font-weight:700;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+  .commbox h4 b{font-family:'IBM Plex Mono',monospace;font-size:14px;}
+  .commbox .gotopay{margin-left:auto;padding:4px 10px;font-size:11px;}
+  .commrow{display:flex;flex-wrap:wrap;gap:6px;}
+  .commchip{background:#fff;border:1px solid #CFE2DC;border-radius:20px;padding:4px 11px;
+    font-size:11.5px;display:inline-flex;align-items:center;gap:6px;}
+  .commchip b{font-family:'IBM Plex Mono',monospace;color:var(--jade);}
   .raise{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;
     display:inline-block;margin-top:3px;}
   .raise.up{background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;}
@@ -744,6 +754,7 @@
       <select id="exBiz" style="min-width:160px"></select>
     </div>
     <div class="sumcards" id="exCards"></div>
+    <div id="exComm"></div>
     <div id="exBizSum"></div>
     <div id="exDue"></div>
   </section>
@@ -1091,7 +1102,9 @@ const I={
   /* ── 지출 ── */
   tabEx:'지출', exTitle:'월 지출 요약', fixTitle:'고정비', expTitle:'소모품 · 기타 지출',
   cPayrollSum:'급여', cFixSum:'고정비', cExpSum:'소모품 · 기타', cGrandSum:'이달 총지출',
-  cMonthlySum:'급여 + 고정비', exMonthlyNote:'매달 고정으로 나가는 돈',
+  cCommSum:'커미션', exCommNote:'매출에 따라 달라짐',
+  exCommWho:'이달 직원별 커미션', exCommGo:'급여 · 커미션 탭에서 계산 →',
+  cMonthlySum:'급여 + 커미션 + 고정비', exMonthlyNote:'매달 나가는 인건비 · 고정비',
   fixName:'항목', fixCat:'분류', fixDue:'납부일', fixAmt:'이달 금액', fixBase:'기본 금액 (฿)',
   fixPaid:'납부', fixNone:'등록된 고정비가 없습니다. 아래에서 추가하세요.',
   fixStop:'중지', fixResume:'재개', fixStopped:'중지됨',
@@ -1256,7 +1269,9 @@ const I={
   tabEx:'ค่าใช้จ่าย', exTitle:'สรุปค่าใช้จ่ายรายเดือน', fixTitle:'ค่าใช้จ่ายประจำ',
   expTitle:'วัสดุสิ้นเปลือง · ค่าใช้จ่ายอื่น',
   cPayrollSum:'เงินเดือน', cFixSum:'ค่าใช้จ่ายประจำ', cExpSum:'วัสดุ · อื่นๆ', cGrandSum:'รวมทั้งเดือน',
-  cMonthlySum:'เงินเดือน + ค่าใช้จ่ายประจำ', exMonthlyNote:'รายจ่ายคงที่ทุกเดือน',
+  cCommSum:'คอมมิชชั่น', exCommNote:'ผันแปรตามยอดขาย',
+  exCommWho:'คอมมิชชั่นรายคนเดือนนี้', exCommGo:'ไปคำนวณในแท็บเงินเดือน →',
+  cMonthlySum:'เงินเดือน + คอมมิชชั่น + ค่าใช้จ่ายประจำ', exMonthlyNote:'ค่าแรงและรายจ่ายประจำต่อเดือน',
   fixName:'รายการ', fixCat:'ประเภท', fixDue:'วันครบกำหนด', fixAmt:'ยอดเดือนนี้', fixBase:'ยอดตั้งต้น (฿)',
   fixPaid:'จ่ายแล้ว', fixNone:'ยังไม่มีค่าใช้จ่ายประจำ เพิ่มได้ที่ด้านล่าง',
   fixStop:'หยุดใช้', fixResume:'ใช้ต่อ', fixStopped:'หยุดแล้ว',
@@ -1666,6 +1681,11 @@ const fixTotal=(m,b)=>fixListIn(m,b).reduce((a,c)=>a+fixAmt(c,m),0);
 const expListIn=(m,b)=>(data.expenses||[]).filter(e=>(e.date||'').startsWith(m)&&bizOK(e,b));
 const expTotal=(m,b)=>expListIn(m,b).reduce((a,e)=>a+Number(e.amount||0),0);
 const payrollTotal=m=>liveStaff().reduce((a,s)=>a+payCalc(s,m).total,0);
+/* 지출 요약에서는 급여를 '기본급(+보너스−공제)' 과 '커미션' 으로 나눠 보여줍니다.
+   둘을 더하면 payrollTotal 과 같습니다 — 중복으로 세지 않습니다. */
+const payrollBaseTotal=m=>liveStaff().reduce((a,s)=>{
+  const c=payCalc(s,m); return a+c.base+c.bonus-c.deduct;},0);
+const payrollCommTotal=m=>money2(liveStaff().reduce((a,s)=>a+payCalc(s,m).comm,0));
 /* ── 사비 결제 · 정산 ──
    달과 무관하게 '아직 안 갚은 것 전부' 를 봅니다 (지난달 건도 갚을 때까지 남습니다) */
 const needsRb=e=>(e.payer||COMPANY)!==COMPANY;
@@ -2156,12 +2176,14 @@ function renderEx(){
   const m=$('exMonth').value||todayISO().slice(0,7);
   const bf=$('exBiz').value||'';              // '' = 전체 사업장
   const pay=payrollTotal(m), fix=fixTotal(m,bf), exp=expTotal(m,bf);
+  const payBase=payrollBaseTotal(m), payComm=payrollCommTotal(m);
   const withPay=!bf;                          // 급여는 사업장 구분이 없어 '전체'일 때만 합산
 
-  /* 월 요약 카드 */
-  const monthly=(withPay?pay:0)+fix;          // 급여 + 고정비 = 매달 고정으로 나가는 돈
+  /* 월 요약 카드 — 급여를 기본급과 커미션으로 나눠 보여줍니다 (둘을 더하면 급여 전체) */
+  const monthly=(withPay?pay:0)+fix;          // 급여 + 커미션 + 고정비 = 매달 고정으로 나가는 돈
   $('exCards').innerHTML=[
-    ['cPayrollSum',withPay?pay:null,'',      withPay?'':t('exNoBiz')],
+    ['cPayrollSum',withPay?payBase:null,'',  withPay?'':t('exNoBiz')],
+    ['cCommSum',   withPay?payComm:null,'',  withPay?t('exCommNote'):t('exNoBiz')],
     ['cFixSum',    fix,             '',      ''],
     ['cMonthlySum',monthly,         'sub',   withPay?t('exMonthlyNote'):t('exNoPay')],
     ['cExpSum',    exp,             '',      ''],
@@ -2169,6 +2191,15 @@ function renderEx(){
   ].map(([k,v,cls,sub])=>`<div class="sumcard ${cls}"><b>${t(k)}</b>
       <i>${v==null?'—':money(v)}</i>
       <small>${esc(sub||'')}</small></div>`).join('');
+
+  /* 직원별 커미션 — 지출에서도 한눈에 보이게 (자세한 계산·수정은 급여 탭에서) */
+  const cm=withPay?liveStaff().map(s=>({name:s.name,v:payCalc(s,m).comm}))
+                     .filter(x=>x.v>0).sort((a,b)=>b.v-a.v):[];
+  $('exComm').innerHTML=cm.length?`<div class="commbox">
+    <h4>💰 ${t('exCommWho')} <b>${money(payComm)}</b>
+      <button class="ghost gotopay no-print" id="exGoPay">${t('exCommGo')}</button></h4>
+    <div class="commrow">${cm.map(x=>`<span class="commchip">${esc(x.name)}
+      <b>${money(x.v)}</b></span>`).join('')}</div></div>`:'';
 
   /* 사업장별 소계 — '전체' 일 때만 */
   const bl=bizAll();
@@ -2466,6 +2497,15 @@ function buildExSelects(){
   $('pyHd').placeholder=t('pyHolderPh');
 }
 $('exBiz').addEventListener('change',()=>{if(isAdmin)renderEx();});
+/* 지출 → 급여 · 커미션 탭으로 (같은 달을 보여 줍니다) */
+$('exComm').addEventListener('click',e=>{
+  if(!e.target.closest('#exGoPay'))return;
+  const m=$('exMonth').value;
+  if(m){$('payMonth').value=m;renderPay();renderComm();}
+  goTab('pay');
+  const el=document.querySelector('[data-i="bcTitle"]');
+  if(el)setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'start'}),100);
+});
 
 /* ── 고정비 항목 편집 ── */
 const fixOf=id=>data.fixedCosts.find(c=>String(c.id)===String(id));
@@ -2750,7 +2790,11 @@ $('exCsvBtn').addEventListener('click',()=>{
   expListIn(m,bf).forEach(e=>rows.push([m,bizLabel(e.biz),'지출',e.category,e.item,e.amount,'',
     needsRb(e)?(e.reimbursedAt?'정산완료':'정산대기'):'',e.reimbursedAt||'',e.date,
     (e.payer&&e.payer!==COMPANY?'['+e.payer+'] ':'')+(e.memo||'')]));
-  if(!bf)rows.push([m,'','급여','','(전체 직원 지급 합계)',payrollTotal(m),'','','','','']);
+  if(!bf){
+    rows.push([m,'','급여','','(전체 직원 기본급 · 보너스 · 공제)',payrollBaseTotal(m),'','','','','']);
+    liveStaff().forEach(s=>{const c=payCalc(s,m);
+      if(c.comm)rows.push([m,'','커미션','',s.name,c.comm,'','','','','']);});
+  }
   (bf?[bf]:bizAll()).forEach(bz=>{
     if(tgAmt(bz,m))rows.push([m,bizLabel(bz),'목표매출','','',tgAmt(bz,m),'','','','',tgOf(bz,m).memo||'']);});
   const csv='\uFEFF'+[head,...rows].map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
