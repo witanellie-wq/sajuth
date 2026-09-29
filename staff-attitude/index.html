@@ -809,6 +809,9 @@
       <span style="font-size:12px;color:var(--ink-soft)">%</span>
       <label style="margin:0 2px 0 12px;font-size:11.5px" data-i="bcGwBasis"></label>
       <select id="bcGw" style="min-width:170px"></select>
+      <label style="margin:0 2px 0 12px;font-size:11.5px" data-i="bcVat"></label>
+      <input type="number" id="bcVat" min="0" max="30" step="0.1" style="width:68px;text-align:right">
+      <span style="font-size:12px;color:var(--ink-soft)">%</span>
       <label style="margin:0 2px 0 12px;font-size:11.5px" data-i="bcStart"></label>
       <input type="date" id="bcStart" style="width:158px">
       <button class="ghost" id="bcStartX" data-i="bcStartClear"></button>
@@ -1318,7 +1321,7 @@ const I={
   bcOvrHint:'예약장부 금액과 실제 받은 돈이 다를 때만 넣으세요. 비우면 예약장부 금액을 씁니다.',
   bcSplitHint:'둘이 나눌 비율. 비우면 똑같이 나눕니다 (예: 60 과 40)',
   bcExpand:'모두 펼치기', bcCollapse:'모두 접기', bcClickDay:'날짜를 누르면 그날 건이 펼쳐집니다',
-  bcStart:'커미션 시작일', bcStartClear:'전체',
+  bcStart:'커미션 시작일', bcStartClear:'전체', bcVat:'VAT 제외',
   bcDayPay:'지급', bcDayNo:'제외',
   bcDayOffHint:'이 날은 커미션을 주지 않기', bcDayOnHint:'이 날도 커미션을 주기',
   bcNoStaff:'담당자 없음', bcUnassigned:'담당자를 못 찾아 빠진 커미션',
@@ -1326,7 +1329,7 @@ const I={
   bcIgnore:'커미션 주지 않음',
   bcUnmatchedHint:'예약장부에 적힌 이름과 여기 직원 이름이 다르면 한 번만 이어 주세요. 다음부터 자동으로 기억합니다.',
   bcNoLink:'예약장부를 읽지 못했습니다. patch-09 SQL 을 실행했는지, 관리자로 로그인했는지 확인해 주세요.',
-  bcNote:'<b>예약장부(부킹테이블)에 직원이 입력한 방문 기록</b>에서 커미션을 자동으로 계산합니다 — 매출을 여기에 다시 입력하지 않으셔도 됩니다.<br>상태가 <b>방문</b>인 건만 계산에 들어갑니다. 예약·취소 건은 빠집니다.<br><b>날짜 줄을 누르면</b> 그날 건이 펼쳐집니다. 고객 이름 아래에 <b>전화번호</b>가 같이 나옵니다.<br><b>커미션 시작일</b>을 넣으면 그 날짜부터만 계산합니다 (중간부터 주기 시작한 달). 시작일 뒤라도 특정 날을 빼려면 날짜 옆 <b>지급</b> 단추를 눌러 <b>제외</b>로 바꾸세요.<br><b>실제 결제</b> 칸은 예약장부 금액과 실제로 받은 돈이 다를 때만 넣으세요 — 넣으면 노랗게 표시되고 그 금액으로 계산됩니다. <b>예약장부 원본은 바뀌지 않습니다.</b><br>한 건을 <b>여러 명이 했을 때</b>는 기본이 똑같이 나누기이고, 옆의 작은 칸에 숫자를 넣으면 그 비율로 나뉩니다 (예: 60 과 40).<br><b>예약장부에 아예 안 들어간 건</b>은 여기에 안 나옵니다 — 아래 <b>커미션 내역</b>에서 직접 넣으시면 급여표에 함께 합산됩니다.<br>여기서 나온 직원별 합계는 위 <b>급여표의 커미션 칸</b>에 자동으로 들어갑니다. 급여표에서 직접 고쳐 쓰면 그 값이 우선합니다.',
+  bcNote:'<b>예약장부(부킹테이블)에 직원이 입력한 방문 기록</b>에서 커미션을 자동으로 계산합니다 — 매출을 여기에 다시 입력하지 않으셔도 됩니다.<br>상태가 <b>방문</b>인 건만 계산에 들어갑니다. 예약·취소 건은 빠집니다.<br><b>날짜 줄을 누르면</b> 그날 건이 펼쳐집니다. 고객 이름 아래에 <b>전화번호</b>가 같이 나옵니다.<br><b>커미션 시작일</b>을 넣으면 그 날짜부터만 계산합니다 (중간부터 주기 시작한 달). 시작일 뒤라도 특정 날을 빼려면 날짜 옆 <b>지급</b> 단추를 눌러 <b>제외</b>로 바꾸세요.<br><b>실제 결제</b> 칸은 예약장부 금액과 실제로 받은 돈이 다를 때만 넣으세요 — 넣으면 노랗게 표시되고 그 금액으로 계산됩니다. <b>예약장부 원본은 바뀌지 않습니다.</b><br>한 건을 <b>여러 명이 했을 때</b>는 기본이 똑같이 나누기이고, 옆의 작은 칸에 숫자를 넣으면 그 비율로 나뉩니다 (예: 60 과 40).<br><b>예약장부에 아예 안 들어간 건</b>은 여기에 안 나옵니다 — 아래 <b>커미션 내역</b>에서 직접 넣으시면 급여표에 함께 합산됩니다.<br>여기서 나온 직원별 합계는 위 <b>급여표의 커미션 칸</b>에 자동으로 들어갑니다. 급여표에서 직접 고쳐 쓰면 그 값이 우선합니다.<br><b>기준금액이 정해지는 순서</b>: 실제 결제액 → 고와비 수수료 뺌 → <b>VAT 뺌</b> → 비율 곱함.<br><b>VAT 제외</b>에 7 을 넣으면 가격에 VAT 가 포함돼 있다고 보고 1.07 로 나눈 금액에 커미션을 매깁니다 (VAT 는 국세청에 낼 돈이라 가게에 안 남습니다). VAT 미등록이거나 가격이 VAT 별도면 <b>0</b> 으로 두세요.',
   opComm2:'자동 커미션',
   /* ── 커미션 달력 · 붙여넣기 ── */
   cmSale:'판매금액', cmPayout:'커미션 (฿)', cmSaleSum:'판매 합계',
@@ -1506,7 +1509,7 @@ const I={
   bcOvrHint:'ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง เว้นว่างไว้จะใช้ยอดในตารางจอง',
   bcSplitHint:'สัดส่วนแบ่งกัน เว้นว่างไว้จะแบ่งเท่ากัน (เช่น 60 กับ 40)',
   bcExpand:'กางทั้งหมด', bcCollapse:'พับทั้งหมด', bcClickDay:'กดวันที่เพื่อดูรายการของวันนั้น',
-  bcStart:'เริ่มคิดคอมมิชชั่น', bcStartClear:'ทั้งหมด',
+  bcStart:'เริ่มคิดคอมมิชชั่น', bcStartClear:'ทั้งหมด', bcVat:'หัก VAT',
   bcDayPay:'จ่าย', bcDayNo:'ไม่จ่าย',
   bcDayOffHint:'ไม่จ่ายคอมมิชชั่นวันนี้', bcDayOnHint:'จ่ายคอมมิชชั่นวันนี้ด้วย',
   bcNoStaff:'ไม่ได้ระบุผู้ทำ', bcUnassigned:'คอมมิชชั่นที่ตกหล่นเพราะหาผู้ทำไม่เจอ',
@@ -1514,7 +1517,7 @@ const I={
   bcIgnore:'ไม่ให้คอมมิชชั่น',
   bcUnmatchedHint:'ถ้าชื่อในตารางจองไม่ตรงกับชื่อพนักงานที่นี่ ให้จับคู่ครั้งเดียว ครั้งต่อไประบบจะจำให้',
   bcNoLink:'อ่านตารางจองไม่ได้ กรุณาตรวจว่ารัน SQL patch-09 แล้ว และเข้าสู่ระบบเป็นผู้ดูแล',
-  bcNote:'คำนวณคอมมิชชั่นอัตโนมัติจาก<b>รายการเข้ารับบริการที่พนักงานบันทึกไว้ในตารางจอง</b> — ไม่ต้องกรอกยอดขายซ้ำที่นี่<br>นับเฉพาะรายการที่สถานะเป็น <b>มา (방문)</b><br><b>กดแถววันที่</b> เพื่อกางรายการของวันนั้น ใต้ชื่อลูกค้าจะมี<b>เบอร์โทร</b>ด้วย<br>ใส่ <b>วันเริ่มคิดคอมมิชชั่น</b> ระบบจะคิดตั้งแต่วันนั้นเป็นต้นไป ถ้าต้องการยกเว้นบางวัน กดปุ่ม <b>จ่าย</b> ข้างวันที่ให้เป็น <b>ไม่จ่าย</b><br>ช่อง <b>จ่ายจริง</b> ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง <b>ตารางจองต้นฉบับไม่ถูกแก้</b><br>ถ้า<b>ทำหลายคน</b> ค่าเริ่มต้นคือแบ่งเท่ากัน ใส่ตัวเลขในช่องเล็กเพื่อกำหนดสัดส่วนเอง<br><b>รายการที่ไม่ได้ลงในตารางจอง</b>จะไม่ขึ้นที่นี่ — ให้ใส่เองใน <b>รายการคอมมิชชั่น</b> ด้านล่าง แล้วจะรวมเข้าตารางเงินเดือนด้วย<br>ยอดรวมรายคนจะเข้าไปใน<b>ช่องคอมมิชชั่นของตารางเงินเดือน</b>โดยอัตโนมัติ',
+  bcNote:'คำนวณคอมมิชชั่นอัตโนมัติจาก<b>รายการเข้ารับบริการที่พนักงานบันทึกไว้ในตารางจอง</b> — ไม่ต้องกรอกยอดขายซ้ำที่นี่<br>นับเฉพาะรายการที่สถานะเป็น <b>มา (방문)</b><br><b>กดแถววันที่</b> เพื่อกางรายการของวันนั้น ใต้ชื่อลูกค้าจะมี<b>เบอร์โทร</b>ด้วย<br>ใส่ <b>วันเริ่มคิดคอมมิชชั่น</b> ระบบจะคิดตั้งแต่วันนั้นเป็นต้นไป ถ้าต้องการยกเว้นบางวัน กดปุ่ม <b>จ่าย</b> ข้างวันที่ให้เป็น <b>ไม่จ่าย</b><br>ช่อง <b>จ่ายจริง</b> ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง <b>ตารางจองต้นฉบับไม่ถูกแก้</b><br>ถ้า<b>ทำหลายคน</b> ค่าเริ่มต้นคือแบ่งเท่ากัน ใส่ตัวเลขในช่องเล็กเพื่อกำหนดสัดส่วนเอง<br><b>รายการที่ไม่ได้ลงในตารางจอง</b>จะไม่ขึ้นที่นี่ — ให้ใส่เองใน <b>รายการคอมมิชชั่น</b> ด้านล่าง แล้วจะรวมเข้าตารางเงินเดือนด้วย<br>ยอดรวมรายคนจะเข้าไปใน<b>ช่องคอมมิชชั่นของตารางเงินเดือน</b>โดยอัตโนมัติ<br><b>ลำดับการคิดยอดฐาน</b>: ยอดจ่ายจริง → หักค่าธรรมเนียม GoWabi → <b>หัก VAT</b> → คูณอัตรา<br>ใส่ 7 ในช่อง <b>หัก VAT</b> ถ้าราคารวม VAT อยู่แล้ว ระบบจะหาร 1.07 ก่อนคิดคอมมิชชั่น ถ้าไม่ได้จด VAT หรือราคาไม่รวม VAT ให้ใส่ <b>0</b>',
   opComm2:'คอมมิชชั่นอัตโนมัติ',
   /* ── ปฏิทินคอมมิชชั่น · วางข้อความ ── */
   cmSale:'ยอดขาย', cmPayout:'คอมมิชชั่น (฿)', cmSaleSum:'ยอดขายรวม',
@@ -1587,7 +1590,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v9';
+const APP_VER='v10';
 const APP_DATE='2026-09-29';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -1905,7 +1908,8 @@ async function loadAll(){
   data.commCfg={rate:cfg.rate==null?3:Number(cfg.rate),
                 gowabiBasis:cfg.gowabi_basis||'net',
                 minAmount:Number(cfg.min_amount||0),
-                startDate:cfg.start_date||''};
+                startDate:cfg.start_date||'',
+                vatRate:Number(cfg.vat_rate||0)};
   data.commSkip=new Set((csk.data||[]).map(x=>x.day).filter(Boolean));
   data.nameMap={};
   (nmp.data||[]).forEach(x=>{if(x.staff_id)data.nameMap[x.booking_name]=x.staff_id;});
@@ -2087,6 +2091,11 @@ function stat(name,month){
      커미션   = 기준금액 × 비율(기본 3%) × 담당자 몫                        */
 const GW_DEFAULT=20;
 const commRate=()=>Number((data.commCfg||{}).rate??3);
+/* VAT 등록 사업자는 고객이 낸 돈 중 7% 가 국세청 몫이라 가게에 남지 않습니다.
+   태국 관행(원천징수세도 VAT 뺀 금액에 곱함)에 따라 커미션 기준에서 뺍니다.
+   0 이면 빼지 않습니다. 가격이 VAT 포함이라고 보고 1.07 로 나눕니다. */
+const vatRate=()=>Number((data.commCfg||{}).vatRate||0);
+const exVat=x=>{const v=vatRate();return v>0?Number(x||0)/(1+v/100):Number(x||0);};
 const gwRate=()=>{const r=data.gwRate;return r==null?GW_DEFAULT:Number(r)||0;};
 const isGowabi=b=>String(b.pay||'')==='GoWabi'||String(b.src||'').toLowerCase()==='gowabi';
 /** 예약장부에 적힌 금액 */
@@ -2098,11 +2107,11 @@ const bkEdited=b=>{const o=(data.commOvr||{})[b.id];return !!(o&&o.amount!=null)
 /** 커미션을 매길 기준금액 */
 function commBase(b){
   const paid=bkPaid(b);
-  if(!isGowabi(b))return paid;
+  if(!isGowabi(b))return exVat(paid);
   const basis=(data.commCfg||{}).gowabiBasis||'net';
   if(basis==='none')return 0;
-  if(basis==='gross')return paid;
-  return Math.round(paid*(100-gwRate())/100);
+  if(basis==='gross')return exVat(paid);
+  return exVat(Math.round(paid*(100-gwRate())/100));
 }
 const money2=n=>Math.round(Number(n||0)*100)/100;
 /** 이 날짜에 커미션을 주는가 — 시작일 뒤이고, 따로 뺀 날이 아니면 줍니다 */
@@ -3657,10 +3666,10 @@ let cmSel='';                       // 달력에서 고른 날짜 (YYYY-MM-DD)
 const cmRate=()=>commRate();        // 자동 커미션과 같은 비율을 씁니다
 /** 그 건의 지급액 — 판매금액이 있으면 비율로 계산, 없으면 넣어 둔 금액 그대로 */
 const cmPayoutOf=c=>{
-  if(c.sale==null)return Number(c.amount||0);
+  if(c.sale==null)return Number(c.amount||0);   // 커미션액을 직접 넣은 건은 그대로
   const r=c.rate==null?cmRate():Number(c.rate);
   const sh=c.share==null?1:Number(c.share);
-  return money2(Number(c.sale)*r/100*sh);
+  return money2(exVat(c.sale)*r/100*sh);
 };
 const cmOfDate=d=>(data.commissions||[]).filter(c=>c.date===d)
   .sort((a,b)=>(a.seq||0)-(b.seq||0));
@@ -3827,7 +3836,7 @@ function qCalc(){
   const v=Number($('cmQAmt').value||0);
   const n=cmWho.length;
   if(!v||!n){$('cmQCalc').textContent='—';$('cmQCalc').classList.remove('on');return;}
-  const each=money2(v*cmRate()/100/n);
+  const each=money2(exVat(v)*cmRate()/100/n);
   $('cmQCalc').textContent=n>1?`${money(each)} × ${n}`:money(each);
   $('cmQCalc').classList.add('on');
 }
@@ -3863,7 +3872,7 @@ async function quickAdd(){
   const rate=cmRate(), n=cmWho.length, share=money2(1/n);
   const memo=$('cmQMemo').value.trim();
   const rows=cmWho.map(name=>({staff_id:sidOf(name),date:cmSel,
-    amount:money2(v*rate/100/n),memo,sale_amount:v,rate,share,src:'quick',
+    amount:money2(exVat(v)*rate/100/n),memo,sale_amount:v,rate,share,src:'quick',
     legacy_id:newLid('cm'),_name:name}));
   // 화면에는 먼저 넣고 (기다리지 않게), 저장은 뒤에서 합니다
   $('cmQAmt').value=''; $('cmQMemo').value='';
@@ -3949,7 +3958,7 @@ function renderCmPaste(){
   if(ae&&ae.closest&&ae.closest('#cmPastePrev'))ae.blur();
   const rate=cmRate();
   const ok=cmPasteRows.filter(r=>r.use&&r.names.length&&r.amount>0);
-  const tot=money2(ok.reduce((a,r)=>a+r.amount*rate/100,0));
+  const tot=money2(ok.reduce((a,r)=>a+exVat(r.amount)*rate/100,0));
   $('cmPasteStat').innerHTML=cmPasteRows.length
     ? `${t('cmPasteReady')} <b>${ok.length}</b> / ${cmPasteRows.length}`
       +`<span style="font-weight:400;color:var(--ink-soft);font-size:11px"> · ${t('commTotal')} ${money(tot)}</span>`
@@ -3978,7 +3987,7 @@ function renderCmPaste(){
           placeholder="${t('cmPasteWho')}" style="width:100%"
           class="${r.names.length?'':'warn'}"></td>
         <td class="num" style="font-family:'IBM Plex Mono',monospace;font-size:12px">${
-          bad?'—':money(money2(r.amount*rate/100))}</td></tr>`;
+          bad?'—':money(money2(exVat(r.amount)*rate/100))}</td></tr>`;
     }).join('')}</tbody></table>`;
 }
 $('cmPasteOpen').addEventListener('click',()=>{
@@ -4022,7 +4031,7 @@ $('cmPasteSave').addEventListener('click',async()=>{
     const share=money2(1/r.names.length);
     r.names.forEach(n=>rows.push({
       staff_id:sidOf(n),date:r.date,
-      amount:money2(r.amount*rate/100/r.names.length),
+      amount:money2(exVat(r.amount)*rate/100/r.names.length),
       memo:r.memo,sale_amount:r.amount,rate,share,src:'paste',
       legacy_id:newLid('cm'),_name:n}));
   });
@@ -4063,6 +4072,7 @@ function renderBkComm(){
   if(document.activeElement!==$('bcRate'))$('bcRate').value=rate;
   if(document.activeElement!==$('bcGw'))$('bcGw').value=(data.commCfg||{}).gowabiBasis||'net';
   if(document.activeElement!==$('bcStart'))$('bcStart').value=(data.commCfg||{}).startDate||'';
+  if(document.activeElement!==$('bcVat'))$('bcVat').value=vatRate();
 
   /* 예약장부를 못 읽는 경우 — 안내만 하고 조용히 멈춥니다 */
   if(data.bkOk===false){
@@ -4257,6 +4267,15 @@ $('bcRate').addEventListener('change',async()=>{
   await saveCommCfg({rate:v});
 });
 $('bcGw').addEventListener('change',()=>saveCommCfg({gowabi_basis:$('bcGw').value}));
+/* VAT — 0 이면 빼지 않습니다. 7 이면 가격이 VAT 포함이라고 보고 1.07 로 나눕니다 */
+$('bcVat').addEventListener('change',async()=>{
+  const v=Math.max(0,Math.min(30,Number($('bcVat').value||0)));
+  $('bcVat').value=v;
+  data.commCfg.vatRate=v;
+  renderPay(); renderComm();
+  await op(t('opComm'),()=>sb.from('staff_comm_config')
+    .upsert({id:1,vat_rate:v},{onConflict:'id'}));
+});
 /* 커미션 시작일 — 이 날짜 앞의 건은 계산에서 빠집니다 (중간부터 주기 시작한 달) */
 $('bcStart').addEventListener('change',async()=>{
   const v=$('bcStart').value||null;
