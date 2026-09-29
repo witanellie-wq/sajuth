@@ -831,6 +831,7 @@
     <div id="exComm"></div>
     <div id="exBizSum"></div>
     <div id="exDue"></div>
+    <p class="note" data-ih="exNoteSum"></p>
   </section>
 
   <section class="panel adm-only" style="margin-top:20px">
@@ -1191,10 +1192,11 @@ const I={
   expNone:'이 달 지출 기록이 없습니다.', expTotal:'지출 합계', expByCat:'분류별 소계',
   expItemPh:'예: 니트릴 장갑 2박스 · 면봉',
   expNote:'한 번만 나가는 돈(소모품 구입, 장비 수리, 세금 납부 등)을 그때그때 적어두는 곳입니다. <b>등록한 날짜가 속한 달</b>의 요약에 자동 합산됩니다. 분류는 <b>직접 입력</b>할 수 있고, 사업장도 함께 고르면 위 표에서 나눠 볼 수 있습니다.<br>이미 넣은 항목은 <b>표에서 바로 고칠 수 있습니다</b> — 날짜 · 사업장 · 분류 · 내용 · 결제자 · 비고 · 금액 모두 고치는 즉시 저장됩니다.<br><b>결제자</b>를 회사가 아닌 사람 이름으로 바꾸면 <b>사비 결제</b>로 잡혀, 위 <b>정산 대기</b> 목록에 올라갑니다. 지출 자체는 누가 냈든 총지출에 그대로 들어가고, 정산은 따로 관리됩니다.<br>정산 대기는 <b>달과 상관없이</b> 갚을 때까지 남습니다 — 지난달에 사비로 산 것도 계속 보입니다.',
-  exCsv:'지출 CSV', exNoteSum:'급여는 급여 · 커미션 탭에서 계산된 지급 합계입니다.',
+  exCsv:'지출 CSV', exNoteSum:'<b>급여와 커미션은 하나하얀 소속</b>으로 잡습니다 — 사업장에서 <b>하나하얀</b>을 고르면 급여 · 커미션 · 고정비 · 소모품이 모두 보이고, <b>위튼 타일랜드</b>를 고르면 그쪽 고정비 · 소모품만 보입니다.<br>급여 금액은 <b>급여 · 커미션</b> 탭에서 계산된 지급 합계입니다.',
   markPaid:'지급 처리', markPaidHint:'누르면 지급 완료로 기록됩니다',
   undoPaidHint:'누르면 미지급으로 되돌립니다',
   lBiz:'사업장', bizAll:'전체 사업장', exNoPay:'급여 제외', exNoBiz:'사업장 구분 없음',
+  exPayBiz:'하나하얀 소속', exPayOther:'하나하얀 소속 (이 사업장 아님)',
   catPh:'직접 입력 가능', catPreset:'기본 분류', catMine:'직접 만든 분류',
   payerBase:'기본', payerMine:'전에 쓴 결제자', payerPh:'회사 또는 사람 이름',
   rbTitle:'사비 결제 · 정산 대기', rbAllMonths:'(월 상관없이 갚을 때까지 남습니다)',
@@ -1368,10 +1370,11 @@ const I={
   expNone:'เดือนนี้ยังไม่มีรายการค่าใช้จ่าย', expTotal:'รวมค่าใช้จ่าย', expByCat:'แยกตามประเภท',
   expItemPh:'เช่น: ถุงมือไนไตร 2 กล่อง · คอตตอนบัด',
   expNote:'ใช้บันทึกเงินที่จ่ายครั้งเดียว (ซื้อวัสดุ ซ่อมอุปกรณ์ จ่ายภาษี ฯลฯ) ระบบจะรวมเข้า<b>เดือนตามวันที่ที่บันทึก</b>โดยอัตโนมัติ<br>ถ้าเปลี่ยน <b>ผู้จ่าย</b> เป็นชื่อคนแทนบริษัท จะถือเป็นการ<b>สำรองจ่าย</b> และขึ้นในรายการ <b>รอคืนเงิน</b> ด้านบน · ค่าใช้จ่ายยังนับรวมในรายจ่ายทั้งหมดตามปกติ ส่วนการคืนเงินจัดการแยกต่างหาก<br>รายการรอคืนเงินจะค้างอยู่<b>ไม่ขึ้นกับเดือน</b> จนกว่าจะคืน',
-  exCsv:'ส่งออก CSV', exNoteSum:'ยอดเงินเดือนมาจากยอดจ่ายรวมในแท็บเงินเดือน · คอมมิชชั่น',
+  exCsv:'ส่งออก CSV', exNoteSum:'<b>เงินเดือนและคอมมิชชั่นนับเป็นของ HANAHAYAN</b> — เลือกกิจการ <b>HANAHAYAN</b> จะเห็นทั้งเงินเดือน คอมมิชชั่น ค่าใช้จ่ายประจำ และวัสดุ ส่วน <b>WITAN Thailand</b> จะเห็นเฉพาะค่าใช้จ่ายประจำและวัสดุของกิจการนั้น<br>ยอดเงินเดือนมาจากยอดจ่ายรวมในแท็บเงินเดือน · คอมมิชชั่น',
   markPaid:'บันทึกว่าจ่ายแล้ว', markPaidHint:'กดเพื่อบันทึกว่าจ่ายแล้ว',
   undoPaidHint:'กดเพื่อเปลี่ยนกลับเป็นยังไม่จ่าย',
   lBiz:'กิจการ', bizAll:'ทุกกิจการ', exNoPay:'ไม่รวมเงินเดือน', exNoBiz:'ไม่แยกตามกิจการ',
+  exPayBiz:'สังกัด HANAHAYAN', exPayOther:'สังกัด HANAHAYAN (ไม่ใช่กิจการนี้)',
   catPh:'พิมพ์เองได้', catPreset:'ประเภทพื้นฐาน', catMine:'ประเภทที่สร้างเอง',
   payerBase:'ค่าเริ่มต้น', payerMine:'ผู้จ่ายที่เคยใช้', payerPh:'บริษัท หรือ ชื่อคน',
   rbTitle:'สำรองจ่าย · รอคืนเงิน', rbAllMonths:'(ค้างอยู่จนกว่าจะคืน ไม่ขึ้นกับเดือน)',
@@ -1506,6 +1509,9 @@ const catLabel=(list,k)=>{const p=list.find(x=>x[0]===k);return p?t(p[1]):(k||''
 const BIZ=[['하나하얀','하나하얀 HANAHAYAN'],['위튼','위튼 타일랜드 WITAN']];
 const BIZCOLOR={'하나하얀':'#2E7D6B','위튼':'#5B4B8A'};
 const DEF_BIZ=BIZ[0][0];
+/* 급여 · 커미션이 속한 사업장 — 직원은 하나하얀 소속이라 그쪽 지출로 잡습니다.
+   (다른 사업장으로 옮기려면 이 한 줄만 고치면 됩니다) */
+const PAY_BIZ=BIZ[0][0];
 const COMPANY='회사';   // 결제자가 이 값이면 정산할 게 없습니다
 const bizLabel=b=>{const p=BIZ.find(x=>x[0]===b);return p?p[1]:(b||DEF_BIZ);};
 const bizColor=b=>BIZCOLOR[b]||'#69758A';
@@ -2275,13 +2281,13 @@ function renderEx(){
   const bf=$('exBiz').value||'';              // '' = 전체 사업장
   const pay=payrollTotal(m), fix=fixTotal(m,bf), exp=expTotal(m,bf);
   const payBase=payrollBaseTotal(m), payComm=payrollCommTotal(m);
-  const withPay=!bf;                          // 급여는 사업장 구분이 없어 '전체'일 때만 합산
+  const withPay=!bf||bf===PAY_BIZ;            // 급여 · 커미션은 하나하얀(PAY_BIZ) 지출로 잡습니다
 
   /* 월 요약 카드 — 급여를 기본급과 커미션으로 나눠 보여줍니다 (둘을 더하면 급여 전체) */
   const monthly=(withPay?pay:0)+fix;          // 급여 + 커미션 + 고정비 = 매달 고정으로 나가는 돈
   $('exCards').innerHTML=[
-    ['cPayrollSum',withPay?payBase:null,'',  withPay?'':t('exNoBiz')],
-    ['cCommSum',   withPay?payComm:null,'',  withPay?t('exCommNote'):t('exNoBiz')],
+    ['cPayrollSum',withPay?payBase:null,'',  withPay?(bf?'':t('exPayBiz')):t('exPayOther')],
+    ['cCommSum',   withPay?payComm:null,'',  withPay?t('exCommNote'):t('exPayOther')],
     ['cFixSum',    fix,             '',      ''],
     ['cMonthlySum',monthly,         'sub',   withPay?t('exMonthlyNote'):t('exNoPay')],
     ['cExpSum',    exp,             '',      ''],
@@ -2299,17 +2305,20 @@ function renderEx(){
     <div class="commrow">${cm.map(x=>`<span class="commchip">${esc(x.name)}
       <b>${money(x.v)}</b></span>`).join('')}</div></div>`:'';
 
-  /* 사업장별 소계 — '전체' 일 때만 */
+  /* 사업장별 소계 — '전체' 일 때만. 급여 · 커미션은 하나하얀 줄에 들어갑니다 */
   const bl=bizAll();
   $('exBizSum').innerHTML=(!bf&&bl.length>1)?`<div style="margin-top:14px">
-    <table style="width:auto;min-width:340px">
-      <thead><tr><th>${t('lBiz')}</th><th class="num">${t('cFixSum')}</th>
+    <table style="width:auto;min-width:460px">
+      <thead><tr><th>${t('lBiz')}</th>
+        <th class="num">${t('cPayrollSum')} + ${t('cCommSum')}</th>
+        <th class="num">${t('cFixSum')}</th>
         <th class="num">${t('cExpSum')}</th><th class="num">${t('cGrandSum')}</th></tr></thead>
       <tbody>${bl.map(b=>{
-        const f=fixTotal(m,b), e=expTotal(m,b);
+        const f=fixTotal(m,b), e=expTotal(m,b), pw=(b===PAY_BIZ)?pay:0;
         return `<tr><td><b style="color:${bizColor(b)}">${esc(bizLabel(b))}</b></td>
+          <td class="num">${pw?money(pw):'<span style="color:var(--line)">—</span>'}</td>
           <td class="num">${money(f)}</td><td class="num">${money(e)}</td>
-          <td class="num"><b>${money(f+e)}</b></td></tr>`;
+          <td class="num"><b>${money(pw+f+e)}</b></td></tr>`;
       }).join('')}</tbody></table></div>`:'';
 
   /* 미납 고정비 안내 */
@@ -2888,10 +2897,10 @@ $('exCsvBtn').addEventListener('click',()=>{
   expListIn(m,bf).forEach(e=>rows.push([m,bizLabel(e.biz),'지출',e.category,e.item,e.amount,'',
     needsRb(e)?(e.reimbursedAt?'정산완료':'정산대기'):'',e.reimbursedAt||'',e.date,
     (e.payer&&e.payer!==COMPANY?'['+e.payer+'] ':'')+(e.memo||'')]));
-  if(!bf){
-    rows.push([m,'','급여','','(전체 직원 기본급 · 보너스 · 공제)',payrollBaseTotal(m),'','','','','']);
+  if(!bf||bf===PAY_BIZ){
+    rows.push([m,bizLabel(PAY_BIZ),'급여','','(전체 직원 기본급 · 보너스 · 공제)',payrollBaseTotal(m),'','','','','']);
     liveStaff().forEach(s=>{const c=payCalc(s,m);
-      if(c.comm)rows.push([m,'','커미션','',s.name,c.comm,'','','','','']);});
+      if(c.comm)rows.push([m,bizLabel(PAY_BIZ),'커미션','',s.name,c.comm,'','','','','']);});
   }
   (bf?[bf]:bizAll()).forEach(bz=>{
     if(tgAmt(bz,m))rows.push([m,bizLabel(bz),'목표매출','','',tgAmt(bz,m),'','','','',tgOf(bz,m).memo||'']);});
