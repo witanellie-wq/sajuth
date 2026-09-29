@@ -246,6 +246,37 @@
   .commchip{background:#fff;border:1px solid #CFE2DC;border-radius:20px;padding:4px 11px;
     font-size:11.5px;display:inline-flex;align-items:center;gap:6px;}
   .commchip b{font-family:'IBM Plex Mono',monospace;color:var(--jade);}
+  .bctools{display:flex;align-items:center;gap:7px;margin:10px 0 8px;flex-wrap:wrap;}
+  .bctools .ghost{padding:5px 11px;font-size:11.5px;}
+  .bchint{font-size:11px;color:var(--ink-soft);}
+  tr.bcday{cursor:pointer;background:#F7F9F8;}
+  tr.bcday:hover{background:#EEF5F3;}
+  tr.bcday.open{background:#EEF5F3;}
+  tr.bcday td{border-bottom:1px solid var(--line);padding-top:9px;padding-bottom:9px;}
+  tr.bcday.off{opacity:.5;}
+  tr.bcday.off .pay-est{color:var(--ink-soft);text-decoration:line-through;}
+  .bcarrow{text-align:center;color:var(--ink-soft);font-size:11px;}
+  .bcdw{font-size:10.5px;color:var(--ink-soft);margin-left:3px;}
+  .bcwho{font-size:10.5px;color:var(--ink-soft);}
+  .bcwho span{display:inline-block;margin-right:6px;white-space:nowrap;}
+  .bcph{font-size:10.5px;color:var(--slate);font-family:'IBM Plex Mono',monospace;}
+  tr.bcrow td{background:#fff;}
+  .dayon{margin-left:7px;background:none;border:1px solid var(--line);border-radius:20px;
+    padding:1px 8px;font-size:9.5px;font-weight:700;cursor:pointer;font-family:inherit;
+    color:var(--ink-soft);white-space:nowrap;}
+  .dayon.on{border-color:#CFE2DC;background:#EEF5F3;color:var(--jade);}
+  .dayon:hover{border-color:var(--amber);color:var(--amber);}
+  .setupbox{display:none;background:#FBF4E3;border:1px solid #EBDCB6;border-radius:4px;
+    padding:11px 13px;margin-bottom:8px;max-width:360px;font-size:12px;color:var(--amber);}
+  .setupbox.on{display:block;}
+  .setupbox b{display:block;margin-bottom:7px;font-size:12.5px;}
+  .setupbox .slist{display:flex;flex-direction:column;gap:5px;margin-bottom:7px;}
+  .setupbox .slist div{display:flex;flex-direction:column;gap:1px;}
+  .setupbox code{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;color:var(--ink);}
+  .setupbox .slist span{font-size:10.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
+  .setupbox small{display:block;font-size:10.5px;color:var(--ink-soft);line-height:1.6;}
+  .setupbox button{margin-top:8px;background:none;border:1px solid #EBDCB6;border-radius:3px;
+    padding:4px 10px;font-size:11px;color:var(--amber);cursor:pointer;font-family:inherit;}
   .verline{text-align:center;font-size:10.5px;color:var(--line);padding:14px 0 22px;
     font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
   .verline b{color:var(--ink-soft);font-weight:700;}
@@ -778,6 +809,9 @@
       <span style="font-size:12px;color:var(--ink-soft)">%</span>
       <label style="margin:0 2px 0 12px;font-size:11.5px" data-i="bcGwBasis"></label>
       <select id="bcGw" style="min-width:170px"></select>
+      <label style="margin:0 2px 0 12px;font-size:11.5px" data-i="bcStart"></label>
+      <input type="date" id="bcStart" style="width:158px">
+      <button class="ghost" id="bcStartX" data-i="bcStartClear"></button>
       <button class="ghost" id="bcReload" data-i="bcReloadBtn"></button>
       <button class="ghost" id="bcPrint" data-i="print"></button>
       <button class="ghost" id="bcCsv" data-i="bcCsvBtn"></button>
@@ -1139,6 +1173,7 @@
 
 <!-- ══ 동기화 상태 ══ -->
 <div class="netbar no-print">
+  <div class="setupbox" id="setupBox"></div>
   <div class="neterr" id="netErr"></div>
   <div class="netpill"><span class="netdot off" id="netDot"></span><span id="netTxt"></span></div>
 </div>
@@ -1282,12 +1317,16 @@ const I={
   bcBase:'기준금액', bcStaffShare:'담당자 · 몫',
   bcOvrHint:'예약장부 금액과 실제 받은 돈이 다를 때만 넣으세요. 비우면 예약장부 금액을 씁니다.',
   bcSplitHint:'둘이 나눌 비율. 비우면 똑같이 나눕니다 (예: 60 과 40)',
+  bcExpand:'모두 펼치기', bcCollapse:'모두 접기', bcClickDay:'날짜를 누르면 그날 건이 펼쳐집니다',
+  bcStart:'커미션 시작일', bcStartClear:'전체',
+  bcDayPay:'지급', bcDayNo:'제외',
+  bcDayOffHint:'이 날은 커미션을 주지 않기', bcDayOnHint:'이 날도 커미션을 주기',
   bcNoStaff:'담당자 없음', bcUnassigned:'담당자를 못 찾아 빠진 커미션',
   bcUnmatched:'예약장부에 있는데 직원과 안 이어진 이름', bcPick:'직원 고르기',
   bcIgnore:'커미션 주지 않음',
   bcUnmatchedHint:'예약장부에 적힌 이름과 여기 직원 이름이 다르면 한 번만 이어 주세요. 다음부터 자동으로 기억합니다.',
   bcNoLink:'예약장부를 읽지 못했습니다. patch-09 SQL 을 실행했는지, 관리자로 로그인했는지 확인해 주세요.',
-  bcNote:'<b>예약장부(부킹테이블)에 직원이 입력한 방문 기록</b>에서 커미션을 자동으로 계산합니다 — 매출을 여기에 다시 입력하지 않으셔도 됩니다.<br>상태가 <b>방문</b>인 건만 계산에 들어갑니다. 예약·취소 건은 빠집니다.<br><b>실제 결제</b> 칸은 예약장부 금액과 실제로 받은 돈이 다를 때만 넣으세요 — 넣으면 노랗게 표시되고 그 금액으로 계산됩니다. <b>예약장부 원본은 바뀌지 않습니다.</b><br>한 건을 <b>여러 명이 했을 때</b>는 기본이 똑같이 나누기이고, 옆의 작은 칸에 숫자를 넣으면 그 비율로 나뉩니다 (예: 60 과 40).<br>왼쪽 <b>날짜 칸의 두 숫자</b>는 그날의 기준 매출과 커미션 합계입니다 — 종이 기록과 대조해 보세요.<br>여기서 나온 직원별 합계는 위 <b>급여표의 커미션 칸</b>에 자동으로 들어갑니다. 급여표에서 직접 고쳐 쓰면 그 값이 우선합니다.',
+  bcNote:'<b>예약장부(부킹테이블)에 직원이 입력한 방문 기록</b>에서 커미션을 자동으로 계산합니다 — 매출을 여기에 다시 입력하지 않으셔도 됩니다.<br>상태가 <b>방문</b>인 건만 계산에 들어갑니다. 예약·취소 건은 빠집니다.<br><b>날짜 줄을 누르면</b> 그날 건이 펼쳐집니다. 고객 이름 아래에 <b>전화번호</b>가 같이 나옵니다.<br><b>커미션 시작일</b>을 넣으면 그 날짜부터만 계산합니다 (중간부터 주기 시작한 달). 시작일 뒤라도 특정 날을 빼려면 날짜 옆 <b>지급</b> 단추를 눌러 <b>제외</b>로 바꾸세요.<br><b>실제 결제</b> 칸은 예약장부 금액과 실제로 받은 돈이 다를 때만 넣으세요 — 넣으면 노랗게 표시되고 그 금액으로 계산됩니다. <b>예약장부 원본은 바뀌지 않습니다.</b><br>한 건을 <b>여러 명이 했을 때</b>는 기본이 똑같이 나누기이고, 옆의 작은 칸에 숫자를 넣으면 그 비율로 나뉩니다 (예: 60 과 40).<br><b>예약장부에 아예 안 들어간 건</b>은 여기에 안 나옵니다 — 아래 <b>커미션 내역</b>에서 직접 넣으시면 급여표에 함께 합산됩니다.<br>여기서 나온 직원별 합계는 위 <b>급여표의 커미션 칸</b>에 자동으로 들어갑니다. 급여표에서 직접 고쳐 쓰면 그 값이 우선합니다.',
   opComm2:'자동 커미션',
   /* ── 커미션 달력 · 붙여넣기 ── */
   cmSale:'판매금액', cmPayout:'커미션 (฿)', cmSaleSum:'판매 합계',
@@ -1297,6 +1336,8 @@ const I={
   cmPasteParseBtn:'읽어들이기', cmPasteSaveBtn:'저장', cmPasteReady:'넣을 수 있는 줄',
   cmPasteWho:'담당자 이름', cmPasteDone:'커미션을 넣었습니다 ·',
   verLabel:'버전',
+  setupTitle:'아직 만들지 않은 표가 있습니다', setupHide:'닫기',
+  setupHow:'Supabase → SQL Editor → + New query → 위 파일 내용을 붙여넣고 Run 하세요. 여러 번 실행해도 안전합니다. 실행 전까지 그 기능만 안 되고 나머지는 정상으로 돌아갑니다.',
   cmQTodayBtn:'오늘', cmQNeedWho:'담당자를 먼저 누르세요.',
   cmQHint:'<b>담당자를 누르고 금액만 치면 Enter 로 한 줄이 들어갑니다.</b> 담당자와 날짜는 그대로 남아서 같은 사람 건을 연달아 넣기 좋습니다.<br>담당자를 <b>두 명 이상</b> 누르면 금액을 나눠 갖습니다. <b>내용</b>은 안 써도 됩니다. 날짜는 <b>◀ ▶</b> 로 옮깁니다.',
   cmReapplyBtn:'이 달에 다시 적용', cmReapplyNone:'다시 계산할 건이 없습니다.',
@@ -1464,12 +1505,16 @@ const I={
   bcBase:'ยอดฐาน', bcStaffShare:'ผู้ทำ · ส่วนแบ่ง',
   bcOvrHint:'ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง เว้นว่างไว้จะใช้ยอดในตารางจอง',
   bcSplitHint:'สัดส่วนแบ่งกัน เว้นว่างไว้จะแบ่งเท่ากัน (เช่น 60 กับ 40)',
+  bcExpand:'กางทั้งหมด', bcCollapse:'พับทั้งหมด', bcClickDay:'กดวันที่เพื่อดูรายการของวันนั้น',
+  bcStart:'เริ่มคิดคอมมิชชั่น', bcStartClear:'ทั้งหมด',
+  bcDayPay:'จ่าย', bcDayNo:'ไม่จ่าย',
+  bcDayOffHint:'ไม่จ่ายคอมมิชชั่นวันนี้', bcDayOnHint:'จ่ายคอมมิชชั่นวันนี้ด้วย',
   bcNoStaff:'ไม่ได้ระบุผู้ทำ', bcUnassigned:'คอมมิชชั่นที่ตกหล่นเพราะหาผู้ทำไม่เจอ',
   bcUnmatched:'ชื่อในตารางจองที่ยังไม่ได้จับคู่กับพนักงาน', bcPick:'เลือกพนักงาน',
   bcIgnore:'ไม่ให้คอมมิชชั่น',
   bcUnmatchedHint:'ถ้าชื่อในตารางจองไม่ตรงกับชื่อพนักงานที่นี่ ให้จับคู่ครั้งเดียว ครั้งต่อไประบบจะจำให้',
   bcNoLink:'อ่านตารางจองไม่ได้ กรุณาตรวจว่ารัน SQL patch-09 แล้ว และเข้าสู่ระบบเป็นผู้ดูแล',
-  bcNote:'คำนวณคอมมิชชั่นอัตโนมัติจาก<b>รายการเข้ารับบริการที่พนักงานบันทึกไว้ในตารางจอง</b> — ไม่ต้องกรอกยอดขายซ้ำที่นี่<br>นับเฉพาะรายการที่สถานะเป็น <b>มา (방문)</b> รายการที่จองไว้หรือยกเลิกจะไม่ถูกนับ<br>ช่อง <b>จ่ายจริง</b> ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง เมื่อใส่แล้วช่องจะเป็นสีเหลืองและใช้ยอดนั้นคำนวณ <b>ตารางจองต้นฉบับไม่ถูกแก้</b><br>ถ้า<b>ทำหลายคน</b> ค่าเริ่มต้นคือแบ่งเท่ากัน ใส่ตัวเลขในช่องเล็กข้างชื่อเพื่อกำหนดสัดส่วนเอง (เช่น 60 กับ 40)<br>ตัวเลขสองบรรทัดใน<b>ช่องวันที่</b> คือยอดฐานและคอมมิชชั่นรวมของวันนั้น ใช้เทียบกับบันทึกในกระดาษได้<br>ยอดรวมรายคนจะเข้าไปใน<b>ช่องคอมมิชชั่นของตารางเงินเดือน</b> โดยอัตโนมัติ ถ้าแก้ในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้',
+  bcNote:'คำนวณคอมมิชชั่นอัตโนมัติจาก<b>รายการเข้ารับบริการที่พนักงานบันทึกไว้ในตารางจอง</b> — ไม่ต้องกรอกยอดขายซ้ำที่นี่<br>นับเฉพาะรายการที่สถานะเป็น <b>มา (방문)</b><br><b>กดแถววันที่</b> เพื่อกางรายการของวันนั้น ใต้ชื่อลูกค้าจะมี<b>เบอร์โทร</b>ด้วย<br>ใส่ <b>วันเริ่มคิดคอมมิชชั่น</b> ระบบจะคิดตั้งแต่วันนั้นเป็นต้นไป ถ้าต้องการยกเว้นบางวัน กดปุ่ม <b>จ่าย</b> ข้างวันที่ให้เป็น <b>ไม่จ่าย</b><br>ช่อง <b>จ่ายจริง</b> ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง <b>ตารางจองต้นฉบับไม่ถูกแก้</b><br>ถ้า<b>ทำหลายคน</b> ค่าเริ่มต้นคือแบ่งเท่ากัน ใส่ตัวเลขในช่องเล็กเพื่อกำหนดสัดส่วนเอง<br><b>รายการที่ไม่ได้ลงในตารางจอง</b>จะไม่ขึ้นที่นี่ — ให้ใส่เองใน <b>รายการคอมมิชชั่น</b> ด้านล่าง แล้วจะรวมเข้าตารางเงินเดือนด้วย<br>ยอดรวมรายคนจะเข้าไปใน<b>ช่องคอมมิชชั่นของตารางเงินเดือน</b>โดยอัตโนมัติ',
   opComm2:'คอมมิชชั่นอัตโนมัติ',
   /* ── ปฏิทินคอมมิชชั่น · วางข้อความ ── */
   cmSale:'ยอดขาย', cmPayout:'คอมมิชชั่น (฿)', cmSaleSum:'ยอดขายรวม',
@@ -1479,6 +1524,8 @@ const I={
   cmPasteParseBtn:'อ่านข้อความ', cmPasteSaveBtn:'บันทึก', cmPasteReady:'แถวที่บันทึกได้',
   cmPasteWho:'ชื่อผู้ทำ', cmPasteDone:'บันทึกคอมมิชชั่นแล้ว ·',
   verLabel:'เวอร์ชัน',
+  setupTitle:'ยังมีตารางที่ยังไม่ได้สร้าง', setupHide:'ปิด',
+  setupHow:'ไปที่ Supabase → SQL Editor → + New query แล้ววางเนื้อหาไฟล์ด้านบนและกด Run ทำซ้ำได้อย่างปลอดภัย ก่อนรัน ฟังก์ชันนั้นจะยังใช้ไม่ได้ แต่ส่วนอื่นทำงานปกติ',
   cmQTodayBtn:'วันนี้', cmQNeedWho:'เลือกผู้ทำก่อน',
   cmQHint:'<b>กดชื่อผู้ทำแล้วพิมพ์แค่ยอด กด Enter ก็บันทึกหนึ่งรายการ</b> ผู้ทำและวันที่ยังค้างไว้ จึงใส่รายการของคนเดิมต่อกันได้เร็ว<br>กดผู้ทำ<b>ตั้งแต่สองคน</b> ระบบจะแบ่งยอดให้ · ช่อง<b>รายละเอียด</b>ไม่ใส่ก็ได้ · เปลี่ยนวันด้วย <b>◀ ▶</b>',
   cmReapplyBtn:'ใช้อัตรานี้กับเดือนนี้', cmReapplyNone:'ไม่มีรายการที่ต้องคำนวณใหม่',
@@ -1540,7 +1587,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v8';
+const APP_VER='v9';
 const APP_DATE='2026-09-29';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -1658,6 +1705,49 @@ const sidOf=name=>{const s=data.staff.find(x=>x.name===name);return s?s._id:null
 
 /* ── 실패 큐 · 상태 표시 ── */
 const failQ=[];
+/* ── 아직 안 돌린 SQL 때문에 나는 오류 ─────────────────────────────────
+   표나 칸이 아직 없는 것은 '고장' 이 아니라 '설치가 덜 된 것' 입니다.
+   빨간 "저장 실패 — 창을 닫지 마세요" 대신, 무엇을 실행하면 되는지 알려 줍니다. */
+const PATCH_OF={
+  staff_fixed_costs:'patch-02-expenses.sql', staff_fixed_payments:'patch-02-expenses.sql',
+  staff_expenses:'patch-02-expenses.sql', staff_targets:'patch-04-targets.sql',
+  staff_wage_history:'patch-06-wage-history.sql', staff_payees:'patch-08-payees.sql',
+  staff_comm_config:'patch-09-commission.sql', staff_name_map:'patch-09-commission.sql',
+  staff_comm_split:'patch-09-commission.sql', staff_comm_override:'patch-09-commission.sql'};
+const COL_PATCH={
+  biz:'patch-03-business.sql',
+  bank_name:'patch-05-bank.sql', bank_account:'patch-05-bank.sql', bank_holder:'patch-05-bank.sql',
+  paid_by:'patch-07-reimburse.sql', reimbursed_at:'patch-07-reimburse.sql',
+  sale_amount:'patch-10-commission-lines.sql', share:'patch-10-commission-lines.sql',
+  src:'patch-10-commission-lines.sql'};
+const setupMissing=new Map();          // '표 · 칸 이름' → 실행할 SQL 파일
+/** 이 오류가 'SQL 을 아직 안 돌려서' 나는 것이면 기록하고 true */
+function noteSetup(e){
+  const msg=(e&&(e.message||e.error_description))||String(e);
+  const tb=(msg.match(/table '(?:public\.)?([a-z_]+)'/i)
+          ||msg.match(/relation "(?:public\.)?([a-z_]+)" does not exist/i)||[])[1];
+  if(tb&&/could not find|does not exist/i.test(msg)){
+    setupMissing.set(tb,PATCH_OF[tb]||'');
+    return true;
+  }
+  const col=(msg.match(/could not find the '([a-z_]+)' column/i)
+           ||msg.match(/column "?([a-z_]+)"? does not exist/i)||[])[1];
+  if(col&&COL_PATCH[col]){ setupMissing.set(col,COL_PATCH[col]); return true; }
+  return false;
+}
+function paintSetup(){
+  const box=$('setupBox'); if(!box)return;
+  if(!setupMissing.size){box.classList.remove('on');box.innerHTML='';return;}
+  const byFile={};
+  setupMissing.forEach((f,n)=>{(byFile[f||'?']=byFile[f||'?']||[]).push(n);});
+  box.innerHTML=`<b>🛠 ${t('setupTitle')}</b>
+    <div class="slist">${Object.entries(byFile).sort().map(([f,ns])=>
+      `<div><code>${esc(f)}</code><span>${ns.map(esc).join(' · ')}</span></div>`).join('')}</div>
+    <small>${t('setupHow')}</small>
+    <button id="setupX">${t('setupHide')}</button>`;
+  box.classList.add('on');
+  $('setupX').onclick=()=>{box.classList.remove('on');};
+}
 function setNet(state){ // 'live' | 'con' | 'off'
   const d=$('netDot'),x=$('netTxt');
   d.className='netdot'+(state==='live'?'':state==='off'?' err':' off');
@@ -1686,6 +1776,8 @@ async function op(label,fn,retryable=true){
     setNet(liveCh?'live':'con');
     return {ok:true,data:r?r.data:null};
   }catch(e){
+    // 아직 안 돌린 SQL 때문이면 '설치 안내' 로 보내고 저장실패 경고는 띄우지 않습니다
+    if(noteSetup(e)){ paintSetup(); return {ok:false,error:e,setup:true}; }
     const msg=(e&&(e.message||e.error_description))||String(e);
     failQ.push({label,fn:retryable?fn:null,msg});
     setNet('off'); paintFail();
@@ -1697,6 +1789,7 @@ async function op(label,fn,retryable=true){
 const LIM=50000;
 async function loadAll(){
   if(!sb)return;
+  setupMissing.clear();
   const q=(tb,fn)=>op(t('opLoad')+' · '+tb,fn,false);
   const admQ=(tb,fn)=>isAdmin?q(tb,fn):Promise.resolve({ok:true,data:[]});
   /* 예약장부(bookings · staff · settings)는 다른 앱의 표입니다.
@@ -1705,7 +1798,7 @@ async function loadAll(){
   const softQ=fn=>!isAdmin?Promise.resolve({ok:true,data:[]})
     :Promise.resolve().then(fn).then(r=>r&&r.error?{ok:false,data:[],error:r.error}:{ok:true,data:r?r.data:[]})
      .catch(e=>({ok:false,data:[],error:e}));
-  const [m,r,p,c,w,e,fc,fp,ex,tg,wh,py,cc,nmp,csp,cov,bk,bkr,bks]=await Promise.all([
+  const [m,r,p,c,w,e,fc,fp,ex,tg,wh,py,cc,nmp,csp,cov,csk,bk,bkr,bks]=await Promise.all([
     q('staff_members',()=>sb.from('staff_members').select('*')
         .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
     q('staff_records',()=>sb.from('staff_records').select('*')
@@ -1728,6 +1821,7 @@ async function loadAll(){
     admQ('staff_name_map',()=>sb.from('staff_name_map').select('*').limit(LIM)),
     admQ('staff_comm_split',()=>sb.from('staff_comm_split').select('*').limit(LIM)),
     admQ('staff_comm_override',()=>sb.from('staff_comm_override').select('*').limit(LIM)),
+    admQ('staff_comm_skip',()=>sb.from('staff_comm_skip').select('*').limit(LIM)),
     /* ── 예약장부 (다른 앱의 표) ── */
     softQ(()=>sb.from('bookings').select('id,data').limit(LIM)),
     softQ(()=>sb.from('staff').select('name,sort_order').order('sort_order',{ascending:true})),
@@ -1810,7 +1904,9 @@ async function loadAll(){
   const cfg=(cc.data||[])[0]||{};
   data.commCfg={rate:cfg.rate==null?3:Number(cfg.rate),
                 gowabiBasis:cfg.gowabi_basis||'net',
-                minAmount:Number(cfg.min_amount||0)};
+                minAmount:Number(cfg.min_amount||0),
+                startDate:cfg.start_date||''};
+  data.commSkip=new Set((csk.data||[]).map(x=>x.day).filter(Boolean));
   data.nameMap={};
   (nmp.data||[]).forEach(x=>{if(x.staff_id)data.nameMap[x.booking_name]=x.staff_id;});
   data.commSplit={};
@@ -1826,6 +1922,7 @@ async function loadAll(){
   const smap={}; (bks.data||[]).forEach(x=>{smap[x.key]=x.value;});
   data.gwRate=smap.gowabi_rate==null?null:Number(smap.gowabi_rate)||0;
 
+  paintSetup();
   return true;
 }
 
@@ -1908,7 +2005,7 @@ function subscribeLive(){
     .concat(isAdmin?['staff_payroll','staff_commissions','staff_warnings',
                      'staff_fixed_costs','staff_fixed_payments','staff_expenses','staff_targets',
                      'staff_wage_history','staff_payees',
-                     'staff_comm_config','staff_name_map','staff_comm_split','staff_comm_override',
+                     'staff_comm_config','staff_name_map','staff_comm_split','staff_comm_override','staff_comm_skip',
                      'bookings']:[]);
   tables.forEach(tb=>ch.on('postgres_changes',{event:'*',schema:'public',table:tb},scheduleReload));
   ch.subscribe(st=>{
@@ -2008,6 +2105,12 @@ function commBase(b){
   return Math.round(paid*(100-gwRate())/100);
 }
 const money2=n=>Math.round(Number(n||0)*100)/100;
+/** 이 날짜에 커미션을 주는가 — 시작일 뒤이고, 따로 뺀 날이 아니면 줍니다 */
+function commDayOn(d){
+  const st=(data.commCfg||{}).startDate||'';
+  if(st&&String(d||'')<st)return false;
+  return !(data.commSkip&&data.commSkip.has(d));
+}
 /** 예약장부의 담당자 칸 → 이름 목록 (여러 명이면 쉼표로 들어 있습니다) */
 const bkNames=b=>String(b.staff||'').split(/[,·/]/).map(s=>s.trim()).filter(Boolean);
 /** 한 건을 담당자별로 나눈 몫. 비율을 안 정했으면 인원수대로 똑같이 나눕니다 */
@@ -2017,7 +2120,7 @@ function commShares(b){
   const ws=ns.map(n=>{const v=sp[b.id+'|'+n];return v==null?1:Math.max(0,Number(v)||0);});
   const tw=ws.reduce((a,x)=>a+x,0);
   const base=commBase(b), min=Number((data.commCfg||{}).minAmount||0);
-  const pay=(base>0&&base>=min)?base:0;
+  const pay=(base>0&&base>=min&&commDayOn(b.date))?base:0;
   const rate=commRate();
   return ns.map((n,i)=>{
     const share=tw>0?ws[i]/tw:0;
@@ -3959,6 +4062,7 @@ function renderBkComm(){
   const rate=commRate();
   if(document.activeElement!==$('bcRate'))$('bcRate').value=rate;
   if(document.activeElement!==$('bcGw'))$('bcGw').value=(data.commCfg||{}).gowabiBasis||'net';
+  if(document.activeElement!==$('bcStart'))$('bcStart').value=(data.commCfg||{}).startDate||'';
 
   /* 예약장부를 못 읽는 경우 — 안내만 하고 조용히 멈춥니다 */
   if(data.bkOk===false){
@@ -4023,27 +4127,46 @@ function renderBkComm(){
     +`<span style="font-weight:400;color:var(--ink-soft);font-size:11px"> · ${t('bcBaseSum')} ${money(Math.round(totSales))}`
     +(gwCut?` · ${t('bcGwCut')} −${money(Math.round(gwCut))}`:'')+`</span>`;
 
-  /* ── 상세 — 날짜별로 묶고 날짜 소계를 붙입니다 (종이 기록과 대조용) ── */
+  /* ── 상세 — 날짜 줄만 먼저 보이고, 누르면 그날 건들이 펼쳐집니다 ──
+     달마다 수십 건이 한꺼번에 나열되면 보기 힘들어서 접어 둡니다. */
   if(!list.length){$('bcList').innerHTML=`<div class="empty">${t('bcNone')}</div>`;return;}
   const byDate={};
   list.forEach(b=>{(byDate[b.date]=byDate[b.date]||[]).push(b);});
-  const body=Object.keys(byDate).sort().map(d=>{
+  const dates=Object.keys(byDate).sort();
+  // 처음 열 때는 모두 접고, 그날 것만 보고 싶으면 눌러서 펼칩니다
+  if(bcOpen===null)bcOpen=new Set();
+  const body=dates.map(d=>{
     const day=byDate[d];
     const dSales=day.reduce((a,b)=>a+commBase(b),0);
-    const dComm=day.reduce((a,b)=>a+commShares(b).reduce((x,sh)=>x+sh.comm,0),0);
-    return day.map((b,i)=>{
+    const dComm=money2(day.reduce((a,b)=>a+commShares(b).reduce((x,sh)=>x+sh.comm,0),0));
+    const open=bcOpen.has(d);
+    const who=[...new Set(day.flatMap(b=>commShares(b).map(sh=>{
+      const s=staffOfBkName(sh.name); return s?s.name:sh.name;})))];
+    const on=commDayOn(d);
+    const head=`<tr class="bcday${open?' open':''}${on?'':' off'}" data-bcday="${d}" role="button" tabindex="0">
+      <td class="bcarrow">${open?'▾':'▸'}</td>
+      <td><b>${d.slice(5)}</b> <span class="bcdw">${DOW[LANG][new Date(d+'T00:00').getDay()]}</span>
+        <button class="dayon${on?' on':''}" data-bcskip="${d}"
+          title="${on?t('bcDayOffHint'):t('bcDayOnHint')}">${on?t('bcDayPay'):t('bcDayNo')}</button></td>
+      <td class="bcwho">${who.map(n=>`<span>${esc(n)}</span>`).join('')}</td>
+      <td class="num">${day.length}${t('cntRec')}</td>
+      <td class="num">${money(Math.round(dSales))}</td>
+      <td class="num"><b class="pay-est">${money(dComm)}</b></td>
+      <td></td></tr>`;
+    if(!open)return head;
+    return head+day.map(b=>{
       const shares=commShares(b), gw=isGowabi(b);
       const treat=(Array.isArray(b.items)&&b.items.length
         ? b.items.map(it=>it.treat).filter(Boolean).join(' + ') : (b.treat||''))||'—';
       const ovr=(data.commOvr||{})[b.id]||{};
-      return `<tr>
-        ${i===0?`<td rowspan="${day.length}" class="bcdate"><b>${d.slice(5)}</b>
-          <div class="bcdsum">${money(Math.round(dSales))}<br>
-            <span class="pay-est">${money(money2(dComm))}</span></div></td>`:''}
-        <td>${esc(b.name||b.anon||'—')}${b.time?`<br><span style="font-size:10px;color:var(--ink-soft)">${esc(b.time)}</span>`:''}</td>
+      return `<tr class="bcrow">
+        <td></td>
+        <td>${esc(b.name||b.anon||'—')}
+          ${b.phone?`<br><span class="bcph">${esc(b.phone)}</span>`:''}
+          ${b.time?`<br><span style="font-size:10px;color:var(--ink-soft)">${esc(b.time)}</span>`:''}</td>
         <td style="font-size:11.5px">${esc(treat)}
           ${gw?`<br><span class="gwtag">GoWabi −${gwRate()}%</span>`:''}</td>
-        <td class="num" style="font-size:11.5px;color:var(--ink-soft)">${money(bkGross(b))}</td>
+        <td class="num" style="font-size:11px;color:var(--ink-soft)">${money(bkGross(b))}</td>
         <td><input type="number" step="1" min="0" data-bcovr="${b.id}"
             value="${ovr.amount==null?'':ovr.amount}" placeholder="—"
             title="${t('bcOvrHint')}"
@@ -4064,17 +4187,62 @@ function renderBkComm(){
       </tr>`;
     }).join('');
   }).join('');
-  $('bcList').innerHTML=`<div style="overflow-x:auto"><table class="bctab">
+  $('bcList').innerHTML=`<div class="bctools no-print">
+      <button class="ghost" id="bcOpenAll">${t('bcExpand')}</button>
+      <button class="ghost" id="bcShutAll">${t('bcCollapse')}</button>
+      <span class="bchint">${t('bcClickDay')}</span></div>
+    <div style="overflow-x:auto"><table class="bctab">
     <thead><tr>
-      <th style="width:8%">${t('lDate')}</th>
-      <th style="width:13%">${t('bcCustomer')}</th>
-      <th style="width:21%">${t('bcTreat')}</th>
+      <th style="width:30px"></th>
+      <th style="width:14%">${t('lDate')} · ${t('bcCustomer')}</th>
+      <th style="width:22%">${t('bcTreat')}</th>
       <th class="num" style="width:10%">${t('bcBooked')}</th>
       <th class="num" style="width:11%">${t('bcActual')}</th>
       <th class="num" style="width:11%">${t('bcBase')}</th>
       <th style="width:26%">${t('bcStaffShare')}</th></tr></thead>
     <tbody>${body}</tbody></table></div>`;
+  $('bcOpenAll').onclick=()=>{bcOpen=new Set(dates);renderBkComm();};
+  $('bcShutAll').onclick=()=>{bcOpen=new Set();renderBkComm();};
 }
+/* 날짜 줄을 눌러 그날 건들을 펼치고 접습니다 */
+let bcOpen=null;
+function bcToggle(d){
+  if(bcOpen===null)bcOpen=new Set();
+  bcOpen.has(d)?bcOpen.delete(d):bcOpen.add(d);
+  renderBkComm();
+}
+$('bcList').addEventListener('click',async e=>{
+  /* 그날 커미션 지급 여부 스위치 (날짜 펼치기보다 먼저 봅니다) */
+  const sk=e.target.closest('[data-bcskip]');
+  if(sk){
+    e.stopPropagation();
+    const d=sk.dataset.bcskip;
+    data.commSkip=data.commSkip||new Set();
+    const nowOn=commDayOn(d);
+    const st=(data.commCfg||{}).startDate||'';
+    if(nowOn){
+      data.commSkip.add(d);
+      renderPay(); renderBkComm();
+      await op(t('opComm'),()=>sb.from('staff_comm_skip').upsert({day:d},{onConflict:'day'}));
+    }else{
+      data.commSkip.delete(d);
+      // 시작일 때문에 꺼져 있던 날이면 시작일을 그 날로 당겨 줍니다
+      if(st&&d<st){ data.commCfg.startDate=d;
+        await op(t('opComm'),()=>sb.from('staff_comm_config')
+          .upsert({id:1,start_date:d},{onConflict:'id'})); }
+      renderPay(); renderBkComm();
+      await op(t('opComm'),()=>sb.from('staff_comm_skip').delete().eq('day',d));
+    }
+    return;
+  }
+  const h=e.target.closest('[data-bcday]'); if(!h)return;
+  bcToggle(h.dataset.bcday);
+});
+$('bcList').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  const h=e.target.closest('[data-bcday]'); if(!h)return;
+  e.preventDefault(); bcToggle(h.dataset.bcday);
+});
 
 async function saveCommCfg(patch){
   Object.assign(data.commCfg,patch.rate!=null?{rate:Number(patch.rate)}:{},
@@ -4089,6 +4257,20 @@ $('bcRate').addEventListener('change',async()=>{
   await saveCommCfg({rate:v});
 });
 $('bcGw').addEventListener('change',()=>saveCommCfg({gowabi_basis:$('bcGw').value}));
+/* 커미션 시작일 — 이 날짜 앞의 건은 계산에서 빠집니다 (중간부터 주기 시작한 달) */
+$('bcStart').addEventListener('change',async()=>{
+  const v=$('bcStart').value||null;
+  data.commCfg.startDate=v||'';
+  renderPay(); renderBkComm();
+  await op(t('opComm'),()=>sb.from('staff_comm_config')
+    .upsert({id:1,start_date:v},{onConflict:'id'}));
+});
+$('bcStartX').addEventListener('click',async()=>{
+  $('bcStart').value=''; data.commCfg.startDate='';
+  renderPay(); renderBkComm();
+  await op(t('opComm'),()=>sb.from('staff_comm_config')
+    .upsert({id:1,start_date:null},{onConflict:'id'}));
+});
 $('bcReload').addEventListener('click',async()=>{
   $('bcReload').disabled=true;
   await loadAll(); renderStaff(); render();
@@ -4140,13 +4322,13 @@ $('bcList').addEventListener('change',async e=>{
 $('bcPrint').addEventListener('click',()=>printAs('landscape'));
 $('bcCsv').addEventListener('click',()=>{
   const m=$('payMonth').value||todayISO().slice(0,7);
-  const rows=[['날짜','고객','시술','예약금액','실제결제','고와비','기준금액','담당자','몫%','커미션']];
+  const rows=[['날짜','고객','전화','시술','예약금액','실제결제','고와비','기준금액','담당자','몫%','커미션']];
   monthBk(m).forEach(b=>{
     const treat=(Array.isArray(b.items)&&b.items.length
       ? b.items.map(it=>it.treat).filter(Boolean).join(' + ') : (b.treat||''));
     commShares(b).forEach(sh=>{
       const s=staffOfBkName(sh.name);
-      rows.push([b.date,b.name||b.anon||'',treat,bkGross(b),bkPaid(b),
+      rows.push([b.date,b.name||b.anon||'',b.phone||'',treat,bkGross(b),bkPaid(b),
         isGowabi(b)?'Y':'',Math.round(commBase(b)),s?s.name:sh.name+'(?)',
         Math.round(sh.share*100),sh.comm]);
     });
