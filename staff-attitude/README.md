@@ -23,6 +23,7 @@ staff-attitude/
 ├── patch-10-commission-lines.sql 커미션 — 판매금액 · 비율 저장 (달력 · 사진 붙여넣기용)
 ├── patch-11-commission-start.sql 커미션 시작일 · 날짜별 제외
 ├── patch-12-vat.sql               커미션 VAT 제외 기준
+├── patch-13-skip-booking.sql      커미션 건별 제외 (중복 입력 등)
 ├── rename-person.sql             이름 · 직함을 모든 표에서 한꺼번에 바꾸기 (필요할 때만)
 ├── forms.js                      인사 서식 5종 (docx 원본에서 변환)
 ├── docs-source/                  서식 원본 docx · md (수정 시 여기를 고치고 재변환)
@@ -36,7 +37,7 @@ staff-attitude/
 > 맨 아래에 무엇이 설치됐는지 확인표가 나옵니다.
 >
 > 개별 파일을 따로 돌리셔도 됩니다 — 그때는 **번호 순서대로**.
-> 처음부터 새로 세팅한다면 `schema.sql` → `patch-01` → `patch-02` → `patch-03` → `patch-04` → `patch-05` → `patch-06` → `patch-07` → `patch-08` → `patch-09` → `patch-10` → `patch-11` → `patch-12` 순서입니다.
+> 처음부터 새로 세팅한다면 `schema.sql` → `patch-01` → `patch-02` → `patch-03` → `patch-04` → `patch-05` → `patch-06` → `patch-07` → `patch-08` → `patch-09` → `patch-10` → `patch-11` → `patch-12` → `patch-13` 순서입니다.
 
 ---
 

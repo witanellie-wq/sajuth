@@ -259,6 +259,16 @@
   .bcdw{font-size:10.5px;color:var(--ink-soft);margin-left:3px;}
   .bcwho{font-size:10.5px;color:var(--ink-soft);}
   .bcwho span{display:inline-block;margin-right:6px;white-space:nowrap;}
+  tr.bcrow.dup td{background:#FBF4E3;}
+  tr.bcrow.skip{opacity:.45;}
+  tr.bcrow.skip .bcamt,tr.bcrow.skip .pay-est{text-decoration:line-through;}
+  .bcskip{background:none;border:1px solid var(--line);border-radius:3px;cursor:pointer;
+    padding:2px 6px;font-size:11px;color:var(--line);font-family:inherit;line-height:1;}
+  .bcskip:hover{border-color:var(--coral);color:var(--coral);}
+  .bcskip.on{border-color:var(--jade);color:var(--jade);}
+  .dupbadge{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:20px;
+    background:#FBF4E3;color:var(--amber);border:1px solid #EBDCB6;margin-top:3px;white-space:nowrap;}
+  .dupbadge.off{background:#EFF1EE;color:var(--ink-soft);border-color:var(--line);}
   .bcph{font-size:10.5px;color:var(--slate);font-family:'IBM Plex Mono',monospace;}
   tr.bcrow td{background:#fff;}
   .dayon{margin-left:7px;background:none;border:1px solid var(--line);border-radius:20px;
@@ -1323,13 +1333,17 @@ const I={
   bcExpand:'모두 펼치기', bcCollapse:'모두 접기', bcClickDay:'날짜를 누르면 그날 건이 펼쳐집니다',
   bcStart:'커미션 시작일', bcStartClear:'전체', bcVat:'VAT 제외',
   bcDayPay:'지급', bcDayNo:'제외',
+  bcDup:'중복 의심', bcSkipped:'커미션 제외', bcAddBtn:'＋ 예약장부에 없는 건 추가',
+  bcSkipHint:'이 건을 커미션에서 빼기 (중복 입력 등)', bcUseHint:'다시 커미션에 넣기',
+  bcDupTitle:'금액과 시술이 똑같은 건이 있습니다 ·',
+  bcDupHint:'같은 시술이 두 번 들어갔을 수 있습니다. 노란 줄을 확인하시고, 중복이면 왼쪽 ✕ 를 눌러 한쪽을 커미션에서 빼세요. 예약장부 원본은 지워지지 않습니다.',
   bcDayOffHint:'이 날은 커미션을 주지 않기', bcDayOnHint:'이 날도 커미션을 주기',
   bcNoStaff:'담당자 없음', bcUnassigned:'담당자를 못 찾아 빠진 커미션',
   bcUnmatched:'예약장부에 있는데 직원과 안 이어진 이름', bcPick:'직원 고르기',
   bcIgnore:'커미션 주지 않음',
   bcUnmatchedHint:'예약장부에 적힌 이름과 여기 직원 이름이 다르면 한 번만 이어 주세요. 다음부터 자동으로 기억합니다.',
   bcNoLink:'예약장부를 읽지 못했습니다. patch-09 SQL 을 실행했는지, 관리자로 로그인했는지 확인해 주세요.',
-  bcNote:'<b>예약장부(부킹테이블)에 직원이 입력한 방문 기록</b>에서 커미션을 자동으로 계산합니다 — 매출을 여기에 다시 입력하지 않으셔도 됩니다.<br>상태가 <b>방문</b>인 건만 계산에 들어갑니다. 예약·취소 건은 빠집니다.<br><b>날짜 줄을 누르면</b> 그날 건이 펼쳐집니다. 고객 이름 아래에 <b>전화번호</b>가 같이 나옵니다.<br><b>커미션 시작일</b>을 넣으면 그 날짜부터만 계산합니다 (중간부터 주기 시작한 달). 시작일 뒤라도 특정 날을 빼려면 날짜 옆 <b>지급</b> 단추를 눌러 <b>제외</b>로 바꾸세요.<br><b>실제 결제</b> 칸은 예약장부 금액과 실제로 받은 돈이 다를 때만 넣으세요 — 넣으면 노랗게 표시되고 그 금액으로 계산됩니다. <b>예약장부 원본은 바뀌지 않습니다.</b><br>한 건을 <b>여러 명이 했을 때</b>는 기본이 똑같이 나누기이고, 옆의 작은 칸에 숫자를 넣으면 그 비율로 나뉩니다 (예: 60 과 40).<br><b>예약장부에 아예 안 들어간 건</b>은 여기에 안 나옵니다 — 아래 <b>커미션 내역</b>에서 직접 넣으시면 급여표에 함께 합산됩니다.<br>여기서 나온 직원별 합계는 위 <b>급여표의 커미션 칸</b>에 자동으로 들어갑니다. 급여표에서 직접 고쳐 쓰면 그 값이 우선합니다.<br><b>기준금액이 정해지는 순서</b>: 실제 결제액 → 고와비 수수료 뺌 → <b>VAT 뺌</b> → 비율 곱함.<br><b>VAT 제외</b>에 7 을 넣으면 가격에 VAT 가 포함돼 있다고 보고 1.07 로 나눈 금액에 커미션을 매깁니다 (VAT 는 국세청에 낼 돈이라 가게에 안 남습니다). VAT 미등록이거나 가격이 VAT 별도면 <b>0</b> 으로 두세요.',
+  bcNote:'<b>예약장부(부킹테이블)에 직원이 입력한 방문 기록</b>에서 커미션을 자동으로 계산합니다 — 매출을 여기에 다시 입력하지 않으셔도 됩니다.<br>상태가 <b>방문</b>인 건만 계산에 들어갑니다. 예약·취소 건은 빠집니다.<br><b>날짜 줄을 누르면</b> 그날 건이 펼쳐집니다. 고객 이름 아래에 <b>전화번호</b>가 같이 나옵니다.<br><b>커미션 시작일</b>을 넣으면 그 날짜부터만 계산합니다 (중간부터 주기 시작한 달). 시작일 뒤라도 특정 날을 빼려면 날짜 옆 <b>지급</b> 단추를 눌러 <b>제외</b>로 바꾸세요.<br><b>실제 결제</b> 칸은 예약장부 금액과 실제로 받은 돈이 다를 때만 넣으세요 — 넣으면 노랗게 표시되고 그 금액으로 계산됩니다. <b>예약장부 원본은 바뀌지 않습니다.</b><br>한 건을 <b>여러 명이 했을 때</b>는 기본이 똑같이 나누기이고, 옆의 작은 칸에 숫자를 넣으면 그 비율로 나뉩니다 (예: 60 과 40).<br><b>예약장부에 아예 안 들어간 건</b>은 여기에 안 나옵니다 — 아래 <b>커미션 내역</b>에서 직접 넣으시면 급여표에 함께 합산됩니다.<br>여기서 나온 직원별 합계는 위 <b>급여표의 커미션 칸</b>에 자동으로 들어갑니다. 급여표에서 직접 고쳐 쓰면 그 값이 우선합니다.<br><b>기준금액이 정해지는 순서</b>: 실제 결제액 → 고와비 수수료 뺌 → <b>VAT 뺌</b> → 비율 곱함.<br><b>VAT 제외</b>에 7 을 넣으면 가격에 VAT 가 포함돼 있다고 보고 1.07 로 나눈 금액에 커미션을 매깁니다 (VAT 는 국세청에 낼 돈이라 가게에 안 남습니다). VAT 미등록이거나 가격이 VAT 별도면 <b>0</b> 으로 두세요.<br><b>중복으로 들어간 건</b>은 금액과 시술이 같으면 노랗게 <b>중복 의심</b> 으로 표시됩니다. 줄 왼쪽 <b>✕</b> 를 누르면 그 건만 커미션에서 빠집니다 (<b>↺</b> 로 되돌립니다). <b>예약장부 원본은 지워지지 않습니다.</b>',
   opComm2:'자동 커미션',
   /* ── 커미션 달력 · 붙여넣기 ── */
   cmSale:'판매금액', cmPayout:'커미션 (฿)', cmSaleSum:'판매 합계',
@@ -1511,13 +1525,17 @@ const I={
   bcExpand:'กางทั้งหมด', bcCollapse:'พับทั้งหมด', bcClickDay:'กดวันที่เพื่อดูรายการของวันนั้น',
   bcStart:'เริ่มคิดคอมมิชชั่น', bcStartClear:'ทั้งหมด', bcVat:'หัก VAT',
   bcDayPay:'จ่าย', bcDayNo:'ไม่จ่าย',
+  bcDup:'สงสัยซ้ำ', bcSkipped:'ไม่คิดคอมมิชชั่น', bcAddBtn:'＋ เพิ่มรายการที่ไม่มีในตารางจอง',
+  bcSkipHint:'ไม่คิดคอมมิชชั่นรายการนี้ (เช่นลงซ้ำ)', bcUseHint:'นำกลับมาคิดคอมมิชชั่น',
+  bcDupTitle:'มีรายการที่ยอดและบริการตรงกัน ·',
+  bcDupHint:'อาจลงรายการเดียวกันสองครั้ง ตรวจแถวสีเหลือง ถ้าซ้ำให้กด ✕ ด้านซ้ายเพื่อตัดออกหนึ่งรายการ ตารางจองต้นฉบับไม่ถูกลบ',
   bcDayOffHint:'ไม่จ่ายคอมมิชชั่นวันนี้', bcDayOnHint:'จ่ายคอมมิชชั่นวันนี้ด้วย',
   bcNoStaff:'ไม่ได้ระบุผู้ทำ', bcUnassigned:'คอมมิชชั่นที่ตกหล่นเพราะหาผู้ทำไม่เจอ',
   bcUnmatched:'ชื่อในตารางจองที่ยังไม่ได้จับคู่กับพนักงาน', bcPick:'เลือกพนักงาน',
   bcIgnore:'ไม่ให้คอมมิชชั่น',
   bcUnmatchedHint:'ถ้าชื่อในตารางจองไม่ตรงกับชื่อพนักงานที่นี่ ให้จับคู่ครั้งเดียว ครั้งต่อไประบบจะจำให้',
   bcNoLink:'อ่านตารางจองไม่ได้ กรุณาตรวจว่ารัน SQL patch-09 แล้ว และเข้าสู่ระบบเป็นผู้ดูแล',
-  bcNote:'คำนวณคอมมิชชั่นอัตโนมัติจาก<b>รายการเข้ารับบริการที่พนักงานบันทึกไว้ในตารางจอง</b> — ไม่ต้องกรอกยอดขายซ้ำที่นี่<br>นับเฉพาะรายการที่สถานะเป็น <b>มา (방문)</b><br><b>กดแถววันที่</b> เพื่อกางรายการของวันนั้น ใต้ชื่อลูกค้าจะมี<b>เบอร์โทร</b>ด้วย<br>ใส่ <b>วันเริ่มคิดคอมมิชชั่น</b> ระบบจะคิดตั้งแต่วันนั้นเป็นต้นไป ถ้าต้องการยกเว้นบางวัน กดปุ่ม <b>จ่าย</b> ข้างวันที่ให้เป็น <b>ไม่จ่าย</b><br>ช่อง <b>จ่ายจริง</b> ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง <b>ตารางจองต้นฉบับไม่ถูกแก้</b><br>ถ้า<b>ทำหลายคน</b> ค่าเริ่มต้นคือแบ่งเท่ากัน ใส่ตัวเลขในช่องเล็กเพื่อกำหนดสัดส่วนเอง<br><b>รายการที่ไม่ได้ลงในตารางจอง</b>จะไม่ขึ้นที่นี่ — ให้ใส่เองใน <b>รายการคอมมิชชั่น</b> ด้านล่าง แล้วจะรวมเข้าตารางเงินเดือนด้วย<br>ยอดรวมรายคนจะเข้าไปใน<b>ช่องคอมมิชชั่นของตารางเงินเดือน</b>โดยอัตโนมัติ<br><b>ลำดับการคิดยอดฐาน</b>: ยอดจ่ายจริง → หักค่าธรรมเนียม GoWabi → <b>หัก VAT</b> → คูณอัตรา<br>ใส่ 7 ในช่อง <b>หัก VAT</b> ถ้าราคารวม VAT อยู่แล้ว ระบบจะหาร 1.07 ก่อนคิดคอมมิชชั่น ถ้าไม่ได้จด VAT หรือราคาไม่รวม VAT ให้ใส่ <b>0</b>',
+  bcNote:'คำนวณคอมมิชชั่นอัตโนมัติจาก<b>รายการเข้ารับบริการที่พนักงานบันทึกไว้ในตารางจอง</b> — ไม่ต้องกรอกยอดขายซ้ำที่นี่<br>นับเฉพาะรายการที่สถานะเป็น <b>มา (방문)</b><br><b>กดแถววันที่</b> เพื่อกางรายการของวันนั้น ใต้ชื่อลูกค้าจะมี<b>เบอร์โทร</b>ด้วย<br>ใส่ <b>วันเริ่มคิดคอมมิชชั่น</b> ระบบจะคิดตั้งแต่วันนั้นเป็นต้นไป ถ้าต้องการยกเว้นบางวัน กดปุ่ม <b>จ่าย</b> ข้างวันที่ให้เป็น <b>ไม่จ่าย</b><br>ช่อง <b>จ่ายจริง</b> ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง <b>ตารางจองต้นฉบับไม่ถูกแก้</b><br>ถ้า<b>ทำหลายคน</b> ค่าเริ่มต้นคือแบ่งเท่ากัน ใส่ตัวเลขในช่องเล็กเพื่อกำหนดสัดส่วนเอง<br><b>รายการที่ไม่ได้ลงในตารางจอง</b>จะไม่ขึ้นที่นี่ — ให้ใส่เองใน <b>รายการคอมมิชชั่น</b> ด้านล่าง แล้วจะรวมเข้าตารางเงินเดือนด้วย<br>ยอดรวมรายคนจะเข้าไปใน<b>ช่องคอมมิชชั่นของตารางเงินเดือน</b>โดยอัตโนมัติ<br><b>ลำดับการคิดยอดฐาน</b>: ยอดจ่ายจริง → หักค่าธรรมเนียม GoWabi → <b>หัก VAT</b> → คูณอัตรา<br>ใส่ 7 ในช่อง <b>หัก VAT</b> ถ้าราคารวม VAT อยู่แล้ว ระบบจะหาร 1.07 ก่อนคิดคอมมิชชั่น ถ้าไม่ได้จด VAT หรือราคาไม่รวม VAT ให้ใส่ <b>0</b><br><b>รายการที่ลงซ้ำ</b> ถ้ายอดและบริการตรงกันจะขึ้น <b>สงสัยซ้ำ</b> สีเหลือง กด <b>✕</b> ด้านซ้ายเพื่อตัดรายการนั้นออกจากคอมมิชชั่น (กด <b>↺</b> เพื่อนำกลับ) <b>ตารางจองต้นฉบับไม่ถูกลบ</b>',
   opComm2:'คอมมิชชั่นอัตโนมัติ',
   /* ── ปฏิทินคอมมิชชั่น · วางข้อความ ── */
   cmSale:'ยอดขาย', cmPayout:'คอมมิชชั่น (฿)', cmSaleSum:'ยอดขายรวม',
@@ -1590,7 +1608,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v10';
+const APP_VER='v11';
 const APP_DATE='2026-09-29';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -1917,7 +1935,8 @@ async function loadAll(){
   (csp.data||[]).forEach(x=>{data.commSplit[x.booking_id+'|'+x.booking_name]=Number(x.share||0);});
   data.commOvr={};
   (cov.data||[]).forEach(x=>{data.commOvr[x.booking_id]={
-    amount:x.amount==null?null:Number(x.amount),memo:x.memo||''};});
+    amount:x.amount==null?null:Number(x.amount),memo:x.memo||'',
+    skip:!!x.skip,skipWhy:x.skip_why||''};});
 
   /* ── 예약장부 ── */
   data.bkOk=bk.ok;
@@ -2104,6 +2123,20 @@ const bkGross=b=>Number(b.amount||0);
 const bkPaid=b=>{const o=(data.commOvr||{})[b.id];
   return o&&o.amount!=null?Number(o.amount):bkGross(b);};
 const bkEdited=b=>{const o=(data.commOvr||{})[b.id];return !!(o&&o.amount!=null);};
+/** 이 건을 커미션에서 뺐는가 (중복 입력 등) */
+const bkSkipped=b=>{const o=(data.commOvr||{})[b.id];return !!(o&&o.skip);};
+/** 같은 달에 금액과 시술이 똑같은 건 — 중복 입력 의심 */
+function dupKeyOf(b){
+  const treat=(Array.isArray(b.items)&&b.items.length
+    ? b.items.map(it=>it.treat).filter(Boolean).join('+') : (b.treat||''));
+  return Math.round(bkPaid(b))+'|'+treat.trim();
+}
+function dupSet(m){
+  const cnt={}, out=new Set();
+  monthBk(m).forEach(b=>{const k=dupKeyOf(b);if(bkPaid(b)>0)cnt[k]=(cnt[k]||0)+1;});
+  monthBk(m).forEach(b=>{if(cnt[dupKeyOf(b)]>1)out.add(b.id);});
+  return out;
+}
 /** 커미션을 매길 기준금액 */
 function commBase(b){
   const paid=bkPaid(b);
@@ -2129,7 +2162,7 @@ function commShares(b){
   const ws=ns.map(n=>{const v=sp[b.id+'|'+n];return v==null?1:Math.max(0,Number(v)||0);});
   const tw=ws.reduce((a,x)=>a+x,0);
   const base=commBase(b), min=Number((data.commCfg||{}).minAmount||0);
-  const pay=(base>0&&base>=min&&commDayOn(b.date))?base:0;
+  const pay=(base>0&&base>=min&&commDayOn(b.date)&&!bkSkipped(b))?base:0;
   const rate=commRate();
   return ns.map((n,i)=>{
     const share=tw>0?ws[i]/tw:0;
@@ -4087,12 +4120,17 @@ function renderBkComm(){
   const opts=n=>`<option value="">${t('bcPick')}</option>`
     +data.staff.map(s=>`<option value="${s._id}">${esc(s.name)}</option>`).join('')
     +`<option value="__none__">${t('bcIgnore')}</option>`;
-  $('bcWarn').innerHTML=un.length?`<div class="bcwarn">
+  const dupN=dupSet(m).size, dupLive=[...dupSet(m)].filter(id=>{
+    const b=list.find(x=>x.id===id); return b&&!bkSkipped(b);}).length;
+  const dupBox=dupLive>1?`<div class="bcwarn">
+    <b>⚠ ${t('bcDupTitle')} ${dupLive}</b>
+    <div style="font-size:11.5px;color:var(--ink-soft);margin-top:4px">${t('bcDupHint')}</div></div>`:'';
+  $('bcWarn').innerHTML=dupBox+(un.length?`<div class="bcwarn">
     <b>⚠️ ${t('bcUnmatched')} ${un.length}</b>
     <div style="font-size:11.5px;color:var(--ink-soft);margin:4px 0 8px">${t('bcUnmatchedHint')}</div>
     ${un.map(n=>`<div class="bcmap">
       <span class="bkname">${esc(n)}</span> <span style="color:var(--ink-soft)">→</span>
-      <select data-map="${esc(n)}">${opts(n)}</select></div>`).join('')}</div>`:'';
+      <select data-map="${esc(n)}">${opts(n)}</select></div>`).join('')}</div>`:'');
 
   /* ── 직원별 합계 ── */
   const per=new Map();      // 직원명 → {comm, sales, n}
@@ -4143,6 +4181,7 @@ function renderBkComm(){
   const byDate={};
   list.forEach(b=>{(byDate[b.date]=byDate[b.date]||[]).push(b);});
   const dates=Object.keys(byDate).sort();
+  const dups=dupSet(m);
   // 처음 열 때는 모두 접고, 그날 것만 보고 싶으면 눌러서 펼칩니다
   if(bcOpen===null)bcOpen=new Set();
   const body=dates.map(d=>{
@@ -4169,11 +4208,16 @@ function renderBkComm(){
       const treat=(Array.isArray(b.items)&&b.items.length
         ? b.items.map(it=>it.treat).filter(Boolean).join(' + ') : (b.treat||''))||'—';
       const ovr=(data.commOvr||{})[b.id]||{};
-      return `<tr class="bcrow">
-        <td></td>
+      const skipped=bkSkipped(b), isDup=dups.has(b.id);
+      return `<tr class="bcrow${skipped?' skip':''}${isDup&&!skipped?' dup':''}">
+        <td style="text-align:center">
+          <button class="bcskip${skipped?' on':''}" data-bcskipbk="${b.id}"
+            title="${skipped?t('bcUseHint'):t('bcSkipHint')}">${skipped?'↺':'✕'}</button></td>
         <td>${esc(b.name||b.anon||'—')}
           ${b.phone?`<br><span class="bcph">${esc(b.phone)}</span>`:''}
-          ${b.time?`<br><span style="font-size:10px;color:var(--ink-soft)">${esc(b.time)}</span>`:''}</td>
+          ${b.time?`<br><span style="font-size:10px;color:var(--ink-soft)">${esc(b.time)}</span>`:''}
+          ${skipped?`<br><span class="dupbadge off">${t('bcSkipped')}</span>`
+            :isDup?`<br><span class="dupbadge">⚠ ${t('bcDup')}</span>`:''}</td>
         <td style="font-size:11.5px">${esc(treat)}
           ${gw?`<br><span class="gwtag">GoWabi −${gwRate()}%</span>`:''}</td>
         <td class="num" style="font-size:11px;color:var(--ink-soft)">${money(bkGross(b))}</td>
@@ -4200,11 +4244,12 @@ function renderBkComm(){
   $('bcList').innerHTML=`<div class="bctools no-print">
       <button class="ghost" id="bcOpenAll">${t('bcExpand')}</button>
       <button class="ghost" id="bcShutAll">${t('bcCollapse')}</button>
+      <button class="ghost" id="bcAddManual">${t('bcAddBtn')}</button>
       <span class="bchint">${t('bcClickDay')}</span></div>
     <div style="overflow-x:auto"><table class="bctab">
     <thead><tr>
-      <th style="width:30px"></th>
-      <th style="width:14%">${t('lDate')} · ${t('bcCustomer')}</th>
+      <th style="width:34px"></th>
+      <th style="width:15%">${t('lDate')} · ${t('bcCustomer')}</th>
       <th style="width:22%">${t('bcTreat')}</th>
       <th class="num" style="width:10%">${t('bcBooked')}</th>
       <th class="num" style="width:11%">${t('bcActual')}</th>
@@ -4213,6 +4258,15 @@ function renderBkComm(){
     <tbody>${body}</tbody></table></div>`;
   $('bcOpenAll').onclick=()=>{bcOpen=new Set(dates);renderBkComm();};
   $('bcShutAll').onclick=()=>{bcOpen=new Set();renderBkComm();};
+  /* 예약장부에 없는 건은 아래 커미션 내역에서 직접 넣습니다 */
+  $('bcAddManual').onclick=()=>{
+    const st=(data.commCfg||{}).startDate||'';
+    cmSel=(st&&st.startsWith(m))?st:(dates[dates.length-1]||m+'-01');
+    renderComm();
+    const el=document.querySelector('[data-i="commTitle"]');
+    if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+    setTimeout(()=>$('cmQAmt').focus(),400);
+  };
 }
 /* 날짜 줄을 눌러 그날 건들을 펼치고 접습니다 */
 let bcOpen=null;
@@ -4243,6 +4297,20 @@ $('bcList').addEventListener('click',async e=>{
       renderPay(); renderBkComm();
       await op(t('opComm'),()=>sb.from('staff_comm_skip').delete().eq('day',d));
     }
+    return;
+  }
+  /* 건별 제외 — 중복 입력 등 */
+  const bs=e.target.closest('[data-bcskipbk]');
+  if(bs){
+    e.stopPropagation();
+    const id=bs.dataset.bcskipbk;
+    const cur=data.commOvr[id]||{amount:null,memo:'',skip:false,skipWhy:''};
+    cur.skip=!cur.skip;
+    data.commOvr[id]=cur;
+    renderPay(); renderBkComm();
+    await op(t('opComm'),()=>sb.from('staff_comm_override').upsert({
+      booking_id:Number(id),amount:cur.amount,skip:cur.skip,
+      skip_why:cur.skip?'중복':''},{onConflict:'booking_id'}));
     return;
   }
   const h=e.target.closest('[data-bcday]'); if(!h)return;
