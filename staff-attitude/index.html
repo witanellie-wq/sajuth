@@ -246,6 +246,42 @@
   .commchip{background:#fff;border:1px solid #CFE2DC;border-radius:20px;padding:4px 11px;
     font-size:11.5px;display:inline-flex;align-items:center;gap:6px;}
   .commchip b{font-family:'IBM Plex Mono',monospace;color:var(--jade);}
+  /* ── 커미션 달력 ── */
+  .cmcal{margin-top:12px;}
+  .cmhead{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px;}
+  .cmhead div{text-align:center;font-size:10.5px;font-weight:700;color:var(--ink-soft);padding:2px 0;}
+  .cmhead .su{color:var(--coral);} .cmhead .sa{color:#4A6FA5;}
+  .cmgrid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;}
+  .cmcell{min-height:62px;border:1px solid var(--line);border-radius:3px;padding:5px 6px;
+    background:#fff;cursor:pointer;display:flex;flex-direction:column;gap:2px;
+    transition:border-color .12s,background .12s;}
+  .cmcell.out{border:none;background:none;cursor:default;min-height:0;}
+  .cmcell:hover:not(.out){border-color:var(--jade);}
+  .cmcell .d{font-size:11.5px;font-weight:700;color:var(--ink);}
+  .cmcell.su .d{color:var(--coral);} .cmcell.sa .d{color:#4A6FA5;}
+  .cmcell .v{font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:700;color:var(--jade);
+    line-height:1.3;word-break:break-all;}
+  .cmcell .n{font-size:9.5px;color:var(--ink-soft);}
+  .cmcell.has{background:#F4F8F6;border-color:#CFE2DC;}
+  .cmcell.sel{border-color:var(--ink);border-width:2px;padding:4px 5px;background:#fff;}
+  .cmcell.has.sel{background:#EEF5F3;}
+  .cmdayhd{display:flex;align-items:baseline;gap:10px;padding:8px 2px 4px;
+    border-bottom:1px solid var(--line);margin-bottom:8px;}
+  .cmdayhd b{font-size:14px;font-family:'IBM Plex Mono',monospace;}
+  .cmdayhd span{font-size:11.5px;color:var(--ink-soft);}
+  .cmshare{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:20px;
+    background:#EAF0F6;color:#4A6FA5;display:inline-block;margin-top:2px;}
+  #cmDay input,#cmDay select{padding:6px 8px;font-size:12.5px;}
+  /* 붙여넣기 미리보기 */
+  table.cmprev th,table.cmprev td{padding:5px 6px;font-size:12px;}
+  table.cmprev input{padding:5px 7px;font-size:12px;}
+  table.cmprev tr.bad td{background:#FBF0EF;}
+  table.cmprev tr.off{opacity:.42;}
+  table.cmprev input.warn{border-color:var(--coral);background:#FBF0EF;}
+  @media (max-width:640px){
+    .cmcell{min-height:52px;padding:3px 4px;}
+    .cmcell .v{font-size:9.5px;} .cmcell .n{display:none;}
+  }
   .raise{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;
     display:inline-block;margin-top:3px;}
   .raise.up{background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;}
@@ -722,16 +758,54 @@
 
   <section class="panel adm-only" style="margin-top:20px">
     <h2 data-i="commTitle"></h2>
-    <div class="hr-add no-print" style="margin-top:0;padding-top:0;border-top:none">
+    <div class="toolbar">
+      <button class="ghost" id="cmPasteOpen" data-i="cmPasteBtn"></button>
+      <label style="margin:0 2px 0 12px;font-size:11.5px" data-i="bcRate"></label>
+      <input type="number" id="cmRate" min="0" max="100" step="0.1" style="width:72px;text-align:right">
+      <span style="font-size:12px;color:var(--ink-soft)">%</span>
+      <button class="ghost" id="cmReapply" data-i="cmReapplyBtn"></button>
+      <span style="flex:1"></span>
+      <span class="paytot" id="cmStat"></span>
+    </div>
+    <div id="cmCal"></div>
+    <div id="cmDay" style="margin-top:16px"></div>
+    <div class="hr-add no-print">
       <div class="field" style="width:150px;margin:0"><label data-i="lStaff"></label><select id="cmStaff"></select></div>
       <div class="field" style="width:145px;margin:0"><label data-i="lDate"></label><input type="date" id="cmDate"></div>
       <div class="field" style="flex:1;min-width:150px;margin:0"><label data-i="lReason"></label><input type="text" id="cmMemo"></div>
-      <div class="field" style="width:115px;margin:0"><label data-i="lAmount"></label><input type="number" id="cmAmt" min="0" step="10"></div>
+      <div class="field" style="width:120px;margin:0"><label data-i="cmSale"></label><input type="number" id="cmSale" min="0" step="10"></div>
+      <div class="field" style="width:115px;margin:0"><label data-i="cmPayout"></label><input type="number" id="cmAmt" min="0" step="1"></div>
       <button class="save" id="cmAdd" style="width:auto;margin:0;padding:9px 18px;align-self:flex-end" data-i="add"></button>
     </div>
     <div id="cmList" style="margin-top:16px"></div>
     <p class="note" data-ih="commNote"></p>
   </section>
+</div>
+
+<!-- ══ 커미션 붙여넣기 모달 ══ -->
+<div class="modal" id="cmPasteModal">
+  <div class="modal-box" style="max-width:940px">
+    <div class="modal-head">
+      <h3 data-i="cmPasteTitle"></h3>
+      <button class="modal-x" id="cmPasteClose">×</button>
+    </div>
+    <p class="note" data-ih="cmPasteHow" style="margin:0 0 10px"></p>
+    <textarea id="cmPasteText" spellcheck="false"
+      style="width:100%;height:150px;font-family:'IBM Plex Mono',monospace;font-size:12.5px;
+             padding:10px;border:1px solid var(--line);border-radius:3px;resize:vertical"></textarea>
+    <div class="toolbar" style="margin-top:10px">
+      <input type="month" id="cmPasteMonth">
+      <button class="ghost" id="cmPasteParse" data-i="cmPasteParseBtn"></button>
+      <span style="flex:1"></span>
+      <span class="paytot" id="cmPasteStat"></span>
+    </div>
+    <div id="cmPastePrev" style="margin-top:12px;max-height:46vh;overflow:auto"></div>
+    <div class="toolbar" style="margin-top:12px">
+      <span style="flex:1"></span>
+      <button class="ghost" id="cmPasteCancel" data-i="cancel"></button>
+      <button class="save" id="cmPasteSave" style="width:auto;margin:0;padding:9px 20px" data-i="cmPasteSaveBtn"></button>
+    </div>
+  </div>
 </div>
 
 <!-- ══ 5. 지출 (관리자) ══ -->
@@ -1094,7 +1168,7 @@ const I={
   delStaffRec:'이 직원의 기록 · 커미션 · 급여 · 경고 · 평가가 모두 삭제됩니다. 계속할까요?',
   edit:'수정', edTitle:'기록 수정', cancel:'취소',
   payNote:'<b>기본급</b>은 급여 방식에 따라 자동 계산됩니다 — 월급: 고정액 / 일급: 출근일 × 일급 / 시급: 근무시간 × 시급 (퇴근 시각을 입력한 날만 집계).<br>칸을 직접 고쳐 쓰면 그 값이 우선합니다. <b>보너스</b>와 <b>공제</b>(지각·가불 등)를 넣으면 지급 합계에 반영됩니다. <b>지급 여부</b>를 체크하면 그 달 급여가 지급 완료로 기록되고 지급일이 자동으로 들어갑니다.<br>급여 방식과 금액은 <b>직원 관리 → 고용 조건</b>에서 설정하세요. 퇴사 처리한 직원은 이 표에 나오지 않습니다.',
-  commNote:'커미션은 <b>등록한 날짜가 속한 달</b>의 급여표에 자동 합산됩니다. 시술 건별로 그때그때 적어두면 월말에 따로 계산할 필요가 없습니다. 급여표의 커미션 칸을 직접 고치면 그 값이 우선합니다.',
+  commNote:'<b>달력에서 날짜를 누르면</b> 그날 내역이 아래에 열리고, 거기서 바로 고치거나 지울 수 있습니다.<br><b>판매금액</b>을 넣으면 커미션이 비율(위쪽 %)로 자동 계산됩니다. <b>커미션 칸에 직접 숫자</b>를 넣으면 그 금액이 우선합니다 (보너스처럼 매출과 상관없는 건).<br><b>📷 사진에서 붙여넣기</b> — 종이 기록을 찍어 글자로 옮긴 것을 붙여넣으면 여러 건을 한 번에 넣을 수 있습니다. 넣기 전에 표에서 확인·수정합니다.<br>커미션은 <b>등록한 날짜가 속한 달</b>의 급여표에 자동 합산됩니다. 급여표의 커미션 칸을 직접 고치면 그 값이 우선합니다.',
   editNote:'기록 옆 <b>✎</b> 또는 월 근태표의 색깔 칸을 클릭하면 그 기록을 수정할 수 있습니다.',
   /* ── 색 기준 (태도 점수) ── */
   lgScore:'색 기준 · 태도 점수', lgSv0:'우수 4.5+', lgSv1:'보통 3.5~4.4',
@@ -1166,6 +1240,16 @@ const I={
   bcNoLink:'예약장부를 읽지 못했습니다. patch-09 SQL 을 실행했는지, 관리자로 로그인했는지 확인해 주세요.',
   bcNote:'<b>예약장부(부킹테이블)에 직원이 입력한 방문 기록</b>에서 커미션을 자동으로 계산합니다 — 매출을 여기에 다시 입력하지 않으셔도 됩니다.<br>상태가 <b>방문</b>인 건만 계산에 들어갑니다. 예약·취소 건은 빠집니다.<br><b>실제 결제</b> 칸은 예약장부 금액과 실제로 받은 돈이 다를 때만 넣으세요 — 넣으면 노랗게 표시되고 그 금액으로 계산됩니다. <b>예약장부 원본은 바뀌지 않습니다.</b><br>한 건을 <b>여러 명이 했을 때</b>는 기본이 똑같이 나누기이고, 옆의 작은 칸에 숫자를 넣으면 그 비율로 나뉩니다 (예: 60 과 40).<br>왼쪽 <b>날짜 칸의 두 숫자</b>는 그날의 기준 매출과 커미션 합계입니다 — 종이 기록과 대조해 보세요.<br>여기서 나온 직원별 합계는 위 <b>급여표의 커미션 칸</b>에 자동으로 들어갑니다. 급여표에서 직접 고쳐 쓰면 그 값이 우선합니다.',
   opComm2:'자동 커미션',
+  /* ── 커미션 달력 · 붙여넣기 ── */
+  cmSale:'판매금액', cmPayout:'커미션 (฿)', cmSaleSum:'판매 합계',
+  cmPayoutHint:'비워두면 판매금액 × 비율로 자동 계산됩니다. 직접 넣으면 그 금액이 쓰입니다.',
+  cmDayNone:'이 날짜에는 기록이 없습니다. 아래에서 추가하세요.',
+  cmPasteBtn:'📷 사진에서 붙여넣기', cmPasteTitle:'사진에서 옮긴 글자로 한 번에 넣기',
+  cmPasteParseBtn:'읽어들이기', cmPasteSaveBtn:'저장', cmPasteReady:'넣을 수 있는 줄',
+  cmPasteWho:'담당자 이름', cmPasteDone:'커미션을 넣었습니다 ·',
+  cmReapplyBtn:'이 달에 다시 적용', cmReapplyNone:'다시 계산할 건이 없습니다.',
+  cmReapplyAsk:'이 달의 판매금액 건을 이 비율로 다시 계산할까요?',
+  cmPasteHow:'종이 기록을 사진으로 찍어 <b>글자로 옮긴 것</b>을 아래에 붙여넣으세요. <b>한 줄 = 한 건</b>입니다.<br>칸은 <b>탭 · 쉼표 · 세로줄(|) · 공백 두 칸 이상</b>으로 나눕니다. 순서는 <b>날짜 · 내용 · 판매금액 · 담당자</b> 를 권하지만, 숫자와 담당자 이름은 자리가 바뀌어 있어도 알아서 찾습니다.<br>날짜는 <b>일(16)</b> 만 써도 되고, 담당자가 둘이면 <b>쉼표</b>로 적으면 금액을 나눠 갖습니다.<br><span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;display:inline-block;margin-top:4px;background:#F7F9F8;padding:6px 9px;border-radius:3px">16 | 나오아 HIFU 8000 | 1890 | Bew<br>17 | 마페 배+팔+종아리 | 5094 | Bew, Muay</span><br>읽어들인 뒤 <b>표에서 바로 고칠 수 있고</b>, 체크를 풀면 그 줄은 빼고 저장합니다.',
   fcRent:'임대료', fcUtil:'공과금', fcTel:'통신', fcIns:'보험', fcSub:'구독 · 서비스', fcTax:'세금', fcEtc:'기타',
   ecSupply:'소모품', ecStock:'제품 · 재고', ecEquip:'장비 · 수리', ecMkt:'마케팅', ecFee:'세금 · 수수료', ecEtc:'기타',
   /* ── 기타 이체 계좌 (직원 외) ── */
@@ -1260,7 +1344,7 @@ const I={
   delStaffRec:'บันทึก คอมมิชชั่น เงินเดือน การเตือน และใบประเมินของพนักงานคนนี้จะถูกลบทั้งหมด ต้องการดำเนินการต่อหรือไม่?',
   edit:'แก้ไข', edTitle:'แก้ไขบันทึก', cancel:'ยกเลิก',
   payNote:'<b>ค่าจ้างพื้นฐาน</b> คำนวณอัตโนมัติตามรูปแบบค่าจ้าง — รายเดือน: ยอดคงที่ / รายวัน: วันทำงาน × ค่าจ้างรายวัน / รายชั่วโมง: ชั่วโมงทำงาน × ค่าจ้างรายชั่วโมง (นับเฉพาะวันที่ใส่เวลาออกงาน)<br>หากแก้ตัวเลขในช่องเอง ระบบจะใช้ค่าที่แก้ ใส่ <b>โบนัส</b> และ <b>หักเงิน</b> แล้วยอดจ่ายรวมจะปรับตาม เมื่อติ๊ก <b>สถานะการจ่าย</b> ระบบจะบันทึกว่าจ่ายแล้วพร้อมวันที่โดยอัตโนมัติ<br>ตั้งค่ารูปแบบและจำนวนค่าจ้างได้ที่ <b>จัดการพนักงาน → เงื่อนไขการจ้าง</b> พนักงานที่ตั้งเป็นลาออกแล้วจะไม่แสดงในตารางนี้',
-  commNote:'คอมมิชชั่นจะถูกรวมเข้าตารางเงินเดือนของ<b>เดือนตามวันที่ที่บันทึก</b>โดยอัตโนมัติ บันทึกทีละเคสไว้เลยจะได้ไม่ต้องคำนวณตอนสิ้นเดือน หากแก้ช่องคอมมิชชั่นในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้',
+  commNote:'<b>กดวันที่ในปฏิทิน</b> รายการของวันนั้นจะเปิดด้านล่าง แก้หรือลบได้ทันที<br>ใส่ <b>ยอดขาย</b> แล้วคอมมิชชั่นจะคิดตามอัตรา (% ด้านบน) ให้อัตโนมัติ ถ้า<b>ใส่ยอดคอมมิชชั่นเอง</b> ระบบจะใช้ยอดนั้น (เช่นโบนัสที่ไม่ผูกกับยอดขาย)<br><b>📷 วางข้อความจากรูป</b> — ถ่ายบันทึกในกระดาษแล้วแปลงเป็นข้อความ วางลงไปเพื่อบันทึกหลายรายการพร้อมกัน ตรวจและแก้ในตารางก่อนบันทึกได้<br>คอมมิชชั่นจะรวมเข้าตารางเงินเดือนของ<b>เดือนตามวันที่ที่บันทึก</b> หากแก้ช่องคอมมิชชั่นในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้',
   editNote:'กด <b>✎</b> ข้างบันทึก หรือคลิกช่องสีในตารางรายเดือน เพื่อแก้ไขบันทึกนั้น',
   /* ── สีตามคะแนน ── */
   lgScore:'สีตามคะแนนทัศนคติ', lgSv0:'ดีเยี่ยม 4.5+', lgSv1:'ปกติ 3.5~4.4',
@@ -1334,6 +1418,16 @@ const I={
   bcNoLink:'อ่านตารางจองไม่ได้ กรุณาตรวจว่ารัน SQL patch-09 แล้ว และเข้าสู่ระบบเป็นผู้ดูแล',
   bcNote:'คำนวณคอมมิชชั่นอัตโนมัติจาก<b>รายการเข้ารับบริการที่พนักงานบันทึกไว้ในตารางจอง</b> — ไม่ต้องกรอกยอดขายซ้ำที่นี่<br>นับเฉพาะรายการที่สถานะเป็น <b>มา (방문)</b> รายการที่จองไว้หรือยกเลิกจะไม่ถูกนับ<br>ช่อง <b>จ่ายจริง</b> ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง เมื่อใส่แล้วช่องจะเป็นสีเหลืองและใช้ยอดนั้นคำนวณ <b>ตารางจองต้นฉบับไม่ถูกแก้</b><br>ถ้า<b>ทำหลายคน</b> ค่าเริ่มต้นคือแบ่งเท่ากัน ใส่ตัวเลขในช่องเล็กข้างชื่อเพื่อกำหนดสัดส่วนเอง (เช่น 60 กับ 40)<br>ตัวเลขสองบรรทัดใน<b>ช่องวันที่</b> คือยอดฐานและคอมมิชชั่นรวมของวันนั้น ใช้เทียบกับบันทึกในกระดาษได้<br>ยอดรวมรายคนจะเข้าไปใน<b>ช่องคอมมิชชั่นของตารางเงินเดือน</b> โดยอัตโนมัติ ถ้าแก้ในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้',
   opComm2:'คอมมิชชั่นอัตโนมัติ',
+  /* ── ปฏิทินคอมมิชชั่น · วางข้อความ ── */
+  cmSale:'ยอดขาย', cmPayout:'คอมมิชชั่น (฿)', cmSaleSum:'ยอดขายรวม',
+  cmPayoutHint:'เว้นว่างไว้จะคิดจากยอดขาย × อัตรา ถ้าใส่เองจะใช้ยอดที่ใส่',
+  cmDayNone:'วันนี้ยังไม่มีรายการ เพิ่มด้านล่างได้เลย',
+  cmPasteBtn:'📷 วางข้อความจากรูป', cmPasteTitle:'วางข้อความจากรูปเพื่อบันทึกทีเดียว',
+  cmPasteParseBtn:'อ่านข้อความ', cmPasteSaveBtn:'บันทึก', cmPasteReady:'แถวที่บันทึกได้',
+  cmPasteWho:'ชื่อผู้ทำ', cmPasteDone:'บันทึกคอมมิชชั่นแล้ว ·',
+  cmReapplyBtn:'ใช้อัตรานี้กับเดือนนี้', cmReapplyNone:'ไม่มีรายการที่ต้องคำนวณใหม่',
+  cmReapplyAsk:'คำนวณรายการที่มียอดขายของเดือนนี้ใหม่ด้วยอัตรานี้หรือไม่?',
+  cmPasteHow:'ถ่ายรูปบันทึกในกระดาษแล้ว<b>แปลงเป็นข้อความ</b> จากนั้นวางด้านล่าง <b>หนึ่งบรรทัด = หนึ่งรายการ</b><br>แยกช่องด้วย <b>แท็บ · จุลภาค · ขีดตั้ง(|) · เว้นวรรคสองครั้งขึ้นไป</b> แนะนำลำดับ <b>วันที่ · รายละเอียด · ยอดขาย · ผู้ทำ</b> แต่ถ้าสลับที่กันระบบก็หาตัวเลขและชื่อผู้ทำให้เอง<br>วันที่ใส่แค่ <b>วัน (16)</b> ก็ได้ ถ้ามีผู้ทำสองคนให้คั่นด้วย<b>จุลภาค</b> ระบบจะแบ่งยอดให้<br><span style="font-family:\'IBM Plex Mono\',monospace;font-size:11px;display:inline-block;margin-top:4px;background:#F7F9F8;padding:6px 9px;border-radius:3px">16 | นวอ่า HIFU 8000 | 1890 | Bew<br>17 | มผ์ ท้อง+แขน | 5094 | Bew, Muay</span><br>หลังอ่านแล้ว <b>แก้ในตารางได้ทันที</b> และถ้าเอาเครื่องหมายถูกออก แถวนั้นจะไม่ถูกบันทึก',
   fcRent:'ค่าเช่า', fcUtil:'ค่าน้ำค่าไฟ', fcTel:'อินเทอร์เน็ต · โทรศัพท์', fcIns:'ประกัน',
   fcSub:'บริการรายเดือน', fcTax:'ภาษี', fcEtc:'อื่นๆ',
   ecSupply:'วัสดุสิ้นเปลือง', ecStock:'สินค้า · สต็อก', ecEquip:'อุปกรณ์ · ซ่อมแซม',
@@ -1595,6 +1689,10 @@ async function loadAll(){
   data.commissions=(c.data||[]).map(x=>({
     id:x.id,_sid:x.staff_id,staff:nm(x.staff_id),date:x.date,
     amount:Number(x.amount||0),memo:x.memo||'',lid:x.legacy_id||null,
+    sale:x.sale_amount==null?null:Number(x.sale_amount),
+    rate:x.rate==null?null:Number(x.rate),
+    share:x.share==null?null:Number(x.share),
+    src:x.src||'',
     seq:x.created_at?new Date(x.created_at).getTime():0}));
 
   data.warnings=(w.data||[]).map(x=>({
@@ -3383,39 +3481,345 @@ $('payTable').addEventListener('click',async e=>{
 });
 $('payPrint').addEventListener('click',()=>printAs('landscape'));
 
+/* ══════════ 커미션 — 달력 · 날짜별 내역 · 사진 붙여넣기 (관리자) ══════════ */
+let cmSel='';                       // 달력에서 고른 날짜 (YYYY-MM-DD)
+const cmRate=()=>commRate();        // 자동 커미션과 같은 비율을 씁니다
+/** 그 건의 지급액 — 판매금액이 있으면 비율로 계산, 없으면 넣어 둔 금액 그대로 */
+const cmPayoutOf=c=>{
+  if(c.sale==null)return Number(c.amount||0);
+  const r=c.rate==null?cmRate():Number(c.rate);
+  const sh=c.share==null?1:Number(c.share);
+  return money2(Number(c.sale)*r/100*sh);
+};
+const cmOfDate=d=>(data.commissions||[]).filter(c=>c.date===d)
+  .sort((a,b)=>(a.seq||0)-(b.seq||0));
+const cmOfMonth=m=>(data.commissions||[]).filter(c=>(c.date||'').startsWith(m));
+
 function renderComm(){
   renderBkComm();
+  // 표 안에 포커스가 남은 채로 갈아끼우면 크롬이 예외를 던집니다
+  const ae=document.activeElement;
+  if(ae&&ae.closest&&ae.closest('#cmDay'))ae.blur();
   const m=$('payMonth').value||todayISO().slice(0,7);
-  const list=(data.commissions||[]).filter(c=>(c.date||'').startsWith(m))
-    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.seq||0)-(a.seq||0));
-  const total=list.reduce((a,c)=>a+Number(c.amount||0),0);
-  $('cmList').innerHTML=list.length?`<table>
-    <thead><tr><th style="width:110px">${t('lDate')}</th><th style="width:22%">${t('cStaff')}</th>
-      <th>${t('lReason')}</th><th class="num" style="width:110px">${t('lAmount')}</th><th style="width:38px"></th></tr></thead>
-    <tbody>${list.map(c=>`<tr>
-      <td class="num" style="text-align:left">${c.date}</td>
-      <td><b>${esc(c.staff)}</b></td>
-      <td style="color:var(--ink-soft)">${esc(c.memo||'')}</td>
-      <td class="num"><b>${money(c.amount)}</b></td>
-      <td style="text-align:right"><button class="del" data-cmdel="${c.id}">×</button></td></tr>`).join('')}</tbody>
-    <tfoot><tr><th colspan="3" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('commTotal')}</th>
-      <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:13.5px">${money(total)}</th>
-      <th style="border-top:1px solid var(--ink);border-bottom:none"></th></tr></tfoot></table>`
+  if(document.activeElement!==$('cmRate'))$('cmRate').value=cmRate();
+  if(!cmSel||!cmSel.startsWith(m))cmSel=m+'-'+pad(Math.min(new Date().getDate(),daysInMonth(m)));
+  const list=cmOfMonth(m);
+  const total=money2(list.reduce((a,c)=>a+cmPayoutOf(c),0));
+  const sale=list.reduce((a,c)=>a+Number(c.sale||0),0);
+  $('cmStat').innerHTML=`${t('commTotal')} <b>${money(total)}</b>`
+    +(sale?`<span style="font-weight:400;color:var(--ink-soft);font-size:11px"> · ${t('cmSaleSum')} ${money(sale)}</span>`:'');
+
+  /* ── 달력 ── */
+  const [Y,MM]=m.split('-').map(Number);
+  const first=new Date(Y,MM-1,1).getDay(), dim=daysInMonth(m);
+  const byDay={};
+  list.forEach(c=>{const d=c.date;(byDay[d]=byDay[d]||{n:0,v:0,who:new Set()});
+    byDay[d].n++; byDay[d].v+=cmPayoutOf(c); byDay[d].who.add(c.staff);});
+  let cells='';
+  for(let i=0;i<first;i++)cells+=`<div class="cmcell out"></div>`;
+  for(let d=1;d<=dim;d++){
+    const iso=m+'-'+pad(d), x=byDay[iso], w=new Date(Y,MM-1,d).getDay();
+    cells+=`<div class="cmcell${x?' has':''}${cmSel===iso?' sel':''}${w===0?' su':w===6?' sa':''}"
+      data-cmday="${iso}" role="button" tabindex="0">
+      <span class="d">${d}</span>
+      ${x?`<span class="v">${money(money2(x.v))}</span><span class="n">${x.n}${t('cntRec')}</span>`:''}
+    </div>`;
+  }
+  $('cmCal').innerHTML=`<div class="cmcal">
+    <div class="cmhead">${DOW[LANG].map((w,i)=>
+      `<div class="${i===0?'su':i===6?'sa':''}">${w}</div>`).join('')}</div>
+    <div class="cmgrid">${cells}</div></div>`;
+
+  /* ── 고른 날짜의 내역 ── */
+  const day=cmOfDate(cmSel);
+  const dTot=money2(day.reduce((a,c)=>a+cmPayoutOf(c),0));
+  $('cmDay').innerHTML=`<div class="cmdayhd">
+      <b>${cmSel}</b> <span>${day.length}${t('cntRec')} · ${money(dTot)}</span></div>`
+    +(day.length?`<div style="overflow-x:auto"><table>
+      <thead><tr>
+        <th style="width:20%">${t('cStaff')}</th>
+        <th>${t('lReason')}</th>
+        <th class="num" style="width:15%">${t('cmSale')}</th>
+        <th class="num" style="width:9%">%</th>
+        <th class="num" style="width:15%">${t('cmPayout')}</th>
+        <th style="width:38px"></th></tr></thead>
+      <tbody>${day.map(c=>`<tr>
+        <td><b>${esc(c.staff)}</b>${c.share!=null&&c.share!==1
+          ?`<br><span class="cmshare">${Math.round(c.share*100)}%</span>`:''}</td>
+        <td><input type="text" data-cm="memo" data-id="${c.id}" value="${esc(c.memo||'')}"
+          placeholder="${t('memoPhShort')}" style="width:100%"></td>
+        <td><input type="number" step="10" min="0" data-cm="sale" data-id="${c.id}"
+          value="${c.sale==null?'':c.sale}" placeholder="—"
+          style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
+        <td class="num" style="font-size:11.5px;color:var(--ink-soft)">${
+          c.sale==null?'—':(c.rate==null?cmRate():c.rate)+'%'}</td>
+        <td><input type="number" step="1" min="0" data-cm="amount" data-id="${c.id}"
+          value="${c.sale==null?c.amount:''}" placeholder="${c.sale==null?'':cmPayoutOf(c)}"
+          title="${t('cmPayoutHint')}"
+          style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace;font-weight:700"></td>
+        <td style="text-align:right"><button class="del" data-cmdel="${c.id}">×</button></td></tr>`).join('')}</tbody>
+      </table></div>`
+    :`<div class="empty">${t('cmDayNone')}</div>`);
+  $('cmDate').value=cmSel;
+
+  /* ── 이 달 전체 목록 (직원별 합계) ── */
+  const per=new Map();
+  list.forEach(c=>{const k=c.staff;const cur=per.get(k)||{n:0,v:0};cur.n++;cur.v+=cmPayoutOf(c);per.set(k,cur);});
+  $('cmList').innerHTML=per.size?`<div style="overflow-x:auto"><table>
+    <thead><tr><th style="width:34%">${t('cStaff')}</th>
+      <th class="num" style="width:22%">${t('bcCount')}</th>
+      <th class="num" style="width:44%">${t('commTotal')}</th></tr></thead>
+    <tbody>${[...per.entries()].sort((a,b)=>b[1].v-a[1].v).map(([k,v])=>`<tr>
+      <td><b>${esc(k)}</b></td><td class="num">${v.n}${t('cntRec')}</td>
+      <td class="num"><b class="pay-est">${money(money2(v.v))}</b></td></tr>`).join('')}</tbody>
+    <tfoot><tr>
+      <th style="border-top:1px solid var(--ink);border-bottom:none">${t('payTotalRow')}</th>
+      <th class="num" style="border-top:1px solid var(--ink);border-bottom:none">${list.length}${t('cntRec')}</th>
+      <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:14px">${money(total)}</th>
+    </tr></tfoot></table></div>`
     :`<div class="empty">${t('commNone')}</div>`;
 }
+
+/* 달력에서 날짜 고르기 */
+$('cmCal').addEventListener('click',e=>{
+  const c=e.target.closest('[data-cmday]'); if(!c)return;
+  cmSel=c.dataset.cmday; renderComm();
+});
+$('cmCal').addEventListener('keydown',e=>{
+  if(e.key!=='Enter'&&e.key!==' ')return;
+  const c=e.target.closest('[data-cmday]'); if(!c)return;
+  e.preventDefault(); cmSel=c.dataset.cmday; renderComm();
+});
+$('cmRate').addEventListener('change',async()=>{
+  const v=Math.max(0,Math.min(100,Number($('cmRate').value||0)));
+  $('cmRate').value=v;
+  await saveCommCfg({rate:v});
+  renderComm();
+});
+/* 비율을 바꿔도 이미 넣어 둔 건은 그때 적용한 비율을 그대로 씁니다
+   (지난달 급여가 나중에 바뀌면 안 되니까요). 이 달 것만 다시 계산하려면 이 버튼. */
+$('cmReapply').addEventListener('click',async()=>{
+  const m=$('payMonth').value||todayISO().slice(0,7);
+  const rate=cmRate();
+  const targets=cmOfMonth(m).filter(c=>c.sale!=null&&c.rate!==rate);
+  if(!targets.length){bkSay(t('cmReapplyNone'),'var(--ink-soft)');return;}
+  if(!confirm(`${m} · ${targets.length}${t('cntRec')}\n\n${t('cmReapplyAsk')} ${rate}%`))return;
+  for(const c of targets){
+    c.rate=rate; c.amount=cmPayoutOf(c);
+    const r=await op(t('opComm'),()=>sb.from('staff_commissions')
+      .update({rate,amount:c.amount}).eq('id',c.id));
+    if(!r.ok)break;
+  }
+  renderComm(); renderPay();
+  bkSay(`✓ ${targets.length}${t('cntRec')} · ${rate}%`,'var(--jade)');
+});
+/* 날짜별 내역 직접 고치기 */
+$('cmDay').addEventListener('change',async e=>{
+  const el=e.target.closest('[data-cm]'); if(!el)return;
+  const c=(data.commissions||[]).find(x=>String(x.id)===String(el.dataset.id)); if(!c)return;
+  const k=el.dataset.cm, raw=el.value.trim();
+  const patch={};
+  if(k==='memo'){c.memo=el.value;patch.memo=c.memo;}
+  else if(k==='sale'){
+    c.sale=raw===''?null:Math.max(0,Number(raw));
+    patch.sale_amount=c.sale;
+    if(c.sale!=null){ if(c.rate==null)c.rate=cmRate(), patch.rate=c.rate;
+                      c.amount=cmPayoutOf(c); patch.amount=c.amount; }
+  }
+  else if(k==='amount'){
+    if(raw===''){ if(c.sale!=null){c.amount=cmPayoutOf(c);patch.amount=c.amount;} }
+    else { c.amount=Math.max(0,Number(raw)); patch.amount=c.amount;
+           c.sale=null; c.rate=null; patch.sale_amount=null; patch.rate=null; }
+  }
+  renderComm(); renderPay();
+  await op(t('opComm'),()=>sb.from('staff_commissions').update(patch).eq('id',c.id));
+});
+
 $('cmAdd').addEventListener('click',async()=>{
-  const amt=Number($('cmAmt').value||0);
-  if(!amt){$('cmAmt').focus();return;}
+  const saleRaw=$('cmSale').value.trim();
+  const sale=saleRaw===''?null:Math.max(0,Number(saleRaw));
+  let amt=Number($('cmAmt').value||0);
+  if(sale!=null&&!$('cmAmt').value.trim())amt=money2(sale*cmRate()/100);
+  if(!amt&&sale==null){$('cmSale').focus();return;}
   const name=$('cmStaff').value;
-  const row={staff_id:sidOf(name),date:$('cmDate').value||todayISO(),
-    amount:amt,memo:$('cmMemo').value.trim(),legacy_id:newLid('cm')};
+  const row={staff_id:sidOf(name),date:$('cmDate').value||cmSel||todayISO(),
+    amount:amt,memo:$('cmMemo').value.trim(),legacy_id:newLid('cm'),
+    sale_amount:sale,rate:sale==null?null:cmRate(),share:1,src:''};
   const res=await op(t('opComm'),()=>sb.from('staff_commissions').insert(row).select().single());
   if(res.ok&&res.data)data.commissions.push({id:res.data.id,_sid:row.staff_id,staff:name,
-    date:res.data.date,amount:amt,memo:row.memo,lid:res.data.legacy_id||row.legacy_id,seq:Date.now()});
-  $('cmAmt').value=''; $('cmMemo').value='';
+    date:res.data.date,amount:amt,memo:row.memo,lid:res.data.legacy_id||row.legacy_id,
+    sale:sale,rate:row.rate,share:1,src:'',seq:Date.now()});
+  $('cmAmt').value=''; $('cmMemo').value=''; $('cmSale').value='';
+  if(row.date)cmSel=row.date;
   renderComm(); renderPay();
 });
 $('cmMemo').addEventListener('keydown',e=>{if(e.key==='Enter')$('cmAdd').click();});
+$('cmSale').addEventListener('keydown',e=>{if(e.key==='Enter')$('cmAdd').click();});
+$('cmAmt').addEventListener('keydown',e=>{if(e.key==='Enter')$('cmAdd').click();});
+
+/* ══════════ 사진 → 텍스트 붙여넣기로 한 번에 넣기 ══════════
+   종이 기록을 찍어 글자로 옮긴 것을 그대로 붙여넣습니다.
+   한 줄 = 한 건. 칸은 탭 · 쉼표 · 세로줄(|) · 공백 두 칸 이상으로 나눕니다.
+     날짜   고객·시술            판매금액   담당자
+     16     나오아 HIFU 8000     1890      Bew
+     09-17  마페 배+팔           5094      Bew, Muay
+   날짜는 '일' 만 써도 되고 (위 달력의 달을 씁니다), 담당자는 여러 명이면 쉼표로.
+   숫자와 담당자는 자리가 바뀌어 있어도 알아서 찾습니다.                        */
+let cmPasteRows=[];
+/** 직원 이름 · 줄임말로 우리 직원 찾기 (예약장부 이름 잇기도 같이 씁니다) */
+function cmFindStaff(tok){
+  const s=String(tok||'').trim(); if(!s)return null;
+  return staffOfBkName(s)||autoMatch(s)||null;
+}
+const cmNum=s=>{
+  const x=String(s||'').replace(/[,\s฿]/g,'');
+  return /^\d+(\.\d+)?$/.test(x)?Number(x):null;
+};
+/** 한 줄을 날짜 · 금액 · 담당자 · 내용으로 나눕니다 */
+function cmParseLine(line,month){
+  const raw=line.replace(/ /g,' ').trim();
+  if(!raw)return null;
+  const cells=raw.split(/\t+|\s*\|\s*|\s*;\s*|,(?=\s)|\s{2,}/).map(x=>x.trim()).filter(x=>x!=='');
+  if(cells.length<2)return null;
+  let date=null,amount=null,names=[],rest=[];
+  const dim=daysInMonth(month);
+  cells.forEach((cell,i)=>{
+    const c=cell.trim();
+    // 날짜 — 2026-09-16 / 09-16 / 16 (맨 앞 칸일 때만 '일' 로 인정)
+    if(date==null){
+      let mm;
+      if((mm=c.match(/^(\d{4})[-./](\d{1,2})[-./](\d{1,2})$/)))
+        { date=`${mm[1]}-${pad(+mm[2])}-${pad(+mm[3])}`; return; }
+      if((mm=c.match(/^(\d{1,2})[-./](\d{1,2})$/)))
+        { date=`${month.slice(0,4)}-${pad(+mm[1])}-${pad(+mm[2])}`; return; }
+      if(i===0&&(mm=c.match(/^(\d{1,2})$/))&&+mm[1]>=1&&+mm[1]<=dim)
+        { date=`${month}-${pad(+mm[1])}`; return; }
+    }
+    // 담당자 — 쉼표/슬래시로 여러 명
+    const parts=c.split(/[,/·+]/).map(x=>x.trim()).filter(Boolean);
+    if(parts.length&&parts.every(x=>cmFindStaff(x))){
+      parts.forEach(x=>{const s=cmFindStaff(x);if(s&&!names.includes(s.name))names.push(s.name);});
+      return;
+    }
+    // 금액 — 숫자만 있는 칸 중 가장 큰 것
+    const n=cmNum(c);
+    if(n!=null){ if(amount==null||n>amount)amount=n; return; }
+    rest.push(c);
+  });
+  if(date==null)date=month+'-'+pad(1);
+  return {date,amount,names,memo:rest.join(' ').trim(),raw};
+}
+function cmParseAll(text,month){
+  const out=[];
+  String(text||'').split(/\r?\n/).forEach(l=>{
+    const r=cmParseLine(l,month);
+    if(r&&(r.amount!=null||r.names.length))out.push(r);
+  });
+  return out;
+}
+function renderCmPaste(){
+  // 표 안에 포커스가 남은 채로 갈아끼우면 크롬이 예외를 던집니다
+  const ae=document.activeElement;
+  if(ae&&ae.closest&&ae.closest('#cmPastePrev'))ae.blur();
+  const rate=cmRate();
+  const ok=cmPasteRows.filter(r=>r.use&&r.names.length&&r.amount>0);
+  const tot=money2(ok.reduce((a,r)=>a+r.amount*rate/100,0));
+  $('cmPasteStat').innerHTML=cmPasteRows.length
+    ? `${t('cmPasteReady')} <b>${ok.length}</b> / ${cmPasteRows.length}`
+      +`<span style="font-weight:400;color:var(--ink-soft);font-size:11px"> · ${t('commTotal')} ${money(tot)}</span>`
+    : '';
+  $('cmPasteSave').disabled=!ok.length;
+  if(!cmPasteRows.length){$('cmPastePrev').innerHTML='';return;}
+  $('cmPastePrev').innerHTML=`<table class="cmprev">
+    <thead><tr>
+      <th style="width:34px"></th>
+      <th style="width:100px">${t('lDate')}</th>
+      <th>${t('lReason')}</th>
+      <th class="num" style="width:96px">${t('cmSale')}</th>
+      <th style="width:150px">${t('cStaff')}</th>
+      <th class="num" style="width:88px">${rate}%</th></tr></thead>
+    <tbody>${cmPasteRows.map((r,i)=>{
+      const bad=!r.names.length||!(r.amount>0);
+      return `<tr class="${bad?'bad':''}${r.use?'':' off'}">
+        <td><input type="checkbox" data-pu="${i}"${r.use?' checked':''}></td>
+        <td><input type="date" data-pf="date" data-i2="${i}" value="${esc(r.date)}"></td>
+        <td><input type="text" data-pf="memo" data-i2="${i}" value="${esc(r.memo)}"
+          placeholder="${esc(r.raw.slice(0,40))}" style="width:100%"></td>
+        <td><input type="number" step="10" min="0" data-pf="amount" data-i2="${i}"
+          value="${r.amount==null?'':r.amount}" placeholder="—"
+          style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
+        <td><input type="text" data-pf="who" data-i2="${i}" value="${esc(r.names.join(', '))}"
+          placeholder="${t('cmPasteWho')}" style="width:100%"
+          class="${r.names.length?'':'warn'}"></td>
+        <td class="num" style="font-family:'IBM Plex Mono',monospace;font-size:12px">${
+          bad?'—':money(money2(r.amount*rate/100))}</td></tr>`;
+    }).join('')}</tbody></table>`;
+}
+$('cmPasteOpen').addEventListener('click',()=>{
+  const m=$('payMonth').value||todayISO().slice(0,7);
+  $('cmPasteMonth').value=m;
+  $('cmPasteText').value=''; cmPasteRows=[]; renderCmPaste();
+  $('cmPasteModal').classList.add('on');
+  setTimeout(()=>$('cmPasteText').focus(),50);
+});
+const cmPasteHide=()=>$('cmPasteModal').classList.remove('on');
+$('cmPasteClose').addEventListener('click',cmPasteHide);
+$('cmPasteCancel').addEventListener('click',cmPasteHide);
+$('cmPasteModal').addEventListener('click',e=>{if(e.target===$('cmPasteModal'))cmPasteHide();});
+$('cmPasteParse').addEventListener('click',()=>{
+  const m=$('cmPasteMonth').value||todayISO().slice(0,7);
+  cmPasteRows=cmParseAll($('cmPasteText').value,m).map(r=>({...r,use:true}));
+  renderCmPaste();
+});
+$('cmPastePrev').addEventListener('change',e=>{
+  const u=e.target.closest('[data-pu]');
+  if(u){cmPasteRows[+u.dataset.pu].use=u.checked;renderCmPaste();return;}
+  const f=e.target.closest('[data-pf]');
+  if(!f)return;
+  const r=cmPasteRows[+f.dataset.i2]; if(!r)return;
+  const k=f.dataset.pf;
+  if(k==='amount')r.amount=f.value.trim()===''?null:Math.max(0,Number(f.value));
+  else if(k==='who'){
+    r.names=f.value.split(/[,/·+]/).map(x=>x.trim()).filter(Boolean)
+      .map(x=>{const s=cmFindStaff(x);return s?s.name:null;}).filter(Boolean);
+  }
+  else r[k]=f.value;
+  renderCmPaste();
+});
+$('cmPasteSave').addEventListener('click',async()=>{
+  const rate=cmRate();
+  const ok=cmPasteRows.filter(r=>r.use&&r.names.length&&r.amount>0);
+  if(!ok.length)return;
+  $('cmPasteSave').disabled=true;
+  const rows=[];
+  ok.forEach(r=>{
+    const share=money2(1/r.names.length);
+    r.names.forEach(n=>rows.push({
+      staff_id:sidOf(n),date:r.date,
+      amount:money2(r.amount*rate/100/r.names.length),
+      memo:r.memo,sale_amount:r.amount,rate,share,src:'paste',
+      legacy_id:newLid('cm'),_name:n}));
+  });
+  let added=0;
+  for(const part of chunk(rows,200)){
+    const send=part.map(({_name,...x})=>x);
+    const res=await op(t('opComm'),()=>sb.from('staff_commissions').insert(send).select());
+    if(!res.ok){$('cmPasteSave').disabled=false;return;}
+    (res.data||[]).forEach((d,i)=>{
+      data.commissions.push({id:d.id,_sid:d.staff_id,staff:part[i]._name,date:d.date,
+        amount:Number(d.amount||0),memo:d.memo||'',lid:d.legacy_id||null,
+        sale:d.sale_amount==null?null:Number(d.sale_amount),
+        rate:d.rate==null?null:Number(d.rate),
+        share:d.share==null?null:Number(d.share),src:'paste',seq:Date.now()+i});
+      added++;
+    });
+  }
+  cmPasteHide();
+  if(ok.length)cmSel=ok[0].date;
+  renderComm(); renderPay();
+  $('cmPasteSave').disabled=false;
+  bkSay(`✓ ${t('cmPasteDone')} ${added}${t('cntRec')}`,'var(--jade)');
+});
 
 /* ══════════ 자동 커미션 — 예약장부 연동 (관리자) ══════════ */
 const GWBASIS=[['net','bcGwNet'],['gross','bcGwGross'],['none','bcGwNone']];
@@ -3633,7 +4037,7 @@ function downloadCsv(rows,name){
   a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
   a.download=name; a.click();
 }
-$('cmList').addEventListener('click',async e=>{
+$('cmDay').addEventListener('click',async e=>{
   const b=e.target.closest('[data-cmdel]'); if(!b)return;
   if(!confirm(t('confirmDel')))return;
   const id=b.dataset.cmdel;

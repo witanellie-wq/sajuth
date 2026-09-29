@@ -19,6 +19,7 @@ staff-attitude/
 ├── patch-07-reimburse.sql        사비 결제 · 정산 (결제자 · 정산일)
 ├── patch-08-payees.sql           기타 이체 계좌 (직원 외 — 건물주 · 거래처 …)
 ├── patch-09-commission.sql       자동 커미션 — 예약장부(부킹테이블) 연동
+├── patch-10-commission-lines.sql 커미션 — 판매금액 · 비율 저장 (달력 · 사진 붙여넣기용)
 ├── rename-person.sql             이름 · 직함을 모든 표에서 한꺼번에 바꾸기 (필요할 때만)
 ├── forms.js                      인사 서식 5종 (docx 원본에서 변환)
 ├── docs-source/                  서식 원본 docx · md (수정 시 여기를 고치고 재변환)
@@ -27,7 +28,7 @@ staff-attitude/
 ```
 
 > SQL 파일은 **번호 순서대로** 한 번씩 실행하면 됩니다. 여러 번 실행해도 안전합니다.
-> 처음부터 새로 세팅한다면 `schema.sql` → `patch-01` → `patch-02` → `patch-03` → `patch-04` → `patch-05` → `patch-06` → `patch-07` → `patch-08` → `patch-09` 순서입니다.
+> 처음부터 새로 세팅한다면 `schema.sql` → `patch-01` → `patch-02` → `patch-03` → `patch-04` → `patch-05` → `patch-06` → `patch-07` → `patch-08` → `patch-09` → `patch-10` 순서입니다.
 
 ---
 
