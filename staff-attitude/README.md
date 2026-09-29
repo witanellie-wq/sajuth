@@ -9,6 +9,7 @@ localStorage 로 저장하던 `staff-attitude-log_v6.html` 을 **Supabase 저장
 staff-attitude/
 ├── index.html                    앱 전체 (UI · 로직 · 스타일)
 ├── config.js                     Supabase 주소 / anon key / 계정 이메일  ← 여기만 채우면 됩니다
+├── setup-all.sql                 ★ patch-01~11 을 전부 합친 파일 — 이것 하나만 실행하면 됩니다
 ├── schema.sql                    테이블 · RLS · Realtime (최초 1회)
 ├── patch-01-restrict-access.sql  접근을 지정한 2개 계정으로 제한
 ├── patch-02-expenses.sql         지출 관리 (고정비 · 소모품) 테이블 추가
@@ -28,7 +29,12 @@ staff-attitude/
 └── .vercelignore
 ```
 
-> SQL 파일은 **번호 순서대로** 한 번씩 실행하면 됩니다. 여러 번 실행해도 안전합니다.
+> **가장 쉬운 방법: `setup-all.sql` 하나만 실행하세요.**
+> `schema.sql` 을 이미 돌린 뒤라면 `setup-all.sql` 전체를 SQL Editor 에 붙여넣고 [Run] 한 번이면 끝입니다.
+> 이미 있는 것은 건너뛰고, 기존 데이터는 건드리지 않으며, 여러 번 실행해도 안전합니다.
+> 맨 아래에 무엇이 설치됐는지 확인표가 나옵니다.
+>
+> 개별 파일을 따로 돌리셔도 됩니다 — 그때는 **번호 순서대로**.
 > 처음부터 새로 세팅한다면 `schema.sql` → `patch-01` → `patch-02` → `patch-03` → `patch-04` → `patch-05` → `patch-06` → `patch-07` → `patch-08` → `patch-09` → `patch-10` → `patch-11` 순서입니다.
 
 ---
