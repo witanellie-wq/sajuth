@@ -246,8 +246,11 @@
   .commchip{background:#fff;border:1px solid #CFE2DC;border-radius:20px;padding:4px 11px;
     font-size:11.5px;display:inline-flex;align-items:center;gap:6px;}
   .commchip b{font-family:'IBM Plex Mono',monospace;color:var(--jade);}
-  /* ── 빠른 하루치 입력 ── */
-  .quick{background:#F7F9F8;border:1px solid var(--line);border-radius:4px;
+  .verline{text-align:center;font-size:10.5px;color:var(--line);padding:14px 0 22px;
+    font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
+  .verline b{color:var(--ink-soft);font-weight:700;}
+  .verline.stale{color:var(--coral);font-size:12px;}
+  /* ── 빠른 하루치 입력 ── */  .quick{background:#F7F9F8;border:1px solid var(--line);border-radius:4px;
     padding:12px 13px;margin-top:12px;}
   .qdate{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
   .qdate input[type=date]{flex:0 0 auto;width:158px;padding:6px 9px;font-size:13px;
@@ -1131,6 +1134,9 @@
 <!-- ══ 분류 선택 드롭다운 ══ -->
 <div class="combo-pop" id="comboPop"></div>
 
+<!-- ══ 버전 — 주소가 옛 빌드에 고정됐는지 바로 알 수 있게 ══ -->
+<div class="verline no-print" id="verLine"></div>
+
 <!-- ══ 동기화 상태 ══ -->
 <div class="netbar no-print">
   <div class="neterr" id="netErr"></div>
@@ -1290,6 +1296,7 @@ const I={
   cmPasteBtn:'📷 사진에서 붙여넣기', cmPasteTitle:'사진에서 옮긴 글자로 한 번에 넣기',
   cmPasteParseBtn:'읽어들이기', cmPasteSaveBtn:'저장', cmPasteReady:'넣을 수 있는 줄',
   cmPasteWho:'담당자 이름', cmPasteDone:'커미션을 넣었습니다 ·',
+  verLabel:'버전',
   cmQTodayBtn:'오늘', cmQNeedWho:'담당자를 먼저 누르세요.',
   cmQHint:'<b>담당자를 누르고 금액만 치면 Enter 로 한 줄이 들어갑니다.</b> 담당자와 날짜는 그대로 남아서 같은 사람 건을 연달아 넣기 좋습니다.<br>담당자를 <b>두 명 이상</b> 누르면 금액을 나눠 갖습니다. <b>내용</b>은 안 써도 됩니다. 날짜는 <b>◀ ▶</b> 로 옮깁니다.',
   cmReapplyBtn:'이 달에 다시 적용', cmReapplyNone:'다시 계산할 건이 없습니다.',
@@ -1471,6 +1478,7 @@ const I={
   cmPasteBtn:'📷 วางข้อความจากรูป', cmPasteTitle:'วางข้อความจากรูปเพื่อบันทึกทีเดียว',
   cmPasteParseBtn:'อ่านข้อความ', cmPasteSaveBtn:'บันทึก', cmPasteReady:'แถวที่บันทึกได้',
   cmPasteWho:'ชื่อผู้ทำ', cmPasteDone:'บันทึกคอมมิชชั่นแล้ว ·',
+  verLabel:'เวอร์ชัน',
   cmQTodayBtn:'วันนี้', cmQNeedWho:'เลือกผู้ทำก่อน',
   cmQHint:'<b>กดชื่อผู้ทำแล้วพิมพ์แค่ยอด กด Enter ก็บันทึกหนึ่งรายการ</b> ผู้ทำและวันที่ยังค้างไว้ จึงใส่รายการของคนเดิมต่อกันได้เร็ว<br>กดผู้ทำ<b>ตั้งแต่สองคน</b> ระบบจะแบ่งยอดให้ · ช่อง<b>รายละเอียด</b>ไม่ใส่ก็ได้ · เปลี่ยนวันด้วย <b>◀ ▶</b>',
   cmReapplyBtn:'ใช้อัตรานี้กับเดือนนี้', cmReapplyNone:'ไม่มีรายการที่ต้องคำนวณใหม่',
@@ -1530,6 +1538,10 @@ const DEFAULT_STAFF=[
   {name:'잼 Jam',sched:'10:30',type:'정직원',off:[6]},
   {name:'뷰 Bew',sched:'10:30',type:'인턴'},{name:'미 Me',sched:'10:30',type:'정직원'}
 ];
+/* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
+   맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
+const APP_VER='v8';
+const APP_DATE='2026-09-29';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
                   fixedCosts:[],fixedPays:{},expenses:[],targets:{},wageHist:{},payees:[],
@@ -2075,6 +2087,9 @@ function applyI18n(){
   document.querySelectorAll('.lang button').forEach(b=>b.classList.toggle('on',b.dataset.lang===LANG));
   document.querySelectorAll('[data-i]').forEach(el=>el.textContent=t(el.dataset.i));
   document.querySelectorAll('[data-ih]').forEach(el=>el.innerHTML=t(el.dataset.ih));
+  /* 버전 — 이 숫자가 안 바뀌면 옛 빌드에 고정된 주소를 보고 있는 것입니다 */
+  const vl=$('verLine');
+  if(vl)vl.innerHTML=`${t('verLabel')} <b>${APP_VER}</b> · ${APP_DATE}`;
 }
 async function setLang(l,save_=true){
   LANG=l;
