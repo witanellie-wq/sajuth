@@ -1,5 +1,3 @@
--- ▼▼▼ 3/6 · 기타 이체 계좌 — 여기부터 전부 복사 ▼▼▼
-
 create table if not exists public.staff_payees (
   id           uuid primary key default gen_random_uuid(),
   name         text not null,
@@ -34,6 +32,4 @@ begin
   end if;
 end $$;
 alter table public.staff_payees replica identity full;
-
-select '3/6 기타 이체 계좌 — 완료' as "결과";
--- ▲▲▲ 3/6 끝 · 이 줄까지 보여야 합니다 ▲▲▲
+select '3/6 완료 · 기타 이체 계좌' as "결과";

@@ -1,5 +1,3 @@
--- ▼▼▼ 1/6 · 급여 인상 이력 — 여기부터 전부 복사 ▼▼▼
-
 create table if not exists public.staff_wage_history (
   id         uuid primary key default gen_random_uuid(),
   staff_id   uuid not null references public.staff_members(id) on delete cascade,
@@ -38,6 +36,4 @@ select m.id, '2000-01',
 from public.staff_members m
 where m.wage is not null and m.wage > 0
   and not exists (select 1 from public.staff_wage_history h where h.staff_id = m.id);
-
-select '1/6 급여 인상 이력 — 완료' as "결과";
--- ▲▲▲ 1/6 끝 · 이 줄까지 보여야 합니다 ▲▲▲
+select '1/6 완료 · 급여 인상 이력' as "결과";

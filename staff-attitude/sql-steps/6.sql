@@ -1,5 +1,3 @@
--- ▼▼▼ 6/6 · 커미션 시작일 — 여기부터 전부 복사 ▼▼▼
-
 alter table public.staff_comm_config
   add column if not exists start_date date;
 create table if not exists public.staff_comm_skip (
@@ -25,6 +23,4 @@ begin
   end if;
 end $$;
 alter table public.staff_comm_skip replica identity full;
-
-select '6/6 커미션 시작일 — 완료' as "결과";
--- ▲▲▲ 6/6 끝 · 이 줄까지 보여야 합니다 ▲▲▲
+select '6/6 완료 · 커미션 시작일' as "결과";

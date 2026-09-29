@@ -1,5 +1,3 @@
--- ▼▼▼ 4/6 · 자동 커미션 — 여기부터 전부 복사 ▼▼▼
-
 create table if not exists public.staff_comm_config (
   id            integer primary key default 1 check (id = 1),
   rate          numeric(6,3) not null default 3,
@@ -73,6 +71,4 @@ begin
     execute format('alter table public.%I replica identity full', tb);
   end loop;
 end $$;
-
-select '4/6 자동 커미션 — 완료' as "결과";
--- ▲▲▲ 4/6 끝 · 이 줄까지 보여야 합니다 ▲▲▲
+select '4/6 완료 · 자동 커미션' as "결과";
