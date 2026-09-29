@@ -39,6 +39,36 @@ staff-attitude/
 
 ---
 
+## SQL 실행하는 법 (까먹었을 때)
+
+**바로가기 —** 이 주소를 열면 빈 SQL 창이 바로 뜹니다:
+
+<https://supabase.com/dashboard/project/fxybjauokblmwhpupwzd/sql/new>
+
+**직접 찾아가려면:**
+
+1. <https://supabase.com> → 오른쪽 위 **Sign in** → 로그인
+2. 프로젝트 목록에서 **HANAHAYAN 프로젝트** 클릭
+3. 화면 **왼쪽 세로 메뉴**에서 **SQL Editor** (터미널 모양 `>_` 아이콘) 클릭
+4. 왼쪽 위 **`+ New query`** 클릭 → 빈 편집창이 열립니다
+
+**실행:**
+
+5. `setup-all.sql` 파일을 메모장/VS Code 로 열어 **전체 선택(Ctrl+A) → 복사(Ctrl+C)**
+6. 편집창 안을 클릭하고 **붙여넣기(Ctrl+V)**
+7. 오른쪽 아래 **`Run`** 버튼 클릭 (단축키: `Ctrl+Enter`, 맥은 `⌘+Enter`)
+8. "destructive operation" 경고가 뜨면 → **`I understand, run this query`** 클릭
+   (표를 지우는 게 아니라 정책을 다시 만드는 `drop policy` 때문에 뜨는 경고입니다)
+
+**확인:**
+
+9. 아래에 결과 표가 나옵니다. **전부 `✓ 있음`** 이면 끝입니다.
+10. 앱으로 돌아가 **새로고침(Ctrl+Shift+R)** → 노란 안내가 사라집니다
+
+> 빨간 글씨로 `ERROR` 가 나오거나 `✗ 없음` 이 남아 있으면 그 화면을 캡처해서 알려주세요.
+
+---
+
 ## 설치 — 4단계
 
 ### 1단계 · 테이블 만들기
