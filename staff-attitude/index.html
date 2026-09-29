@@ -217,6 +217,25 @@
   #pyTable input,#pyTable select{padding:6px 8px;font-size:13px;}
   #pyTable input[data-py="bankAcct"]{font-family:'IBM Plex Mono',monospace;}
   tr.py-off{opacity:.5;}
+  /* ── 자동 커미션 ── */
+  .bcwarn{background:#FBF4E3;border:1px solid #EBDCB6;border-radius:3px;padding:10px 12px;
+    font-size:12px;color:var(--amber);margin-top:10px;}
+  .bcmap{display:flex;align-items:center;gap:8px;margin:5px 0;flex-wrap:wrap;}
+  .bcmap select{padding:5px 8px;font-size:12.5px;min-width:160px;}
+  .bkname{font-weight:700;color:var(--ink);font-size:12px;}
+  .bctab td,.bctab th{vertical-align:middle;}
+  .bcdate{background:#F7F9F8;text-align:center;white-space:nowrap;}
+  .bcdsum{font-size:10px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;margin-top:3px;line-height:1.5;}
+  .bcsh{display:flex;align-items:center;gap:5px;padding:2px 0;flex-wrap:wrap;}
+  .bcsh.bad .bkname{color:var(--coral);}
+  .bcsh .mapped{font-size:10px;color:var(--ink-soft);}
+  .bcsh .bcamt{margin-left:auto;font-family:'IBM Plex Mono',monospace;font-size:12px;
+    font-weight:700;color:var(--jade);}
+  input.bcw{width:46px;text-align:right;padding:3px 5px;font-size:11px;
+    font-family:'IBM Plex Mono',monospace;}
+  input.bcw.on{background:#EEF5F3;font-weight:700;}
+  .gwtag{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:20px;
+    background:#EAF0F6;color:#4A6FA5;margin-top:2px;}
   .raise{font-size:10.5px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap;
     display:inline-block;margin-top:3px;}
   .raise.up{background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;}
@@ -672,6 +691,26 @@
   </section>
 
   <section class="panel adm-only" style="margin-top:20px">
+    <h2 data-i="bcTitle"></h2>
+    <div class="toolbar">
+      <label style="margin:0 2px 0 0;font-size:11.5px" data-i="bcRate"></label>
+      <input type="number" id="bcRate" min="0" max="100" step="0.1" style="width:78px;text-align:right">
+      <span style="font-size:12px;color:var(--ink-soft)">%</span>
+      <label style="margin:0 2px 0 12px;font-size:11.5px" data-i="bcGwBasis"></label>
+      <select id="bcGw" style="min-width:170px"></select>
+      <button class="ghost" id="bcReload" data-i="bcReloadBtn"></button>
+      <button class="ghost" id="bcPrint" data-i="print"></button>
+      <button class="ghost" id="bcCsv" data-i="bcCsvBtn"></button>
+      <span style="flex:1"></span>
+      <span class="paytot" id="bcStat"></span>
+    </div>
+    <div id="bcWarn"></div>
+    <div id="bcSum"></div>
+    <div id="bcList" style="margin-top:16px"></div>
+    <p class="note" data-ih="bcNote"></p>
+  </section>
+
+  <section class="panel adm-only" style="margin-top:20px">
     <h2 data-i="commTitle"></h2>
     <div class="hr-add no-print" style="margin-top:0;padding-top:0;border-top:none">
       <div class="field" style="width:150px;margin:0"><label data-i="lStaff"></label><select id="cmStaff"></select></div>
@@ -1097,6 +1136,23 @@ const I={
   tgNote:'<b>다음 달 목표</b>를 미리 적어두면 달이 바뀌어도 그대로 남습니다 — 월을 넘기면 자동으로 <b>이달 목표</b> 자리로 옮겨집니다.<br>예상 이익 = <b>목표 매출 − 이달 총지출</b>(급여 + 고정비 + 소모품). 목표보다 지출이 크면 붉게 표시됩니다.<br>사업장별로 따로 잡을 수 있고, 위쪽 <b>사업장</b> 선택으로 한쪽만 볼 수 있습니다.', fixBaseHint:'매달 기본으로 잡히는 금액입니다. 여기를 고치면 앞으로 모든 달에 적용됩니다.',
   fixThisHint:'이 달만 다른 금액일 때 넣으세요. 비워두면 기본 금액을 씁니다.',
   opFix:'고정비', opExp:'지출',
+  /* ── 자동 커미션 (예약장부 연동) ── */
+  bcTitle:'자동 커미션 · 예약장부 연동', bcRate:'커미션 비율', bcGwBasis:'고와비 기준',
+  bcGwNet:'수수료 뺀 실수령액', bcGwGross:'고객 결제 전액', bcGwNone:'커미션 제외',
+  bcReloadBtn:'예약장부 다시 읽기', bcCsvBtn:'커미션 CSV',
+  bcCount:'건수', bcSales:'담당 매출', bcComm:'커미션', bcBaseSum:'기준 매출',
+  bcGwCut:'고와비 수수료', bcNone:'이 달 예약장부에 방문 기록이 없습니다.',
+  bcCustomer:'고객', bcTreat:'시술', bcBooked:'예약장부', bcActual:'실제 결제',
+  bcBase:'기준금액', bcStaffShare:'담당자 · 몫',
+  bcOvrHint:'예약장부 금액과 실제 받은 돈이 다를 때만 넣으세요. 비우면 예약장부 금액을 씁니다.',
+  bcSplitHint:'둘이 나눌 비율. 비우면 똑같이 나눕니다 (예: 60 과 40)',
+  bcNoStaff:'담당자 없음', bcUnassigned:'담당자를 못 찾아 빠진 커미션',
+  bcUnmatched:'예약장부에 있는데 직원과 안 이어진 이름', bcPick:'직원 고르기',
+  bcIgnore:'커미션 주지 않음',
+  bcUnmatchedHint:'예약장부에 적힌 이름과 여기 직원 이름이 다르면 한 번만 이어 주세요. 다음부터 자동으로 기억합니다.',
+  bcNoLink:'예약장부를 읽지 못했습니다. patch-09 SQL 을 실행했는지, 관리자로 로그인했는지 확인해 주세요.',
+  bcNote:'<b>예약장부(부킹테이블)에 직원이 입력한 방문 기록</b>에서 커미션을 자동으로 계산합니다 — 매출을 여기에 다시 입력하지 않으셔도 됩니다.<br>상태가 <b>방문</b>인 건만 계산에 들어갑니다. 예약·취소 건은 빠집니다.<br><b>실제 결제</b> 칸은 예약장부 금액과 실제로 받은 돈이 다를 때만 넣으세요 — 넣으면 노랗게 표시되고 그 금액으로 계산됩니다. <b>예약장부 원본은 바뀌지 않습니다.</b><br>한 건을 <b>여러 명이 했을 때</b>는 기본이 똑같이 나누기이고, 옆의 작은 칸에 숫자를 넣으면 그 비율로 나뉩니다 (예: 60 과 40).<br>왼쪽 <b>날짜 칸의 두 숫자</b>는 그날의 기준 매출과 커미션 합계입니다 — 종이 기록과 대조해 보세요.<br>여기서 나온 직원별 합계는 위 <b>급여표의 커미션 칸</b>에 자동으로 들어갑니다. 급여표에서 직접 고쳐 쓰면 그 값이 우선합니다.',
+  opComm2:'자동 커미션',
   fcRent:'임대료', fcUtil:'공과금', fcTel:'통신', fcIns:'보험', fcSub:'구독 · 서비스', fcTax:'세금', fcEtc:'기타',
   ecSupply:'소모품', ecStock:'제품 · 재고', ecEquip:'장비 · 수리', ecMkt:'마케팅', ecFee:'세금 · 수수료', ecEtc:'기타',
   /* ── 기타 이체 계좌 (직원 외) ── */
@@ -1246,6 +1302,23 @@ const I={
   tgNote:'ใส่ <b>เป้าเดือนหน้า</b> ไว้ล่วงหน้าได้ พอขึ้นเดือนใหม่ระบบจะเลื่อนมาเป็น <b>เป้าเดือนนี้</b> ให้เอง<br>กำไรคาดการณ์ = <b>เป้ายอดขาย − รายจ่ายรวมของเดือน</b> (เงินเดือน + ค่าใช้จ่ายประจำ + วัสดุ) ถ้ารายจ่ายมากกว่าเป้าจะแสดงเป็นสีแดง<br>ตั้งแยกตามกิจการได้ และเลือกดูเฉพาะกิจการเดียวได้จากช่อง <b>กิจการ</b> ด้านบน', fixBaseHint:'ยอดที่ใช้เป็นค่าเริ่มต้นทุกเดือน แก้ตรงนี้จะมีผลกับทุกเดือนต่อไป',
   fixThisHint:'ใส่เมื่อเดือนนี้ยอดต่างจากปกติ เว้นว่างไว้จะใช้ยอดตั้งต้น',
   opFix:'ค่าใช้จ่ายประจำ', opExp:'ค่าใช้จ่าย',
+  /* ── คอมมิชชั่นอัตโนมัติ (เชื่อมกับตารางจอง) ── */
+  bcTitle:'คอมมิชชั่นอัตโนมัติ · เชื่อมตารางจอง', bcRate:'อัตราคอมมิชชั่น', bcGwBasis:'เกณฑ์ GoWabi',
+  bcGwNet:'ยอดสุทธิหลังหักค่าธรรมเนียม', bcGwGross:'ยอดที่ลูกค้าจ่ายทั้งหมด', bcGwNone:'ไม่คิดคอมมิชชั่น',
+  bcReloadBtn:'อ่านตารางจองใหม่', bcCsvBtn:'CSV คอมมิชชั่น',
+  bcCount:'จำนวน', bcSales:'ยอดที่ทำ', bcComm:'คอมมิชชั่น', bcBaseSum:'ยอดฐาน',
+  bcGwCut:'ค่าธรรมเนียม GoWabi', bcNone:'เดือนนี้ยังไม่มีรายการเข้ารับบริการในตารางจอง',
+  bcCustomer:'ลูกค้า', bcTreat:'บริการ', bcBooked:'ตารางจอง', bcActual:'จ่ายจริง',
+  bcBase:'ยอดฐาน', bcStaffShare:'ผู้ทำ · ส่วนแบ่ง',
+  bcOvrHint:'ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง เว้นว่างไว้จะใช้ยอดในตารางจอง',
+  bcSplitHint:'สัดส่วนแบ่งกัน เว้นว่างไว้จะแบ่งเท่ากัน (เช่น 60 กับ 40)',
+  bcNoStaff:'ไม่ได้ระบุผู้ทำ', bcUnassigned:'คอมมิชชั่นที่ตกหล่นเพราะหาผู้ทำไม่เจอ',
+  bcUnmatched:'ชื่อในตารางจองที่ยังไม่ได้จับคู่กับพนักงาน', bcPick:'เลือกพนักงาน',
+  bcIgnore:'ไม่ให้คอมมิชชั่น',
+  bcUnmatchedHint:'ถ้าชื่อในตารางจองไม่ตรงกับชื่อพนักงานที่นี่ ให้จับคู่ครั้งเดียว ครั้งต่อไประบบจะจำให้',
+  bcNoLink:'อ่านตารางจองไม่ได้ กรุณาตรวจว่ารัน SQL patch-09 แล้ว และเข้าสู่ระบบเป็นผู้ดูแล',
+  bcNote:'คำนวณคอมมิชชั่นอัตโนมัติจาก<b>รายการเข้ารับบริการที่พนักงานบันทึกไว้ในตารางจอง</b> — ไม่ต้องกรอกยอดขายซ้ำที่นี่<br>นับเฉพาะรายการที่สถานะเป็น <b>มา (방문)</b> รายการที่จองไว้หรือยกเลิกจะไม่ถูกนับ<br>ช่อง <b>จ่ายจริง</b> ใส่เฉพาะเมื่อยอดจริงต่างจากตารางจอง เมื่อใส่แล้วช่องจะเป็นสีเหลืองและใช้ยอดนั้นคำนวณ <b>ตารางจองต้นฉบับไม่ถูกแก้</b><br>ถ้า<b>ทำหลายคน</b> ค่าเริ่มต้นคือแบ่งเท่ากัน ใส่ตัวเลขในช่องเล็กข้างชื่อเพื่อกำหนดสัดส่วนเอง (เช่น 60 กับ 40)<br>ตัวเลขสองบรรทัดใน<b>ช่องวันที่</b> คือยอดฐานและคอมมิชชั่นรวมของวันนั้น ใช้เทียบกับบันทึกในกระดาษได้<br>ยอดรวมรายคนจะเข้าไปใน<b>ช่องคอมมิชชั่นของตารางเงินเดือน</b> โดยอัตโนมัติ ถ้าแก้ในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้',
+  opComm2:'คอมมิชชั่นอัตโนมัติ',
   fcRent:'ค่าเช่า', fcUtil:'ค่าน้ำค่าไฟ', fcTel:'อินเทอร์เน็ต · โทรศัพท์', fcIns:'ประกัน',
   fcSub:'บริการรายเดือน', fcTax:'ภาษี', fcEtc:'อื่นๆ',
   ecSupply:'วัสดุสิ้นเปลือง', ecStock:'สินค้า · สต็อก', ecEquip:'อุปกรณ์ · ซ่อมแซม',
@@ -1302,7 +1375,10 @@ const DEFAULT_STAFF=[
 ];
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
-                  fixedCosts:[],fixedPays:{},expenses:[],targets:{},wageHist:{},payees:[]});
+                  fixedCosts:[],fixedPays:{},expenses:[],targets:{},wageHist:{},payees:[],
+                  bookings:[],bkRoster:[],gwRate:null,
+                  commCfg:{rate:3,gowabiBasis:'net',minAmount:0},
+                  nameMap:{},commSplit:{},commOvr:{}});
 let data=EMPTY();
 const EMPTYPES=[['정직원','tRegular'],['수습','tProbation'],['인턴','tIntern'],['알바','tPart']];
 /* 지출 분류 — [한국어, 태국어] (DB 에는 한국어 값이 들어갑니다) */
@@ -1451,7 +1527,13 @@ async function loadAll(){
   if(!sb)return;
   const q=(tb,fn)=>op(t('opLoad')+' · '+tb,fn,false);
   const admQ=(tb,fn)=>isAdmin?q(tb,fn):Promise.resolve({ok:true,data:[]});
-  const [m,r,p,c,w,e,fc,fp,ex,tg,wh,py]=await Promise.all([
+  /* 예약장부(bookings · staff · settings)는 다른 앱의 표입니다.
+     아직 안 만들어졌거나 권한이 없을 수도 있으므로, 실패해도 전체 불러오기를
+     망치지 않게 조용히 빈 값으로 넘깁니다 (화면에 따로 안내가 뜹니다). */
+  const softQ=fn=>!isAdmin?Promise.resolve({ok:true,data:[]})
+    :Promise.resolve().then(fn).then(r=>r&&r.error?{ok:false,data:[],error:r.error}:{ok:true,data:r?r.data:[]})
+     .catch(e=>({ok:false,data:[],error:e}));
+  const [m,r,p,c,w,e,fc,fp,ex,tg,wh,py,cc,nmp,csp,cov,bk,bkr,bks]=await Promise.all([
     q('staff_members',()=>sb.from('staff_members').select('*')
         .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
     q('staff_records',()=>sb.from('staff_records').select('*')
@@ -1469,7 +1551,15 @@ async function loadAll(){
     admQ('staff_wage_history',()=>sb.from('staff_wage_history').select('*')
         .order('from_month',{ascending:true}).limit(LIM)),
     admQ('staff_payees',()=>sb.from('staff_payees').select('*')
-        .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM))
+        .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
+    admQ('staff_comm_config',()=>sb.from('staff_comm_config').select('*').limit(1)),
+    admQ('staff_name_map',()=>sb.from('staff_name_map').select('*').limit(LIM)),
+    admQ('staff_comm_split',()=>sb.from('staff_comm_split').select('*').limit(LIM)),
+    admQ('staff_comm_override',()=>sb.from('staff_comm_override').select('*').limit(LIM)),
+    /* ── 예약장부 (다른 앱의 표) ── */
+    softQ(()=>sb.from('bookings').select('id,data').limit(LIM)),
+    softQ(()=>sb.from('staff').select('name,sort_order').order('sort_order',{ascending:true})),
+    softQ(()=>sb.from('settings').select('key,value'))
   ]);
   if(!m.ok)return false;
 
@@ -1539,6 +1629,26 @@ async function loadAll(){
     id:x.id,name:x.name,biz:x.biz||DEF_BIZ,category:x.category||'기타',
     bankName:x.bank_name||'',bankAcct:x.bank_account||'',bankHolder:x.bank_holder||'',
     memo:x.memo||'',active:x.active!==false,sortOrder:x.sort_order??0,lid:x.legacy_id||null}));
+
+  /* ── 자동 커미션 규칙 ── */
+  const cfg=(cc.data||[])[0]||{};
+  data.commCfg={rate:cfg.rate==null?3:Number(cfg.rate),
+                gowabiBasis:cfg.gowabi_basis||'net',
+                minAmount:Number(cfg.min_amount||0)};
+  data.nameMap={};
+  (nmp.data||[]).forEach(x=>{if(x.staff_id)data.nameMap[x.booking_name]=x.staff_id;});
+  data.commSplit={};
+  (csp.data||[]).forEach(x=>{data.commSplit[x.booking_id+'|'+x.booking_name]=Number(x.share||0);});
+  data.commOvr={};
+  (cov.data||[]).forEach(x=>{data.commOvr[x.booking_id]={
+    amount:x.amount==null?null:Number(x.amount),memo:x.memo||''};});
+
+  /* ── 예약장부 ── */
+  data.bkOk=bk.ok;
+  data.bookings=(bk.data||[]).map(x=>({...(x.data||{}),id:x.id}));
+  data.bkRoster=(bkr.data||[]).map(x=>x.name).filter(Boolean);
+  const smap={}; (bks.data||[]).forEach(x=>{smap[x.key]=x.value;});
+  data.gwRate=smap.gowabi_rate==null?null:Number(smap.gowabi_rate)||0;
 
   return true;
 }
@@ -1616,7 +1726,9 @@ function subscribeLive(){
   const tables=['staff_members','staff_records','staff_evals']
     .concat(isAdmin?['staff_payroll','staff_commissions','staff_warnings',
                      'staff_fixed_costs','staff_fixed_payments','staff_expenses','staff_targets',
-                     'staff_wage_history','staff_payees']:[]);
+                     'staff_wage_history','staff_payees',
+                     'staff_comm_config','staff_name_map','staff_comm_split','staff_comm_override',
+                     'bookings']:[]);
   tables.forEach(tb=>ch.on('postgres_changes',{event:'*',schema:'public',table:tb},scheduleReload));
   ch.subscribe(st=>{
     if(st==='SUBSCRIBED'){liveCh=ch;setNet('live');}
@@ -1689,6 +1801,83 @@ function stat(name,month){
 }
 
 /* ══════════ 급여 · 커미션 ══════════ */
+/* ── 자동 커미션 — 예약장부(다른 앱)의 '방문' 기록에서 계산합니다 ──────────
+   예약장부 1건에는 담당자(여러 명 가능) · 결제금액 · 방문여부가 들어 있습니다.
+   그걸 읽어 커미션을 내므로 매출을 여기에 다시 입력하지 않습니다.
+     기준금액 = 실제 결제액(직접 고친 값) 또는 예약장부 금액
+                고와비 건은 수수료를 뺀 실수령액
+     커미션   = 기준금액 × 비율(기본 3%) × 담당자 몫                        */
+const GW_DEFAULT=20;
+const commRate=()=>Number((data.commCfg||{}).rate??3);
+const gwRate=()=>{const r=data.gwRate;return r==null?GW_DEFAULT:Number(r)||0;};
+const isGowabi=b=>String(b.pay||'')==='GoWabi'||String(b.src||'').toLowerCase()==='gowabi';
+/** 예약장부에 적힌 금액 */
+const bkGross=b=>Number(b.amount||0);
+/** 실제로 받은 금액 — 직접 고쳤으면 그 값 */
+const bkPaid=b=>{const o=(data.commOvr||{})[b.id];
+  return o&&o.amount!=null?Number(o.amount):bkGross(b);};
+const bkEdited=b=>{const o=(data.commOvr||{})[b.id];return !!(o&&o.amount!=null);};
+/** 커미션을 매길 기준금액 */
+function commBase(b){
+  const paid=bkPaid(b);
+  if(!isGowabi(b))return paid;
+  const basis=(data.commCfg||{}).gowabiBasis||'net';
+  if(basis==='none')return 0;
+  if(basis==='gross')return paid;
+  return Math.round(paid*(100-gwRate())/100);
+}
+const money2=n=>Math.round(Number(n||0)*100)/100;
+/** 예약장부의 담당자 칸 → 이름 목록 (여러 명이면 쉼표로 들어 있습니다) */
+const bkNames=b=>String(b.staff||'').split(/[,·/]/).map(s=>s.trim()).filter(Boolean);
+/** 한 건을 담당자별로 나눈 몫. 비율을 안 정했으면 인원수대로 똑같이 나눕니다 */
+function commShares(b){
+  const ns=bkNames(b); if(!ns.length)return [];
+  const sp=data.commSplit||{};
+  const ws=ns.map(n=>{const v=sp[b.id+'|'+n];return v==null?1:Math.max(0,Number(v)||0);});
+  const tw=ws.reduce((a,x)=>a+x,0);
+  const base=commBase(b), min=Number((data.commCfg||{}).minAmount||0);
+  const pay=(base>0&&base>=min)?base:0;
+  const rate=commRate();
+  return ns.map((n,i)=>{
+    const share=tw>0?ws[i]/tw:0;
+    return {name:n,weight:ws[i],custom:sp[b.id+'|'+n]!=null,share,
+            amount:money2(pay*share),comm:money2(pay*share*rate/100)};
+  });
+}
+/** 그 달의 '방문' 기록 (실제로 와서 결제한 건) */
+const monthBk=m=>(data.bookings||[])
+  .filter(b=>b.status==='방문'&&String(b.date||'').startsWith(m))
+  .sort((a,b)=>String(a.date).localeCompare(String(b.date))
+            ||String(a.time||'').localeCompare(String(b.time||'')));
+/** 예약장부 담당자 이름 → 우리 직원. 먼저 직접 이어둔 것, 없으면 이름이 겹치는 사람 */
+function autoMatch(n){
+  const low=String(n||'').toLowerCase().trim(); if(!low)return null;
+  return data.staff.find(s=>{
+    const sn=s.name.toLowerCase();
+    return sn===low||sn.split(/\s+/).some(p=>p===low)||sn.includes(low)||low.includes(sn);
+  })||null;
+}
+function staffOfBkName(n){
+  const id=(data.nameMap||{})[n];
+  if(id){const s=data.staff.find(x=>x._id===id);if(s)return s;}
+  if(Object.prototype.hasOwnProperty.call(data.nameMap||{},n))return null;  // 일부러 '없음'
+  return autoMatch(n);
+}
+/** 그 달에 이 직원이 받을 자동 커미션 */
+function bkCommOf(name,m){
+  let sum=0;
+  monthBk(m).forEach(b=>commShares(b).forEach(sh=>{
+    const s=staffOfBkName(sh.name);
+    if(s&&s.name===name)sum+=sh.comm;
+  }));
+  return money2(sum);
+}
+/** 예약장부에 있는데 아직 우리 직원과 안 이어진 이름들 */
+function unmatchedNames(m){
+  const set=new Set();
+  monthBk(m).forEach(b=>bkNames(b).forEach(n=>{if(!staffOfBkName(n))set.add(n);}));
+  return [...set].sort();
+}
 const commOf=(name,month)=>(data.commissions||[]).filter(c=>c.staff===name&&(c.date||'').startsWith(month))
   .reduce((a,c)=>a+Number(c.amount||0),0);
 function estPay(s,month){
@@ -1701,11 +1890,13 @@ function estPay(s,month){
 const payKey=(n,m)=>n+'|'+m;
 const payOf=(n,m)=>(data.payroll||{})[payKey(n,m)]||{};
 function payCalc(s,m){
-  const auto=estPay(s,m)||0, autoC=commOf(s.name,m), p=payOf(s.name,m);
+  const auto=estPay(s,m)||0;
+  const manC=commOf(s.name,m), bkC=bkCommOf(s.name,m), autoC=money2(manC+bkC);
+  const p=payOf(s.name,m);
   const base=num(p.base)!=null?num(p.base):auto;
   const comm=num(p.comm)!=null?num(p.comm):autoC;
   const bonus=Number(p.bonus||0), deduct=Number(p.deduct||0);
-  return{auto,autoC,base,comm,bonus,deduct,total:base+comm+bonus-deduct,p};
+  return{auto,autoC,manC,bkC,base,comm,bonus,deduct,total:base+comm+bonus-deduct,p};
 }
 
 /* ══════════ language ══════════ */
@@ -1722,7 +1913,7 @@ async function setLang(l,save_=true){
   $('memo').placeholder=t('memoPh');
   $('hrName').placeholder=t('namePh');
   $('cmMemo').placeholder=t('commPh');
-  buildEmpSelects(); buildExSelects();
+  buildEmpSelects(); buildExSelects(); buildBcSelects();
   $('todayLabel').textContent=new Date().toLocaleDateString(l==='ko'?'ko-KR':'th-TH',
     {year:'numeric',month:'long',day:'numeric',weekday:'long'});
   $('storeNote').textContent=t('storeOk');
@@ -3149,6 +3340,7 @@ $('payTable').addEventListener('click',async e=>{
 $('payPrint').addEventListener('click',()=>printAs('landscape'));
 
 function renderComm(){
+  renderBkComm();
   const m=$('payMonth').value||todayISO().slice(0,7);
   const list=(data.commissions||[]).filter(c=>(c.date||'').startsWith(m))
     .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.seq||0)-(a.seq||0));
@@ -3180,6 +3372,223 @@ $('cmAdd').addEventListener('click',async()=>{
   renderComm(); renderPay();
 });
 $('cmMemo').addEventListener('keydown',e=>{if(e.key==='Enter')$('cmAdd').click();});
+
+/* ══════════ 자동 커미션 — 예약장부 연동 (관리자) ══════════ */
+const GWBASIS=[['net','bcGwNet'],['gross','bcGwGross'],['none','bcGwNone']];
+function buildBcSelects(){
+  const s=$('bcGw'), v=s.value;
+  s.innerHTML=GWBASIS.map(([k,l])=>`<option value="${k}">${t(l)}</option>`).join('');
+  s.value=v||(data.commCfg||{}).gowabiBasis||'net';
+}
+function renderBkComm(){
+  // 표 안에 포커스가 남은 채로 갈아끼우면 크롬이 예외를 던집니다
+  const ae=document.activeElement;
+  if(ae&&ae.closest&&ae.closest('#bcList,#bcWarn'))ae.blur();
+  const m=$('payMonth').value||todayISO().slice(0,7);
+  const rate=commRate();
+  if(document.activeElement!==$('bcRate'))$('bcRate').value=rate;
+  if(document.activeElement!==$('bcGw'))$('bcGw').value=(data.commCfg||{}).gowabiBasis||'net';
+
+  /* 예약장부를 못 읽는 경우 — 안내만 하고 조용히 멈춥니다 */
+  if(data.bkOk===false){
+    $('bcWarn').innerHTML=`<div class="bcwarn">⚠️ ${t('bcNoLink')}</div>`;
+    $('bcSum').innerHTML=''; $('bcList').innerHTML=''; $('bcStat').textContent='';
+    return;
+  }
+  const list=monthBk(m);
+
+  /* ── 아직 안 이어진 담당자 이름 ── */
+  const un=unmatchedNames(m);
+  const opts=n=>`<option value="">${t('bcPick')}</option>`
+    +data.staff.map(s=>`<option value="${s._id}">${esc(s.name)}</option>`).join('')
+    +`<option value="__none__">${t('bcIgnore')}</option>`;
+  $('bcWarn').innerHTML=un.length?`<div class="bcwarn">
+    <b>⚠️ ${t('bcUnmatched')} ${un.length}</b>
+    <div style="font-size:11.5px;color:var(--ink-soft);margin:4px 0 8px">${t('bcUnmatchedHint')}</div>
+    ${un.map(n=>`<div class="bcmap">
+      <span class="bkname">${esc(n)}</span> <span style="color:var(--ink-soft)">→</span>
+      <select data-map="${esc(n)}">${opts(n)}</select></div>`).join('')}</div>`:'';
+
+  /* ── 직원별 합계 ── */
+  const per=new Map();      // 직원명 → {comm, sales, n}
+  let unpaid=0, gwCut=0;
+  list.forEach(b=>{
+    const shares=commShares(b);
+    if(isGowabi(b))gwCut+=bkPaid(b)-commBase(b);
+    shares.forEach(sh=>{
+      const s=staffOfBkName(sh.name);
+      if(!s){unpaid+=sh.comm;return;}
+      const cur=per.get(s.name)||{comm:0,sales:0,n:0};
+      cur.comm+=sh.comm; cur.sales+=sh.amount; cur.n++;
+      per.set(s.name,cur);
+    });
+  });
+  const rows=liveStaff().map(s=>({name:s.name,...(per.get(s.name)||{comm:0,sales:0,n:0})}))
+    .sort((a,b)=>b.comm-a.comm);
+  const totComm=rows.reduce((a,x)=>a+x.comm,0);
+  const totSales=list.reduce((a,b)=>a+commBase(b),0);
+  $('bcSum').innerHTML=`<div style="overflow-x:auto;margin-top:4px"><table>
+    <thead><tr><th style="width:24%">${t('cStaff')}</th>
+      <th class="num" style="width:14%">${t('bcCount')}</th>
+      <th class="num" style="width:26%">${t('bcSales')}</th>
+      <th class="num" style="width:18%">${rate}%</th>
+      <th class="num" style="width:18%">${t('bcComm')}</th></tr></thead>
+    <tbody>${rows.map(x=>`<tr${x.comm?'':' style="opacity:.45"'}>
+      <td><b>${esc(x.name)}</b></td>
+      <td class="num">${x.n}${t('cntRec')}</td>
+      <td class="num">${money(Math.round(x.sales))}</td>
+      <td class="num" style="color:var(--ink-soft);font-size:11.5px">${rate}%</td>
+      <td class="num"><b class="pay-est">${money(money2(x.comm))}</b></td></tr>`).join('')}</tbody>
+    <tfoot><tr>
+      <th style="border-top:1px solid var(--ink);border-bottom:none">${t('payTotalRow')}</th>
+      <th class="num" style="border-top:1px solid var(--ink);border-bottom:none">${list.length}${t('cntRec')}</th>
+      <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace">${money(Math.round(totSales))}</th>
+      <th style="border-top:1px solid var(--ink);border-bottom:none"></th>
+      <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:14px">${money(money2(totComm))}</th>
+    </tr></tfoot></table></div>
+    ${unpaid?`<div class="bcwarn" style="margin-top:8px">⚠️ ${t('bcUnassigned')} <b>${money(money2(unpaid))}</b></div>`:''}`;
+
+  $('bcStat').innerHTML=`${t('bcComm')} <b>${money(money2(totComm))}</b>`
+    +`<span style="font-weight:400;color:var(--ink-soft);font-size:11px"> · ${t('bcBaseSum')} ${money(Math.round(totSales))}`
+    +(gwCut?` · ${t('bcGwCut')} −${money(Math.round(gwCut))}`:'')+`</span>`;
+
+  /* ── 상세 — 날짜별로 묶고 날짜 소계를 붙입니다 (종이 기록과 대조용) ── */
+  if(!list.length){$('bcList').innerHTML=`<div class="empty">${t('bcNone')}</div>`;return;}
+  const byDate={};
+  list.forEach(b=>{(byDate[b.date]=byDate[b.date]||[]).push(b);});
+  const body=Object.keys(byDate).sort().map(d=>{
+    const day=byDate[d];
+    const dSales=day.reduce((a,b)=>a+commBase(b),0);
+    const dComm=day.reduce((a,b)=>a+commShares(b).reduce((x,sh)=>x+sh.comm,0),0);
+    return day.map((b,i)=>{
+      const shares=commShares(b), gw=isGowabi(b);
+      const treat=(Array.isArray(b.items)&&b.items.length
+        ? b.items.map(it=>it.treat).filter(Boolean).join(' + ') : (b.treat||''))||'—';
+      const ovr=(data.commOvr||{})[b.id]||{};
+      return `<tr>
+        ${i===0?`<td rowspan="${day.length}" class="bcdate"><b>${d.slice(5)}</b>
+          <div class="bcdsum">${money(Math.round(dSales))}<br>
+            <span class="pay-est">${money(money2(dComm))}</span></div></td>`:''}
+        <td>${esc(b.name||b.anon||'—')}${b.time?`<br><span style="font-size:10px;color:var(--ink-soft)">${esc(b.time)}</span>`:''}</td>
+        <td style="font-size:11.5px">${esc(treat)}
+          ${gw?`<br><span class="gwtag">GoWabi −${gwRate()}%</span>`:''}</td>
+        <td class="num" style="font-size:11.5px;color:var(--ink-soft)">${money(bkGross(b))}</td>
+        <td><input type="number" step="1" min="0" data-bcovr="${b.id}"
+            value="${ovr.amount==null?'':ovr.amount}" placeholder="—"
+            title="${t('bcOvrHint')}"
+            style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace;padding:5px 7px;font-size:12px${
+            bkEdited(b)?';background:#FBF4E3;font-weight:700':''}"></td>
+        <td class="num" style="font-family:'IBM Plex Mono',monospace;font-size:12px">${money(Math.round(commBase(b)))}</td>
+        <td>${shares.length?shares.map(sh=>{
+            const s=staffOfBkName(sh.name);
+            return `<div class="bcsh${s?'':' bad'}">
+              <span class="bkname">${esc(sh.name)}</span>
+              ${s&&s.name!==sh.name?`<span class="mapped">→ ${esc(s.name)}</span>`:''}
+              ${shares.length>1?`<input type="number" step="1" min="0" data-bcsplit="${b.id}"
+                 data-bn="${esc(sh.name)}" value="${sh.custom?sh.weight:''}"
+                 placeholder="${Math.round(sh.share*100)}" title="${t('bcSplitHint')}"
+                 class="bcw${sh.custom?' on':''}">`:''}
+              <span class="bcamt">${money(money2(sh.comm))}</span></div>`;
+          }).join(''):`<span style="color:var(--coral);font-size:11px">${t('bcNoStaff')}</span>`}</td>
+      </tr>`;
+    }).join('');
+  }).join('');
+  $('bcList').innerHTML=`<div style="overflow-x:auto"><table class="bctab">
+    <thead><tr>
+      <th style="width:8%">${t('lDate')}</th>
+      <th style="width:13%">${t('bcCustomer')}</th>
+      <th style="width:21%">${t('bcTreat')}</th>
+      <th class="num" style="width:10%">${t('bcBooked')}</th>
+      <th class="num" style="width:11%">${t('bcActual')}</th>
+      <th class="num" style="width:11%">${t('bcBase')}</th>
+      <th style="width:26%">${t('bcStaffShare')}</th></tr></thead>
+    <tbody>${body}</tbody></table></div>`;
+}
+
+async function saveCommCfg(patch){
+  Object.assign(data.commCfg,patch.rate!=null?{rate:Number(patch.rate)}:{},
+    patch.gowabi_basis?{gowabiBasis:patch.gowabi_basis}:{});
+  renderPay(); renderBkComm();
+  await op(t('opComm'),()=>sb.from('staff_comm_config')
+    .upsert({id:1,...patch},{onConflict:'id'}));
+}
+$('bcRate').addEventListener('change',async()=>{
+  const v=Math.max(0,Math.min(100,Number($('bcRate').value||0)));
+  $('bcRate').value=v;
+  await saveCommCfg({rate:v});
+});
+$('bcGw').addEventListener('change',()=>saveCommCfg({gowabi_basis:$('bcGw').value}));
+$('bcReload').addEventListener('click',async()=>{
+  $('bcReload').disabled=true;
+  await loadAll(); renderStaff(); render();
+  $('bcReload').disabled=false;
+});
+/* 담당자 이름 ↔ 직원 잇기 */
+$('bcWarn').addEventListener('change',async e=>{
+  const sel=e.target.closest('[data-map]'); if(!sel)return;
+  const n=sel.dataset.map, v=sel.value;
+  if(!v)return;
+  const sid=v==='__none__'?null:v;
+  data.nameMap[n]=sid;
+  renderPay(); renderBkComm();
+  await op(t('opComm'),()=>sb.from('staff_name_map')
+    .upsert({booking_name:n,staff_id:sid},{onConflict:'booking_name'}));
+});
+/* 실제 결제액 덮어쓰기 · 담당자별 비율 */
+$('bcList').addEventListener('change',async e=>{
+  const ov=e.target.closest('[data-bcovr]');
+  if(ov){
+    const id=ov.dataset.bcovr;
+    const raw=ov.value.trim();
+    const amt=raw===''?null:Math.max(0,Number(raw));
+    data.commOvr[id]={amount:amt,memo:(data.commOvr[id]||{}).memo||''};
+    renderPay(); renderBkComm();
+    if(amt==null)await op(t('opComm'),()=>sb.from('staff_comm_override').delete().eq('booking_id',id));
+    else await op(t('opComm'),()=>sb.from('staff_comm_override')
+      .upsert({booking_id:Number(id),amount:amt},{onConflict:'booking_id'}));
+    return;
+  }
+  const sp=e.target.closest('[data-bcsplit]');
+  if(sp){
+    const id=sp.dataset.bcsplit, n=sp.dataset.bn, raw=sp.value.trim();
+    const key=id+'|'+n;
+    if(raw===''){
+      delete data.commSplit[key];
+      renderPay(); renderBkComm();
+      await op(t('opComm'),()=>sb.from('staff_comm_split').delete()
+        .eq('booking_id',id).eq('booking_name',n));
+    }else{
+      const w=Math.max(0,Number(raw)||0);
+      data.commSplit[key]=w;
+      renderPay(); renderBkComm();
+      await op(t('opComm'),()=>sb.from('staff_comm_split')
+        .upsert({booking_id:Number(id),booking_name:n,share:w},{onConflict:'booking_id,booking_name'}));
+    }
+  }
+});
+$('bcPrint').addEventListener('click',()=>printAs('landscape'));
+$('bcCsv').addEventListener('click',()=>{
+  const m=$('payMonth').value||todayISO().slice(0,7);
+  const rows=[['날짜','고객','시술','예약금액','실제결제','고와비','기준금액','담당자','몫%','커미션']];
+  monthBk(m).forEach(b=>{
+    const treat=(Array.isArray(b.items)&&b.items.length
+      ? b.items.map(it=>it.treat).filter(Boolean).join(' + ') : (b.treat||''));
+    commShares(b).forEach(sh=>{
+      const s=staffOfBkName(sh.name);
+      rows.push([b.date,b.name||b.anon||'',treat,bkGross(b),bkPaid(b),
+        isGowabi(b)?'Y':'',Math.round(commBase(b)),s?s.name:sh.name+'(?)',
+        Math.round(sh.share*100),sh.comm]);
+    });
+  });
+  downloadCsv(rows,`commission-${m}.csv`);
+});
+/** 행 배열을 CSV 파일로 내려받습니다 (엑셀에서 한글·태국어가 깨지지 않게 BOM 포함) */
+function downloadCsv(rows,name){
+  const csv='﻿'+rows.map(r=>r.map(c=>`"${String(c??'').replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));
+  a.download=name; a.click();
+}
 $('cmList').addEventListener('click',async e=>{
   const b=e.target.closest('[data-cmdel]'); if(!b)return;
   if(!confirm(t('confirmDel')))return;
@@ -3385,6 +3794,14 @@ function fillBackup(force){
     })),
     expenses:(data.expenses||[]).map(strip),
     payees:(data.payees||[]).map(strip),
+    // 커미션 규칙 — 이름 잇기는 직원 이름으로 옮겨야 다른 DB 에서도 이어집니다
+    commCfg:{...(data.commCfg||{})},
+    nameMap:Object.fromEntries(Object.entries(data.nameMap||{}).map(([bn,id])=>{
+      const s=data.staff.find(x=>x._id===id); return [bn,s?s.name:null];
+    })),
+    commSplit:{...(data.commSplit||{})},
+    commOvr:Object.fromEntries(Object.entries(data.commOvr||{})
+      .filter(([,v])=>v&&v.amount!=null)),
     targets:Object.fromEntries(Object.entries(data.targets||{}).map(([k,v])=>[k,strip(v)])),
     // 급여 이력은 직원 이름으로 키를 잡아야 다른 DB 로 옮겨도 이어집니다
     wageHist:Object.fromEntries(data.staff.filter(x=>(data.wageHist[x._id]||[]).length)
@@ -3544,6 +3961,40 @@ async function importBackup(o){
     for(const part of chunk(pyRows,400)){
       const r=await op(t('opImport')+' · '+t('opPayee'),
         ()=>sb.from('staff_payees').upsert(part,{onConflict:'legacy_id',ignoreDuplicates:true}));
+      if(!r.ok)return false;
+    }
+    // 7-3) 커미션 규칙 (비율 · 이름 잇기 · 나누는 비율 · 실제 결제액)
+    if(o.commCfg&&typeof o.commCfg==='object'){
+      const r=await op(t('opImport')+' · '+t('opComm2'),()=>sb.from('staff_comm_config').upsert({
+        id:1,rate:Number(o.commCfg.rate??3),
+        gowabi_basis:o.commCfg.gowabiBasis||'net',
+        min_amount:Number(o.commCfg.minAmount||0)},{onConflict:'id'}));
+      if(!r.ok)return false;
+    }
+    const nmRows=Object.entries(o.nameMap||{}).map(([bn,nm])=>
+      bn?{booking_name:bn,staff_id:nm?sid(nm):null}:null).filter(Boolean);
+    for(const part of chunk(nmRows,400)){
+      const r=await op(t('opImport')+' · '+t('opComm2'),
+        ()=>sb.from('staff_name_map').upsert(part,{onConflict:'booking_name'}));
+      if(!r.ok)return false;
+    }
+    const spRows=Object.entries(o.commSplit||{}).map(([k,v])=>{
+      const cut=k.indexOf('|'); if(cut<1)return null;
+      const bid=Number(k.slice(0,cut)); if(!bid)return null;
+      return {booking_id:bid,booking_name:k.slice(cut+1),share:Number(v||0)};
+    }).filter(Boolean);
+    for(const part of chunk(spRows,400)){
+      const r=await op(t('opImport')+' · '+t('opComm2'),
+        ()=>sb.from('staff_comm_split').upsert(part,{onConflict:'booking_id,booking_name'}));
+      if(!r.ok)return false;
+    }
+    const ovRows=Object.entries(o.commOvr||{}).map(([k,v])=>{
+      const bid=Number(k); if(!bid||!v||v.amount==null)return null;
+      return {booking_id:bid,amount:Number(v.amount),memo:v.memo||''};
+    }).filter(Boolean);
+    for(const part of chunk(ovRows,400)){
+      const r=await op(t('opImport')+' · '+t('opComm2'),
+        ()=>sb.from('staff_comm_override').upsert(part,{onConflict:'booking_id'}));
       if(!r.ok)return false;
     }
     // 8) 매출 목표 — 사업장 + 월 복합키
