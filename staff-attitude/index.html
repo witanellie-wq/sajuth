@@ -269,6 +269,13 @@
   .dupbadge{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:20px;
     background:#FBF4E3;color:var(--amber);border:1px solid #EBDCB6;margin-top:3px;white-space:nowrap;}
   .dupbadge.off{background:#EFF1EE;color:var(--ink-soft);border-color:var(--line);}
+  .pikind{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+  .pikind.plus{background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;}
+  .pikind.minus{background:#FBF0EF;color:var(--coral);border:1px solid #F0D5D2;}
+  #piList input{padding:6px 8px;font-size:12.5px;}
+  #piKind{padding:10px 8px;font-size:13px;}
+  #piDays,#piReason{padding:10px 12px;font-size:14px;}
+  #piDays{text-align:right;font-family:'IBM Plex Mono',monospace;}
   input.bcedit{border:1px solid transparent;background:none;border-radius:3px;
     padding:3px 5px;font-family:inherit;width:100%;display:block;}
   input.bcedit:hover{border-color:var(--line);background:#fff;}
@@ -818,6 +825,23 @@
   </section>
 
   <section class="panel adm-only" style="margin-top:20px">
+    <h2 data-i="piTitle"></h2>
+    <div class="quick no-print">
+      <div class="qwho" id="piWho"></div>
+      <div class="qrow">
+        <select id="piKind" style="width:92px"></select>
+        <input type="text" id="piReason" class="hascombo" data-combo="pi" style="flex:1;min-width:120px">
+        <input type="number" id="piDays" step="0.5" min="0" style="width:88px" inputmode="decimal">
+        <input type="number" id="piAmt" class="qamt" step="1" min="0" inputmode="numeric">
+        <button class="save qadd" id="piAdd" data-i="add"></button>
+      </div>
+      <div class="qhint" data-ih="piHint"></div>
+    </div>
+    <div id="piList" style="margin-top:14px"></div>
+    <p class="note" data-ih="piNote"></p>
+  </section>
+
+  <section class="panel adm-only" style="margin-top:20px">
     <h2 data-i="bcTitle"></h2>
     <div class="toolbar">
       <label style="margin:0 2px 0 0;font-size:11.5px" data-i="bcRate"></label>
@@ -1360,6 +1384,13 @@ const I={
   cmPasteParseBtn:'읽어들이기', cmPasteSaveBtn:'저장', cmPasteReady:'넣을 수 있는 줄',
   cmPasteWho:'담당자 이름', cmPasteDone:'커미션을 넣었습니다 ·',
   verLabel:'버전',
+  piTitle:'추가 지급 · 공제 내역', piKind:'구분', piDays:'일수', piNone:'이 달 추가 지급 · 공제가 없습니다.',
+  piMinus:'공제', piPlus:'추가', piReasonPh:'예: 무급휴가 3일 / 명절 보너스',
+  piUnpaid:'무급휴가', piLate:'지각 · 결근', piAdvance:'가불', piEtcM:'기타 공제',
+  piBonus:'보너스', piAllow:'수당', piTrans:'교통비', piEtcP:'기타 지급',
+  opPayItem:'추가 지급 · 공제',
+  piHint:'<b>직원을 누르고 → 구분(공제/추가) → 사유 → 금액 → Enter</b> 로 한 줄이 들어갑니다.<br><b>무급휴가</b>는 <b>일수</b>만 넣으면 금액이 자동으로 채워집니다 (일급 × 일수, 월급이면 월급÷30 × 일수). 금액은 직접 고쳐도 됩니다.',
+  piNote:'여기 적은 것이 위 <b>급여표의 보너스 · 공제 칸</b>에 자동으로 합산됩니다. 급여표 칸을 직접 고쳐 쓰면 그 값이 우선합니다.<br><b>무급휴가</b>로 뺀 금액, <b>가불</b>, <b>지각·결근</b> 공제, 커미션이 아닌 <b>보너스·수당</b> 같은 것을 사유와 함께 남겨 두세요 — 나중에 왜 그 금액이었는지 알 수 있습니다.<br>표 안의 <b>사유 · 일수 · 금액은 바로 고칠 수 있고</b>, 고치는 즉시 저장됩니다.',
   setupTitle:'아직 만들지 않은 표가 있습니다', setupHide:'닫기',
   setupHow:'Supabase → SQL Editor → + New query → 위 파일 내용을 붙여넣고 Run 하세요. 여러 번 실행해도 안전합니다. 실행 전까지 그 기능만 안 되고 나머지는 정상으로 돌아갑니다.',
   cmQTodayBtn:'오늘', cmQNeedWho:'담당자를 먼저 누르세요.',
@@ -1553,6 +1584,13 @@ const I={
   cmPasteParseBtn:'อ่านข้อความ', cmPasteSaveBtn:'บันทึก', cmPasteReady:'แถวที่บันทึกได้',
   cmPasteWho:'ชื่อผู้ทำ', cmPasteDone:'บันทึกคอมมิชชั่นแล้ว ·',
   verLabel:'เวอร์ชัน',
+  piTitle:'รายการจ่ายเพิ่ม · หักเงิน', piKind:'ประเภท', piDays:'จำนวนวัน', piNone:'เดือนนี้ยังไม่มีรายการจ่ายเพิ่มหรือหักเงิน',
+  piMinus:'หักเงิน', piPlus:'จ่ายเพิ่ม', piReasonPh:'เช่น ลาไม่รับค่าจ้าง 3 วัน / โบนัสเทศกาล',
+  piUnpaid:'ลาไม่รับค่าจ้าง', piLate:'สาย · ขาดงาน', piAdvance:'เบิกล่วงหน้า', piEtcM:'หักอื่นๆ',
+  piBonus:'โบนัส', piAllow:'เบี้ยเลี้ยง', piTrans:'ค่าเดินทาง', piEtcP:'จ่ายเพิ่มอื่นๆ',
+  opPayItem:'จ่ายเพิ่ม · หักเงิน',
+  piHint:'<b>กดชื่อพนักงาน → เลือกประเภท → เหตุผล → ยอดเงิน → Enter</b> ก็บันทึกหนึ่งรายการ<br><b>ลาไม่รับค่าจ้าง</b> ใส่แค่ <b>จำนวนวัน</b> ระบบจะคิดยอดให้ (ค่าจ้างรายวัน × วัน, ถ้ารายเดือนใช้ เงินเดือน÷30 × วัน) แก้ยอดเองได้',
+  piNote:'รายการที่บันทึกที่นี่จะรวมเข้า<b>ช่องโบนัสและหักเงินในตารางเงินเดือน</b>อัตโนมัติ ถ้าแก้ในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้<br>บันทึกพร้อมเหตุผลไว้ เช่น <b>ลาไม่รับค่าจ้าง</b> <b>เบิกล่วงหน้า</b> <b>สาย·ขาดงาน</b> หรือ<b>โบนัส·เบี้ยเลี้ยง</b>ที่ไม่ใช่คอมมิชชั่น จะได้ย้อนดูได้ว่าทำไมยอดเป็นแบบนั้น<br><b>เหตุผล · จำนวนวัน · ยอดเงิน แก้ได้ทันที</b> และบันทึกทันทีที่แก้',
   setupTitle:'ยังมีตารางที่ยังไม่ได้สร้าง', setupHide:'ปิด',
   setupHow:'ไปที่ Supabase → SQL Editor → + New query แล้ววางเนื้อหาไฟล์ด้านบนและกด Run ทำซ้ำได้อย่างปลอดภัย ก่อนรัน ฟังก์ชันนั้นจะยังใช้ไม่ได้ แต่ส่วนอื่นทำงานปกติ',
   cmQTodayBtn:'วันนี้', cmQNeedWho:'เลือกผู้ทำก่อน',
@@ -1616,14 +1654,14 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v12';
+const APP_VER='v13';
 const APP_DATE='2026-09-29';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
                   fixedCosts:[],fixedPays:{},expenses:[],targets:{},wageHist:{},payees:[],
                   bookings:[],bkRoster:[],gwRate:null,
                   commCfg:{rate:3,gowabiBasis:'net',minAmount:0},
-                  nameMap:{},commSplit:{},commOvr:{}});
+                  nameMap:{},commSplit:{},commOvr:{},commSkip:new Set(),payItems:[]});
 let data=EMPTY();
 const EMPTYPES=[['정직원','tRegular'],['수습','tProbation'],['인턴','tIntern'],['알바','tPart']];
 /* 지출 분류 — [한국어, 태국어] (DB 에는 한국어 값이 들어갑니다) */
@@ -1827,7 +1865,7 @@ async function loadAll(){
   const softQ=fn=>!isAdmin?Promise.resolve({ok:true,data:[]})
     :Promise.resolve().then(fn).then(r=>r&&r.error?{ok:false,data:[],error:r.error}:{ok:true,data:r?r.data:[]})
      .catch(e=>({ok:false,data:[],error:e}));
-  const [m,r,p,c,w,e,fc,fp,ex,tg,wh,py,cc,nmp,csp,cov,csk,bk,bkr,bks]=await Promise.all([
+  const [m,r,p,c,w,e,fc,fp,ex,tg,wh,py,cc,nmp,csp,cov,csk,pit,bk,bkr,bks]=await Promise.all([
     q('staff_members',()=>sb.from('staff_members').select('*')
         .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
     q('staff_records',()=>sb.from('staff_records').select('*')
@@ -1851,6 +1889,7 @@ async function loadAll(){
     admQ('staff_comm_split',()=>sb.from('staff_comm_split').select('*').limit(LIM)),
     admQ('staff_comm_override',()=>sb.from('staff_comm_override').select('*').limit(LIM)),
     admQ('staff_comm_skip',()=>sb.from('staff_comm_skip').select('*').limit(LIM)),
+    admQ('staff_pay_items',()=>sb.from('staff_pay_items').select('*').limit(LIM)),
     /* ── 예약장부 (다른 앱의 표) ── */
     softQ(()=>sb.from('bookings').select('id,data').limit(LIM)),
     softQ(()=>sb.from('staff').select('name,sort_order').order('sort_order',{ascending:true})),
@@ -1937,6 +1976,11 @@ async function loadAll(){
                 startDate:cfg.start_date||'',
                 vatRate:Number(cfg.vat_rate||0)};
   data.commSkip=new Set((csk.data||[]).map(x=>x.day).filter(Boolean));
+  data.payItems=(pit.data||[]).map(x=>({
+    id:x.id,_sid:x.staff_id,staff:nm(x.staff_id),month:x.month,
+    kind:x.kind||'공제',reason:x.reason||'',amount:Number(x.amount||0),
+    days:x.days==null?null:Number(x.days),date:x.date||'',
+    seq:x.created_at?new Date(x.created_at).getTime():0}));
   data.nameMap={};
   (nmp.data||[]).forEach(x=>{if(x.staff_id)data.nameMap[x.booking_name]=x.staff_id;});
   data.commSplit={};
@@ -2223,14 +2267,30 @@ function estPay(s,month){
 }
 const payKey=(n,m)=>n+'|'+m;
 const payOf=(n,m)=>(data.payroll||{})[payKey(n,m)]||{};
+/* 추가 지급 · 공제 내역 — 급여표의 보너스 · 공제 칸에 자동으로 더해집니다 */
+const piOf=(name,month)=>(data.payItems||[]).filter(x=>x.staff===name&&x.month===month)
+  .sort((a,b)=>(a.seq||0)-(b.seq||0));
+const piSum=(name,month,kind)=>money2(piOf(name,month)
+  .filter(x=>x.kind===kind).reduce((a,x)=>a+Number(x.amount||0),0));
+/** 하루치 급여 — 무급휴가 일수로 금액을 자동 계산할 때 씁니다 */
+function dailyWage(s,m){
+  const {wage:w,payType:pt}=wageAt(s,m);
+  if(!w)return 0;
+  if(pt==='일급')return w;
+  if(pt==='월급')return money2(w/30);      // 태국 관행: 월급 ÷ 30
+  return 0;                                 // 시급은 일수로 환산할 수 없습니다
+}
 function payCalc(s,m){
   const auto=estPay(s,m)||0;
   const manC=commOf(s.name,m), bkC=bkCommOf(s.name,m), autoC=money2(manC+bkC);
   const p=payOf(s.name,m);
   const base=num(p.base)!=null?num(p.base):auto;
   const comm=num(p.comm)!=null?num(p.comm):autoC;
-  const bonus=Number(p.bonus||0), deduct=Number(p.deduct||0);
-  return{auto,autoC,manC,bkC,base,comm,bonus,deduct,total:base+comm+bonus-deduct,p};
+  const autoB=piSum(s.name,m,'추가'), autoD=piSum(s.name,m,'공제');
+  const bonus=num(p.bonus)!=null?num(p.bonus):autoB;
+  const deduct=num(p.deduct)!=null?num(p.deduct):autoD;
+  return{auto,autoC,manC,bkC,base,comm,autoB,autoD,bonus,deduct,
+         total:base+comm+bonus-deduct,p};
 }
 
 /* ══════════ language ══════════ */
@@ -2250,7 +2310,7 @@ async function setLang(l,save_=true){
   $('memo').placeholder=t('memoPh');
   $('hrName').placeholder=t('namePh');
   $('cmQMemo').placeholder=t('commPh');
-  buildEmpSelects(); buildExSelects(); buildBcSelects();
+  buildEmpSelects(); buildExSelects(); buildBcSelects(); buildPiSelects();
   $('todayLabel').textContent=new Date().toLocaleDateString(l==='ko'?'ko-KR':'th-TH',
     {year:'numeric',month:'long',day:'numeric',weekday:'long'});
   $('storeNote').textContent=t('storeOk');
@@ -2725,6 +2785,9 @@ const COMBO={
   fix:  {list:()=>FIXCATS, used:()=>data.fixedCosts.map(c=>c.category),
          head:['catPreset','catMine']},
   exp:  {list:()=>EXCATS,  used:()=>(data.expenses||[]).map(e=>e.category),
+         head:['catPreset','catMine']},
+  pi:   {list:()=>PIREASON[$('piKind').value||'공제']||[],
+         used:()=>(data.payItems||[]).map(x=>x.reason),
          head:['catPreset','catMine']},
   pye:  {list:()=>PYCATS,  used:()=>(data.payees||[]).map(p=>p.category),
          head:['catPreset','catMine']},
@@ -3643,8 +3706,8 @@ function renderPay(){
       <td class="num" style="font-size:12px">${x.days}${t('day')}${x.hours?`<br><span style="color:var(--ink-soft)">${x.hours.toFixed(1)}${t('hrs')}</span>`:''}</td>
       <td>${inp('base',c.auto||0)}</td>
       <td>${inp('comm',c.autoC||0)}</td>
-      <td>${inp('bonus',0)}</td>
-      <td>${inp('deduct',0)}</td>
+      <td>${inp('bonus',c.autoB||0)}</td>
+      <td>${inp('deduct',c.autoD||0)}</td>
       <td class="num"><b class="pay-est" style="font-size:14px">${money(c.total)}</b></td>
       <td>
         <button class="paybtn${c.p.paid?' on':''}" data-paytoggle="${k}"
@@ -3716,7 +3779,112 @@ const cmOfDate=d=>(data.commissions||[]).filter(c=>c.date===d)
   .sort((a,b)=>(a.seq||0)-(b.seq||0));
 const cmOfMonth=m=>(data.commissions||[]).filter(c=>(c.date||'').startsWith(m));
 
+/* ══════════ 추가 지급 · 공제 내역 (관리자) ══════════ */
+const PIKINDS=[['공제','piMinus'],['추가','piPlus']];
+const PIREASON={
+  '공제':[['무급휴가','piUnpaid'],['지각·결근','piLate'],['가불','piAdvance'],['기타 공제','piEtcM']],
+  '추가':[['보너스','piBonus'],['수당','piAllow'],['교통비','piTrans'],['기타 지급','piEtcP']]};
+let piWho='';
+function buildPiSelects(){
+  const k=$('piKind'), v=k.value;
+  k.innerHTML=PIKINDS.map(([x,l])=>`<option value="${x}">${t(l)}</option>`).join('');
+  k.value=v||'공제';
+  $('piReason').placeholder=t('piReasonPh');
+  $('piDays').placeholder=t('piDays');
+  $('piAmt').placeholder=t('lAmount');
+}
+function renderPayItems(){
+  const m=$('payMonth').value||todayISO().slice(0,7);
+  const ae=document.activeElement;
+  if(ae&&ae.closest&&ae.closest('#piList'))ae.blur();
+  const live=liveStaff();
+  if(!live.some(s=>s.name===piWho))piWho=live.length?live[0].name:'';
+  $('piWho').innerHTML=live.map(s=>`<button type="button" class="wchip${
+    piWho===s.name?' on':''}" data-piwho="${esc(s.name)}">${esc(s.name)}</button>`).join('')
+    ||`<span style="font-size:12px;color:var(--ink-soft)">${t('addStaffFirst')}</span>`;
+  const rows=(data.payItems||[]).filter(x=>x.month===m)
+    .sort((a,b)=>a.staff.localeCompare(b.staff)||(a.seq||0)-(b.seq||0));
+  const addT=money2(rows.filter(x=>x.kind==='추가').reduce((a,x)=>a+x.amount,0));
+  const subT=money2(rows.filter(x=>x.kind==='공제').reduce((a,x)=>a+x.amount,0));
+  $('piList').innerHTML=rows.length?`<div style="overflow-x:auto"><table>
+    <thead><tr><th style="width:18%">${t('cStaff')}</th>
+      <th style="width:10%">${t('piKind')}</th>
+      <th>${t('lReason')}</th>
+      <th class="num" style="width:11%">${t('piDays')}</th>
+      <th class="num" style="width:16%">${t('lAmount')}</th>
+      <th style="width:38px"></th></tr></thead>
+    <tbody>${rows.map(x=>`<tr>
+      <td><b>${esc(x.staff)}</b></td>
+      <td><span class="pikind ${x.kind==='추가'?'plus':'minus'}">${x.kind==='추가'?'＋':'−'} ${esc(x.kind)}</span></td>
+      <td><input type="text" data-pi="reason" data-id="${x.id}" value="${esc(x.reason)}"
+        placeholder="${t('piReasonPh')}" style="width:100%"></td>
+      <td><input type="number" step="0.5" min="0" data-pi="days" data-id="${x.id}"
+        value="${x.days==null?'':x.days}" placeholder="—"
+        style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
+      <td><input type="number" step="1" min="0" data-pi="amount" data-id="${x.id}"
+        value="${x.amount}" style="width:100%;text-align:right;font-weight:700;
+        font-family:'IBM Plex Mono',monospace;color:${x.kind==='추가'?'var(--jade)':'var(--coral)'}"></td>
+      <td style="text-align:right"><button class="del" data-pidel="${x.id}">×</button></td></tr>`).join('')}</tbody>
+    <tfoot><tr>
+      <th colspan="4" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">
+        ${t('piPlus')} ${money(addT)} · ${t('piMinus')} ${money(subT)}</th>
+      <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:14px">${money(money2(addT-subT))}</th>
+      <th style="border-top:1px solid var(--ink);border-bottom:none"></th></tr></tfoot></table></div>`
+    :`<div class="empty">${t('piNone')}</div>`;
+}
+/* 담당 직원 고르기 */
+$('piWho').addEventListener('click',e=>{
+  const b=e.target.closest('[data-piwho]'); if(!b)return;
+  piWho=b.dataset.piwho; renderPayItems(); $('piAmt').focus();
+});
+/* 무급휴가 일수를 넣으면 금액을 자동으로 채웁니다 */
+$('piDays').addEventListener('input',()=>{
+  const d=Number($('piDays').value||0);
+  if(!d||$('piKind').value!=='공제')return;
+  const s=data.staff.find(x=>x.name===piWho); if(!s)return;
+  const m=$('payMonth').value||todayISO().slice(0,7);
+  const dw=dailyWage(s,m);
+  if(dw)$('piAmt').value=money2(d*dw);
+});
+$('piKind').addEventListener('change',()=>{comboClose();});
+$('piAdd').addEventListener('click',async()=>{
+  const amt=Number($('piAmt').value||0);
+  if(!amt){$('piAmt').focus();return;}
+  if(!piWho){bkSay(t('addStaffFirst'),'var(--coral)');return;}
+  const m=$('payMonth').value||todayISO().slice(0,7);
+  const row={staff_id:sidOf(piWho),month:m,kind:$('piKind').value||'공제',
+    reason:$('piReason').value.trim(),amount:amt,
+    days:$('piDays').value===''?null:Number($('piDays').value),date:null};
+  const res=await op(t('opPayItem'),()=>sb.from('staff_pay_items').insert(row).select().single());
+  if(res.ok&&res.data)data.payItems.push({id:res.data.id,_sid:row.staff_id,staff:piWho,
+    month:m,kind:row.kind,reason:row.reason,amount:amt,days:row.days,date:'',seq:Date.now()});
+  $('piAmt').value=''; $('piDays').value=''; $('piReason').value='';
+  renderPayItems(); renderPay();
+  $('piAmt').focus();
+});
+['piReason','piDays','piAmt'].forEach(id=>
+  $(id).addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();$('piAdd').click();}}));
+$('piList').addEventListener('change',async e=>{
+  const el=e.target.closest('[data-pi]'); if(!el)return;
+  const x=(data.payItems||[]).find(y=>String(y.id)===String(el.dataset.id)); if(!x)return;
+  const k=el.dataset.pi, patch={};
+  if(k==='reason'){x.reason=el.value;patch.reason=x.reason;}
+  else if(k==='days'){x.days=el.value===''?null:Number(el.value);patch.days=x.days;}
+  else{x.amount=Math.max(0,Number(el.value||0));patch.amount=x.amount;}
+  renderPayItems(); renderPay();
+  await op(t('opPayItem'),()=>sb.from('staff_pay_items').update(patch).eq('id',x.id));
+});
+$('piList').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-pidel]'); if(!b)return;
+  if(!confirm(t('confirmDel')))return;
+  const id=b.dataset.pidel;
+  data.payItems=(data.payItems||[]).filter(x=>String(x.id)!==String(id));
+  renderPayItems(); renderPay();
+  await op(t('opPayItem')+' · '+t('opDel'),()=>sb.from('staff_pay_items').delete().eq('id',id));
+});
+
 function renderComm(){
+  renderPayItems();
   renderBkComm();
   // 표 안에 포커스가 남은 채로 갈아끼우면 크롬이 예외를 던집니다
   const ae=document.activeElement;
