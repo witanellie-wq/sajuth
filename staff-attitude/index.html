@@ -265,12 +265,22 @@
   tr.bcrow.grp.gfirst td{border-top:1px solid #CFE2DC;}
   tr.bcrow.grp.glast td{border-bottom:1px solid #CFE2DC;}
   tr.bcrow.grp:not(.gfirst) input.bcedit.nm{font-weight:400;color:var(--ink-soft);}
+  .bcdlab{font-size:9px;color:var(--ink-soft);}
   .bcdccell{text-align:right;white-space:nowrap;}
   .bcdclab{font-size:9.5px;color:var(--ink-soft);margin-right:4px;}
   input.bcdisc{width:72px;text-align:right;padding:4px 6px;font-size:11.5px;
     font-family:'IBM Plex Mono',monospace;border:1px solid var(--line);border-radius:3px;}
   input.bcdisc.on{background:#FBF0EF;border-color:#F0D5D2;color:var(--coral);font-weight:700;}
   .bcdcnote{font-size:9.5px;color:var(--coral);font-family:'IBM Plex Mono',monospace;}
+  /* 부킹시트에서 확정한 입금액과의 차액 */
+  .bcfix{font-size:9.5px;color:var(--coral);margin-top:3px;white-space:nowrap;
+    font-family:'IBM Plex Mono',monospace;}
+  .bcfix.ok{color:var(--jade);}
+  .bcfix.over{color:var(--ink-soft);}
+  .bcfixgo{background:#FBF0EF;border:1px solid #F0D5D2;border-radius:20px;cursor:pointer;
+    padding:1px 7px;font-size:9.5px;font-weight:700;color:var(--coral);font-family:inherit;
+    margin-left:3px;line-height:1.5;}
+  .bcfixgo:hover{background:var(--coral);color:#fff;}
   .grpbadge{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:20px;
     background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;margin-top:3px;white-space:nowrap;
     font-family:'IBM Plex Mono',monospace;}
@@ -1393,6 +1403,10 @@ const I={
   bcDayPay:'지급', bcDayNo:'제외',
   bcDup:'중복 의심', bcSameCust:'같은 손님',
   bcDisc:'매출보정', bcDiscNote:'보정',
+  bcFixed:'확정', bcFixApply:'보정', bcFixMatch:'장부와 같음 ✓', bcFixAdd:'별도 입금',
+  bcFixAll:'확정 입금대로 전부 보정',
+  bcFixAllAsk:'부킹시트에서 확정한 입금액에 맞춰 {n}일치 매출보정을 넣습니다. 넣으시겠습니까?',
+  bcFixOverHint:'부킹시트 확정액이 예약장부 합계보다 많습니다. 장부에 빠진 건이 있다는 뜻이라 자동으로 올리지 않습니다 — 빠진 건을 넣어 주세요.',
   bcDiscHint:'그날 실제로 덜 받은 총액을 넣으세요. 각 건의 금액에 비례해서 나눠 빼고, 그 줄어든 금액으로 커미션을 냅니다.', bcSkipped:'커미션 제외', bcPhone:'전화번호', opBooking:'예약장부 고객정보',
   bcEditHint:'고치면 예약장부(부킹테이블)의 고객 정보도 같이 바뀝니다', bcAddBtn:'＋ 예약장부에 없는 건 추가',
   bcSkipHint:'이 건을 커미션에서 빼기 (중복 입력 등)', bcUseHint:'다시 커미션에 넣기',
@@ -1599,6 +1613,10 @@ const I={
   bcDayPay:'จ่าย', bcDayNo:'ไม่จ่าย',
   bcDup:'สงสัยซ้ำ', bcSameCust:'ลูกค้าคนเดียวกัน',
   bcDisc:'ปรับยอด', bcDiscNote:'ปรับ',
+  bcFixed:'ยืนยัน', bcFixApply:'ปรับ', bcFixMatch:'ตรงกับตารางจอง ✓', bcFixAdd:'เงินเข้าแยก',
+  bcFixAll:'ปรับตามยอดที่ยืนยันทั้งเดือน',
+  bcFixAllAsk:'จะปรับยอด {n} วันตามยอดที่ยืนยันในตารางจอง ดำเนินการหรือไม่?',
+  bcFixOverHint:'ยอดที่ยืนยันมากกว่ายอดในตารางจอง แปลว่ามีรายการตกหล่น ระบบจะไม่เพิ่มให้เอง กรุณาเพิ่มรายการที่ขาด',
   bcDiscHint:'ใส่ยอดส่วนลดรวมของวันนั้น ระบบจะหักตามสัดส่วนของแต่ละรายการ แล้วคิดคอมมิชชั่นจากยอดที่ลดแล้ว', bcSkipped:'ไม่คิดคอมมิชชั่น', bcPhone:'เบอร์โทร', opBooking:'ข้อมูลลูกค้าในตารางจอง',
   bcEditHint:'แก้ที่นี่แล้วข้อมูลลูกค้าในตารางจองจะเปลี่ยนด้วย', bcAddBtn:'＋ เพิ่มรายการที่ไม่มีในตารางจอง',
   bcSkipHint:'ไม่คิดคอมมิชชั่นรายการนี้ (เช่นลงซ้ำ)', bcUseHint:'นำกลับมาคิดคอมมิชชั่น',
@@ -1694,14 +1712,15 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v17';
+const APP_VER='v18';
 const APP_DATE='2026-09-30';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
                   fixedCosts:[],fixedPays:{},expenses:[],targets:{},wageHist:{},payees:[],
                   bookings:[],bkRoster:[],gwRate:null,
                   commCfg:{rate:3,gowabiBasis:'net',minAmount:0},
-                  nameMap:{},commSplit:{},commOvr:{},commSkip:new Set(),commDisc:{},payItems:[]});
+                  nameMap:{},commSplit:{},commOvr:{},commSkip:new Set(),commDisc:{},
+                  dayRev:{},payItems:[]});
 let data=EMPTY();
 const EMPTYPES=[['정직원','tRegular'],['수습','tProbation'],['인턴','tIntern'],['알바','tPart']];
 /* 지출 분류 — [한국어, 태국어] (DB 에는 한국어 값이 들어갑니다) */
@@ -2302,6 +2321,18 @@ async function loadAll(){
   data.bkRoster=(bkr.data||[]).map(x=>x.name).filter(Boolean);
   const smap={}; (bks.data||[]).forEach(x=>{smap[x.key]=x.value;});
   data.gwRate=smap.gowabi_rate==null?null:Number(smap.gowabi_rate)||0;
+  /* 부킹시트에 사장님이 포스 · 고와비로 확인해 넣은 '하루 확정 입금'.
+     mode 'total' = 그날 총 매출 (결제수단별로 여러 줄), 'add' = 별도 입금.
+     같은 숫자를 여기에 다시 넣지 않도록 그대로 가져옵니다. */
+  data.dayRev={};
+  if(Array.isArray(smap.manual_rev))smap.manual_rev.forEach(r=>{
+    const d=String(r.date||''); if(!d)return;
+    const o=data.dayRev[d]||(data.dayRev[d]={total:0,add:0,byPay:{},memos:[]});
+    const a=Number(r.amt||0);
+    if(r.mode==='add')o.add+=a;
+    else{o.total+=a; const k=r.pay||'기타'; o.byPay[k]=(o.byPay[k]||0)+a;}
+    if(r.memo)o.memos.push(String(r.memo));
+  });
 
   paintSetup();
   return true;
@@ -2541,6 +2572,19 @@ function dayGross(d){
   (data.bookings||[]).forEach(b=>{
     if(b.status==='방문'&&b.date===d&&!bkSkipped(b))sum+=bkPaid(b);});
   return sum;
+}
+/** 부킹시트에서 확정한 그날 입금 총액 — 안 넣은 날은 null */
+const dayFixed=d=>{const o=(data.dayRev||{})[d];return o&&o.total>0?o.total:null;};
+/** 확정 입금 − 예약장부 합계. 음수면 장부보다 덜 들어온 것 = 보정할 금액 */
+function dayGap(d){
+  const f=dayFixed(d); if(f==null)return null;
+  return money2(f-dayGross(d));
+}
+/** 덜 들어온 비율 (%) — 사장님이 손으로 계산하던 그 숫자입니다 */
+function dayGapPct(d){
+  const g=dayGross(d), gap=dayGap(d);
+  if(gap==null||g<=0)return null;
+  return Math.round(gap/g*1000)/10;
 }
 /** 보정을 비례해서 나눠 뺀 한 건의 금액 */
 function bkPaidAdj(b){
@@ -4744,8 +4788,29 @@ function renderBkComm(){
   list.forEach(b=>{(byDate[b.date]=byDate[b.date]||[]).push(b);});
   const dates=Object.keys(byDate).sort();
   const dups=dupSet(m);
+  /* 부킹시트 확정액보다 장부가 많은데 아직 보정을 안 넣은 날들 */
+  const fixTodo=dates.filter(d=>{
+    const gap=dayGap(d); return gap!=null&&gap<0&&Math.round(dayDisc(d))!==Math.round(-gap);});
   // 처음 열 때는 모두 접고, 그날 것만 보고 싶으면 눌러서 펼칩니다
   if(bcOpen===null)bcOpen=new Set();
+  /* 부킹시트에서 확정한 입금액과 얼마나 다른지 — 사장님이 손으로 하던 4번 절차 */
+  const fixBox=(d,dc)=>{
+    const f=dayFixed(d); if(f==null)return '';
+    const o=(data.dayRev||{})[d]||{byPay:{},add:0,memos:[]};
+    /* 결제수단별로 보여 주면 차액이 어디서 났는지 바로 짚힙니다 */
+    const tip=esc([Object.keys(o.byPay).map(k=>k+' '+money(Math.round(o.byPay[k]))).join(' · '),
+      o.add?t('bcFixAdd')+' '+money(Math.round(o.add)):'',
+      (o.memos||[]).join(' / ')].filter(Boolean).join('\n'));
+    const gap=dayGap(d), pct=dayGapPct(d);
+    if(gap===0)return `<div class="bcfix ok" title="${tip}">${t('bcFixMatch')}</div>`;
+    if(gap>0)return `<div class="bcfix over" title="${t('bcFixOverHint')}\n\n${tip}">`
+      +`${t('bcFixed')} ${money(Math.round(f))} · +${money(Math.round(gap))}</div>`;
+    const need=Math.round(-gap), done=Math.round(dc)===need;
+    return `<div class="bcfix${done?' ok':''}" title="${tip}">${t('bcFixed')} ${money(Math.round(f))}`
+      +` · −${money(need)}${pct==null?'':` (${pct}%)`}`
+      +(done?` ✓`:` <button class="bcfixgo" data-bcfix="${d}" data-v="${need}">${t('bcFixApply')}</button>`)
+      +`</div>`;
+  };
   const body=dates.map(d=>{
     const dg=dayGroup(byDate[d]), day=dg.list;
     const dSales=day.reduce((a,b)=>a+commBase(b),0);
@@ -4762,13 +4827,13 @@ function renderBkComm(){
           title="${on?t('bcDayOffHint'):t('bcDayOnHint')}">${on?t('bcDayPay'):t('bcDayNo')}</button></td>
       <td class="bcwho">${who.map(n=>`<span>${esc(n)}</span>`).join('')}</td>
       <td class="num">${day.length}${t('cntRec')}</td>
-      <td class="num">${money(Math.round(dSales))}${
+      <td class="num"><span class="bcdlab">${t('bcBase')}</span> ${money(Math.round(dSales))}${
         dc>0?`<div class="bcdcnote">${t('bcDiscNote')} −${money(Math.round(dc))}</div>`:''}</td>
-      <td class="num"><b class="pay-est">${money(dComm)}</b></td>
+      <td class="num"><span class="bcdlab">${t('bcComm')}</span> <b class="pay-est">${money(dComm)}</b></td>
       <td class="bcdccell"><span class="bcdclab">${t('bcDisc')}</span>
         <input type="number" step="1" min="0" max="${Math.round(dGross)}" data-bcdisc="${d}"
           value="${dc||''}" placeholder="—" title="${t('bcDiscHint')}"
-          class="bcdisc${dc?' on':''}"></td></tr>`;
+          class="bcdisc${dc?' on':''}">${fixBox(d,dc)}</td></tr>`;
     if(!open)return head;
     return head+day.map(b=>{
       const shares=commShares(b), gw=isGowabi(b);
@@ -4819,6 +4884,7 @@ function renderBkComm(){
       <button class="ghost" id="bcOpenAll">${t('bcExpand')}</button>
       <button class="ghost" id="bcShutAll">${t('bcCollapse')}</button>
       <button class="ghost" id="bcAddManual">${t('bcAddBtn')}</button>
+      ${fixTodo.length?`<button class="ghost" id="bcFixAll">${t('bcFixAll')} ${fixTodo.length}</button>`:''}
       <span class="bchint">${t('bcClickDay')}</span></div>
     <div style="overflow-x:auto"><table class="bctab">
     <thead><tr>
@@ -4831,6 +4897,14 @@ function renderBkComm(){
       <th style="width:26%">${t('bcStaffShare')}</th></tr></thead>
     <tbody>${body}</tbody></table></div>`;
   $('bcOpenAll').onclick=()=>{bcOpen=new Set(dates);renderBkComm();};
+  if($('bcFixAll'))$('bcFixAll').onclick=async()=>{
+    if(!confirm(t('bcFixAllAsk').replace('{n}',fixTodo.length)))return;
+    $('bcFixAll').disabled=true;
+    data.commDisc=data.commDisc||{};
+    fixTodo.forEach(d=>{const gap=dayGap(d);if(gap!=null&&gap<0)data.commDisc[d]=Math.round(-gap);});
+    renderPay(); renderBkComm();
+    for(const d of fixTodo)await saveCommDay(d);
+  };
   $('bcShutAll').onclick=()=>{bcOpen=new Set();renderBkComm();};
   /* 예약장부에 없는 건은 아래 커미션 내역에서 직접 넣습니다 */
   $('bcAddManual').onclick=()=>{
@@ -4852,6 +4926,17 @@ function bcToggle(d){
 $('bcList').addEventListener('click',async e=>{
   /* 입력칸을 누른 것은 날짜를 접거나 펴는 뜻이 아닙니다 */
   if(e.target.closest('input,select,textarea'))return;
+  /* 부킹시트 확정액에 맞춰 그날 보정을 넣습니다 */
+  const fx=e.target.closest('[data-bcfix]');
+  if(fx){
+    e.stopPropagation();
+    const d=fx.dataset.bcfix, v=Math.max(0,Math.round(Number(fx.dataset.v||0)));
+    data.commDisc=data.commDisc||{};
+    v>0?data.commDisc[d]=v:delete data.commDisc[d];
+    renderPay(); renderBkComm();
+    await saveCommDay(d);
+    return;
+  }
   /* 그날 커미션 지급 여부 스위치 (날짜 펼치기보다 먼저 봅니다) */
   const sk=e.target.closest('[data-bcskip]');
   if(sk){
