@@ -304,6 +304,10 @@
   .setupbox code{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;color:var(--ink);}
   .setupbox .slist span{font-size:10.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
   .setupbox small{display:block;font-size:10.5px;color:var(--ink-soft);line-height:1.6;}
+  .setupbox a.setuplink{display:block;text-align:center;padding:7px 14px;font-size:12px;
+    font-weight:700;color:var(--amber);background:#fff;border:1px solid #EBDCB6;border-radius:3px;
+    text-decoration:none;margin-bottom:8px;}
+  .setupbox a.setuplink:hover{border-color:var(--amber);}
   .setupbox button.pri{background:var(--jade);border-color:var(--jade);color:#fff;
     font-weight:700;padding:7px 14px;font-size:12px;margin:2px 0 8px;display:block;width:100%;}
   .setupbox .sfiles{font-size:9.5px;color:var(--ink-soft);margin-top:6px;
@@ -1404,7 +1408,8 @@ const I={
   piNote:'여기 적은 것이 위 <b>급여표의 보너스 · 공제 칸</b>에 자동으로 합산됩니다. 급여표 칸을 직접 고쳐 쓰면 그 값이 우선합니다.<br><b>무급휴가</b>로 뺀 금액, <b>가불</b>, <b>지각·결근</b> 공제, 커미션이 아닌 <b>보너스·수당</b> 같은 것을 사유와 함께 남겨 두세요 — 나중에 왜 그 금액이었는지 알 수 있습니다.<br>표 안의 <b>사유 · 일수 · 금액은 바로 고칠 수 있고</b>, 고치는 즉시 저장됩니다.',
   setupTitle:'아직 만들지 않은 표가 있습니다', setupHide:'닫기',
   setupCopy:'📋 필요한 SQL 복사', setupCopied:'복사했습니다', setupDone:'설치 완료',
-  setupCopyHow:'위 단추를 누르면 필요한 SQL 이 통째로 복사됩니다. Supabase → SQL Editor → + New query → 붙여넣기(Ctrl+V) → Run 하세요. 파일을 열 필요가 없습니다. 여러 번 실행해도 안전합니다.',
+  setupOpen:'🔗 Supabase SQL 편집기 열기',
+  setupCopyHow:'<b>① SQL 복사</b> → <b>② 편집기 열기</b> → <b>③ 붙여넣기(Ctrl+V)</b> → <b>④ Run</b><br>파일을 열 필요가 없습니다. 여러 번 실행해도 안전하고, 기존 데이터는 지워지지 않습니다.',
   setupHow:'Supabase → SQL Editor → + New query → 위 파일 내용을 붙여넣고 Run 하세요. 여러 번 실행해도 안전합니다. 실행 전까지 그 기능만 안 되고 나머지는 정상으로 돌아갑니다.',
   cmQTodayBtn:'오늘', cmQNeedWho:'담당자를 먼저 누르세요.',
   cmQHint:'<b>담당자를 누르고 금액만 치면 Enter 로 한 줄이 들어갑니다.</b> 담당자와 날짜는 그대로 남아서 같은 사람 건을 연달아 넣기 좋습니다.<br>담당자를 <b>두 명 이상</b> 누르면 금액을 나눠 갖습니다. <b>내용</b>은 안 써도 됩니다. 날짜는 <b>◀ ▶</b> 로 옮깁니다.',
@@ -1607,6 +1612,7 @@ const I={
   piNote:'รายการที่บันทึกที่นี่จะรวมเข้า<b>ช่องโบนัสและหักเงินในตารางเงินเดือน</b>อัตโนมัติ ถ้าแก้ในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้<br>บันทึกพร้อมเหตุผลไว้ เช่น <b>ลาไม่รับค่าจ้าง</b> <b>เบิกล่วงหน้า</b> <b>สาย·ขาดงาน</b> หรือ<b>โบนัส·เบี้ยเลี้ยง</b>ที่ไม่ใช่คอมมิชชั่น จะได้ย้อนดูได้ว่าทำไมยอดเป็นแบบนั้น<br><b>เหตุผล · จำนวนวัน · ยอดเงิน แก้ได้ทันที</b> และบันทึกทันทีที่แก้',
   setupTitle:'ยังมีตารางที่ยังไม่ได้สร้าง', setupHide:'ปิด',
   setupCopy:'📋 คัดลอก SQL ที่ต้องใช้', setupCopied:'คัดลอกแล้ว', setupDone:'ติดตั้งเสร็จ',
+  setupOpen:'🔗 เปิด Supabase SQL Editor',
   setupCopyHow:'กดปุ่มด้านบนเพื่อคัดลอก SQL ทั้งหมดที่ต้องใช้ แล้วไปที่ Supabase → SQL Editor → + New query → วาง (Ctrl+V) → Run ไม่ต้องเปิดไฟล์ ทำซ้ำได้อย่างปลอดภัย',
   setupHow:'ไปที่ Supabase → SQL Editor → + New query แล้ววางเนื้อหาไฟล์ด้านบนและกด Run ทำซ้ำได้อย่างปลอดภัย ก่อนรัน ฟังก์ชันนั้นจะยังใช้ไม่ได้ แต่ส่วนอื่นทำงานปกติ',
   cmQTodayBtn:'วันนี้', cmQNeedWho:'เลือกผู้ทำก่อน',
@@ -1670,7 +1676,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v15';
+const APP_VER='v16';
 const APP_DATE='2026-09-29';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -2034,6 +2040,11 @@ const COL_PATCH={
   start_date:'patch-11-commission-start.sql', vat_rate:'patch-12-vat.sql',
   skip:'patch-13-skip-booking.sql', skip_why:'patch-13-skip-booking.sql'};
 const setupMissing=new Map();          // '표 · 칸 이름' → 실행할 SQL 파일
+/** Supabase SQL 편집기 주소 — 프로젝트 주소에서 만들어 냅니다 */
+function sqlEditorUrl(){
+  const ref=String(CFG.url||'').replace(/^https?:\/\//,'').split('.')[0];
+  return ref?`https://supabase.com/dashboard/project/${ref}/sql/new`:'https://supabase.com/dashboard';
+}
 /** 이 오류가 'SQL 을 아직 안 돌려서' 나는 것이면 기록하고 true */
 function noteSetup(e){
   const msg=(e&&(e.message||e.error_description))||String(e);
@@ -2057,6 +2068,7 @@ function paintSetup(){
   box.innerHTML=`<b>🛠 ${t('setupTitle')}</b>
     <div class="slist"><span>${names.map(esc).join(' · ')}</span></div>
     ${have.length?`<button id="setupCopy" class="pri">${t('setupCopy')}</button>`:''}
+    <a class="setuplink" href="${sqlEditorUrl()}" target="_blank" rel="noopener">${t('setupOpen')} ↗</a>
     <small>${have.length?t('setupCopyHow'):t('setupHow')}</small>
     ${files.length?`<div class="sfiles">${files.map(esc).join(' · ')}</div>`:''}
     <button id="setupX">${t('setupHide')}</button>`;
