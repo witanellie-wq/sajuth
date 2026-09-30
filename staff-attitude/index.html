@@ -269,6 +269,12 @@
   .dupbadge{display:inline-block;font-size:9.5px;font-weight:700;padding:1px 7px;border-radius:20px;
     background:#FBF4E3;color:var(--amber);border:1px solid #EBDCB6;margin-top:3px;white-space:nowrap;}
   .dupbadge.off{background:#EFF1EE;color:var(--ink-soft);border-color:var(--line);}
+  .paycell{display:flex;align-items:center;gap:3px;}
+  .pijump{background:none;border:1px solid var(--line);border-radius:3px;cursor:pointer;
+    padding:4px 6px;font-size:12px;color:var(--ink-soft);font-family:inherit;line-height:1;flex:0 0 auto;}
+  .pijump:hover{border-color:var(--jade);color:var(--jade);}
+  .autohint{font-size:9.5px;color:var(--ink-soft);text-align:right;margin-top:2px;
+    font-family:'IBM Plex Mono',monospace;}
   .pikind{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
   .pikind.plus{background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;}
   .pikind.minus{background:#FBF0EF;color:var(--coral);border:1px solid #F0D5D2;}
@@ -1293,7 +1299,7 @@ const I={
   resign:'퇴사 처리', unresign:'복직', resigned:'퇴사',
   delStaffRec:'이 직원의 기록 · 커미션 · 급여 · 경고 · 평가가 모두 삭제됩니다. 계속할까요?',
   edit:'수정', edTitle:'기록 수정', cancel:'취소',
-  payNote:'<b>기본급</b>은 급여 방식에 따라 자동 계산됩니다 — 월급: 고정액 / 일급: 출근일 × 일급 / 시급: 근무시간 × 시급 (퇴근 시각을 입력한 날만 집계).<br>칸을 직접 고쳐 쓰면 그 값이 우선합니다. <b>보너스</b>와 <b>공제</b>(지각·가불 등)를 넣으면 지급 합계에 반영됩니다. <b>지급 여부</b>를 체크하면 그 달 급여가 지급 완료로 기록되고 지급일이 자동으로 들어갑니다.<br>급여 방식과 금액은 <b>직원 관리 → 고용 조건</b>에서 설정하세요. 퇴사 처리한 직원은 이 표에 나오지 않습니다.',
+  payNote:'<b>기본급</b>은 급여 방식에 따라 자동 계산됩니다 — 월급: 고정액 / 일급: 출근일 × 일급 / 시급: 근무시간 × 시급 (퇴근 시각을 입력한 날만 집계).<br>칸을 직접 고쳐 쓰면 그 값이 우선합니다. <b>보너스</b>와 <b>공제</b>(지각·가불 등)를 넣으면 지급 합계에 반영됩니다. <b>지급 여부</b>를 체크하면 그 달 급여가 지급 완료로 기록되고 지급일이 자동으로 들어갑니다.<br>급여 방식과 금액은 <b>직원 관리 → 고용 조건</b>에서 설정하세요. 퇴사 처리한 직원은 이 표에 나오지 않습니다.<br><b>커미션 · 보너스 · 공제 칸을 비워 두면</b> 아래 내역에서 자동으로 합산된 금액을 씁니다 (칸 아래 회색 글씨가 그 금액입니다). 숫자를 직접 넣으면 그 값이 우선합니다. <b>0 은 안 넣은 것과 같게 봅니다</b> — 자동 합계를 쓰지 않으려면 아래 내역에서 그 건을 지우세요.<br>보너스 · 공제 칸의 <b>＋</b> 를 누르면 아래 <b>추가 지급 · 공제 내역</b> 으로 바로 갑니다.',
   commNote:'<b>달력에서 날짜를 누르면</b> 그날 내역이 아래에 열리고, 거기서 바로 고치거나 지울 수 있습니다.<br><b>판매금액</b>을 넣으면 커미션이 비율(위쪽 %)로 자동 계산됩니다. <b>커미션 칸에 직접 숫자</b>를 넣으면 그 금액이 우선합니다 (보너스처럼 매출과 상관없는 건).<br><b>📷 사진에서 붙여넣기</b> — 종이 기록을 찍어 글자로 옮긴 것을 붙여넣으면 여러 건을 한 번에 넣을 수 있습니다. 넣기 전에 표에서 확인·수정합니다.<br>커미션은 <b>등록한 날짜가 속한 달</b>의 급여표에 자동 합산됩니다. 급여표의 커미션 칸을 직접 고치면 그 값이 우선합니다.',
   editNote:'기록 옆 <b>✎</b> 또는 월 근태표의 색깔 칸을 클릭하면 그 기록을 수정할 수 있습니다.',
   /* ── 색 기준 (태도 점수) ── */
@@ -1388,7 +1394,8 @@ const I={
   piMinus:'공제', piPlus:'추가', piReasonPh:'예: 무급휴가 3일 / 명절 보너스',
   piUnpaid:'무급휴가', piLate:'지각 · 결근', piAdvance:'가불', piEtcM:'기타 공제',
   piBonus:'보너스', piAllow:'수당', piTrans:'교통비', piEtcP:'기타 지급',
-  opPayItem:'추가 지급 · 공제',
+  opPayItem:'추가 지급 · 공제', piAuto:'내역 합계', piJumpHint:'아래 내역에 한 줄 넣기',
+  piSaveFail:'저장하지 못했습니다 — patch-14 SQL 을 실행했는지 확인해 주세요.',
   piHint:'<b>직원을 누르고 → 구분(공제/추가) → 사유 → 금액 → Enter</b> 로 한 줄이 들어갑니다.<br><b>무급휴가</b>는 <b>일수</b>만 넣으면 금액이 자동으로 채워집니다 (일급 × 일수, 월급이면 월급÷30 × 일수). 금액은 직접 고쳐도 됩니다.',
   piNote:'여기 적은 것이 위 <b>급여표의 보너스 · 공제 칸</b>에 자동으로 합산됩니다. 급여표 칸을 직접 고쳐 쓰면 그 값이 우선합니다.<br><b>무급휴가</b>로 뺀 금액, <b>가불</b>, <b>지각·결근</b> 공제, 커미션이 아닌 <b>보너스·수당</b> 같은 것을 사유와 함께 남겨 두세요 — 나중에 왜 그 금액이었는지 알 수 있습니다.<br>표 안의 <b>사유 · 일수 · 금액은 바로 고칠 수 있고</b>, 고치는 즉시 저장됩니다.',
   setupTitle:'아직 만들지 않은 표가 있습니다', setupHide:'닫기',
@@ -1491,7 +1498,7 @@ const I={
   resign:'ตั้งเป็นลาออก', unresign:'กลับเข้าทำงาน', resigned:'ลาออกแล้ว',
   delStaffRec:'บันทึก คอมมิชชั่น เงินเดือน การเตือน และใบประเมินของพนักงานคนนี้จะถูกลบทั้งหมด ต้องการดำเนินการต่อหรือไม่?',
   edit:'แก้ไข', edTitle:'แก้ไขบันทึก', cancel:'ยกเลิก',
-  payNote:'<b>ค่าจ้างพื้นฐาน</b> คำนวณอัตโนมัติตามรูปแบบค่าจ้าง — รายเดือน: ยอดคงที่ / รายวัน: วันทำงาน × ค่าจ้างรายวัน / รายชั่วโมง: ชั่วโมงทำงาน × ค่าจ้างรายชั่วโมง (นับเฉพาะวันที่ใส่เวลาออกงาน)<br>หากแก้ตัวเลขในช่องเอง ระบบจะใช้ค่าที่แก้ ใส่ <b>โบนัส</b> และ <b>หักเงิน</b> แล้วยอดจ่ายรวมจะปรับตาม เมื่อติ๊ก <b>สถานะการจ่าย</b> ระบบจะบันทึกว่าจ่ายแล้วพร้อมวันที่โดยอัตโนมัติ<br>ตั้งค่ารูปแบบและจำนวนค่าจ้างได้ที่ <b>จัดการพนักงาน → เงื่อนไขการจ้าง</b> พนักงานที่ตั้งเป็นลาออกแล้วจะไม่แสดงในตารางนี้',
+  payNote:'<b>ค่าจ้างพื้นฐาน</b> คำนวณอัตโนมัติตามรูปแบบค่าจ้าง — รายเดือน: ยอดคงที่ / รายวัน: วันทำงาน × ค่าจ้างรายวัน / รายชั่วโมง: ชั่วโมงทำงาน × ค่าจ้างรายชั่วโมง (นับเฉพาะวันที่ใส่เวลาออกงาน)<br>หากแก้ตัวเลขในช่องเอง ระบบจะใช้ค่าที่แก้ ใส่ <b>โบนัส</b> และ <b>หักเงิน</b> แล้วยอดจ่ายรวมจะปรับตาม เมื่อติ๊ก <b>สถานะการจ่าย</b> ระบบจะบันทึกว่าจ่ายแล้วพร้อมวันที่โดยอัตโนมัติ<br>ตั้งค่ารูปแบบและจำนวนค่าจ้างได้ที่ <b>จัดการพนักงาน → เงื่อนไขการจ้าง</b> พนักงานที่ตั้งเป็นลาออกแล้วจะไม่แสดงในตารางนี้<br><b>ถ้าเว้นช่องคอมมิชชั่น · โบนัส · หักเงินไว้ว่าง</b> ระบบจะใช้ยอดรวมจากรายการด้านล่าง (ตัวเลขสีเทาใต้ช่อง) ถ้าใส่ตัวเลขเองจะใช้ค่าที่ใส่ · <b>ใส่ 0 เท่ากับเว้นว่าง</b> ถ้าไม่อยากใช้ยอดอัตโนมัติ ให้ลบรายการนั้นด้านล่าง<br>กด <b>＋</b> ในช่องโบนัส · หักเงิน เพื่อไปที่ <b>รายการจ่ายเพิ่ม · หักเงิน</b> ทันที',
   commNote:'<b>กดวันที่ในปฏิทิน</b> รายการของวันนั้นจะเปิดด้านล่าง แก้หรือลบได้ทันที<br>ใส่ <b>ยอดขาย</b> แล้วคอมมิชชั่นจะคิดตามอัตรา (% ด้านบน) ให้อัตโนมัติ ถ้า<b>ใส่ยอดคอมมิชชั่นเอง</b> ระบบจะใช้ยอดนั้น (เช่นโบนัสที่ไม่ผูกกับยอดขาย)<br><b>📷 วางข้อความจากรูป</b> — ถ่ายบันทึกในกระดาษแล้วแปลงเป็นข้อความ วางลงไปเพื่อบันทึกหลายรายการพร้อมกัน ตรวจและแก้ในตารางก่อนบันทึกได้<br>คอมมิชชั่นจะรวมเข้าตารางเงินเดือนของ<b>เดือนตามวันที่ที่บันทึก</b> หากแก้ช่องคอมมิชชั่นในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้',
   editNote:'กด <b>✎</b> ข้างบันทึก หรือคลิกช่องสีในตารางรายเดือน เพื่อแก้ไขบันทึกนั้น',
   /* ── สีตามคะแนน ── */
@@ -1588,7 +1595,8 @@ const I={
   piMinus:'หักเงิน', piPlus:'จ่ายเพิ่ม', piReasonPh:'เช่น ลาไม่รับค่าจ้าง 3 วัน / โบนัสเทศกาล',
   piUnpaid:'ลาไม่รับค่าจ้าง', piLate:'สาย · ขาดงาน', piAdvance:'เบิกล่วงหน้า', piEtcM:'หักอื่นๆ',
   piBonus:'โบนัส', piAllow:'เบี้ยเลี้ยง', piTrans:'ค่าเดินทาง', piEtcP:'จ่ายเพิ่มอื่นๆ',
-  opPayItem:'จ่ายเพิ่ม · หักเงิน',
+  opPayItem:'จ่ายเพิ่ม · หักเงิน', piAuto:'รวมจากรายการ', piJumpHint:'เพิ่มรายการด้านล่าง',
+  piSaveFail:'บันทึกไม่สำเร็จ — กรุณาตรวจว่ารัน SQL patch-14 แล้ว',
   piHint:'<b>กดชื่อพนักงาน → เลือกประเภท → เหตุผล → ยอดเงิน → Enter</b> ก็บันทึกหนึ่งรายการ<br><b>ลาไม่รับค่าจ้าง</b> ใส่แค่ <b>จำนวนวัน</b> ระบบจะคิดยอดให้ (ค่าจ้างรายวัน × วัน, ถ้ารายเดือนใช้ เงินเดือน÷30 × วัน) แก้ยอดเองได้',
   piNote:'รายการที่บันทึกที่นี่จะรวมเข้า<b>ช่องโบนัสและหักเงินในตารางเงินเดือน</b>อัตโนมัติ ถ้าแก้ในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้<br>บันทึกพร้อมเหตุผลไว้ เช่น <b>ลาไม่รับค่าจ้าง</b> <b>เบิกล่วงหน้า</b> <b>สาย·ขาดงาน</b> หรือ<b>โบนัส·เบี้ยเลี้ยง</b>ที่ไม่ใช่คอมมิชชั่น จะได้ย้อนดูได้ว่าทำไมยอดเป็นแบบนั้น<br><b>เหตุผล · จำนวนวัน · ยอดเงิน แก้ได้ทันที</b> และบันทึกทันทีที่แก้',
   setupTitle:'ยังมีตารางที่ยังไม่ได้สร้าง', setupHide:'ปิด',
@@ -1654,7 +1662,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v13';
+const APP_VER='v14';
 const APP_DATE='2026-09-29';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -1726,6 +1734,9 @@ function wageChange(s,month){
   return {from:before,to:now,up:now.wage>before.wage};
 }
 const num=v=>v==null||v===''?null:Number(v);
+/* 커미션 · 보너스 · 공제는 0 과 '안 넣음' 이 결과가 같습니다.
+   예전에 0 이 저장된 탓에 자동 합계가 가려지던 문제가 있어 0 도 '안 넣음' 으로 봅니다. */
+const numSet=v=>{const n=num(v);return (n==null||n===0)?null:n;};
 
 /* ══════════════════════════════════════════════════════════════════════════
    Supabase — 저장소
@@ -2285,10 +2296,10 @@ function payCalc(s,m){
   const manC=commOf(s.name,m), bkC=bkCommOf(s.name,m), autoC=money2(manC+bkC);
   const p=payOf(s.name,m);
   const base=num(p.base)!=null?num(p.base):auto;
-  const comm=num(p.comm)!=null?num(p.comm):autoC;
+  const comm=numSet(p.comm)!=null?numSet(p.comm):autoC;
   const autoB=piSum(s.name,m,'추가'), autoD=piSum(s.name,m,'공제');
-  const bonus=num(p.bonus)!=null?num(p.bonus):autoB;
-  const deduct=num(p.deduct)!=null?num(p.deduct):autoD;
+  const bonus=numSet(p.bonus)!=null?numSet(p.bonus):autoB;
+  const deduct=numSet(p.deduct)!=null?numSet(p.deduct):autoD;
   return{auto,autoC,manC,bkC,base,comm,autoB,autoD,bonus,deduct,
          total:base+comm+bonus-deduct,p};
 }
@@ -3693,9 +3704,17 @@ function renderPay(){
     const wa=wageAt(s,m), pt=wa.payType, chg=wageChange(s,m);
     sum+=c.total;
     if(c.p.paid){paidSum+=c.total;paidN++;}else{unpaidN++;}
-    const inp=(f,ph)=>`<input type="number" step="10" data-pay="${f}" data-k="${k}"
-      value="${c.p[f]==null||c.p[f]===''?'':c.p[f]}" placeholder="${ph}"
-      style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace;padding:6px 8px;font-size:12.5px">`;
+    const inp=(f,ph)=>{
+      const raw=c.p[f];
+      const soft=(f==='comm'||f==='bonus'||f==='deduct');   // 0 은 비워 둡니다
+      const v=(raw==null||raw===''||(soft&&Number(raw)===0))?'':raw;
+      return `<input type="number" step="10" data-pay="${f}" data-k="${k}"
+        value="${v}" placeholder="${ph}"
+        style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace;padding:6px 8px;font-size:12.5px">`;
+    };
+    /* 내역으로 넣으러 가는 단추 — 위에서 바로 갈 수 있게 */
+    const pib=(kind)=>`<button class="pijump no-print" data-pijump="${k}" data-pikind="${kind}"
+      title="${t('piJumpHint')}">＋</button>`;
     return `<tr${c.p.paid?' style="background:#F4F8F6"':''}>
       <td><b>${esc(s.name)}</b><br><span style="font-size:10.5px;color:var(--ink-soft)">${t(({'월급':'pM','일급':'pD','시급':'pH'})[pt])} ${wa.wage?money(wa.wage):t('notSet')}</span>
         ${chg?`<br><span class="raise ${chg.up?'up':'down'}" title="${esc(chg.to.memo||'')}">${
@@ -3706,8 +3725,10 @@ function renderPay(){
       <td class="num" style="font-size:12px">${x.days}${t('day')}${x.hours?`<br><span style="color:var(--ink-soft)">${x.hours.toFixed(1)}${t('hrs')}</span>`:''}</td>
       <td>${inp('base',c.auto||0)}</td>
       <td>${inp('comm',c.autoC||0)}</td>
-      <td>${inp('bonus',c.autoB||0)}</td>
-      <td>${inp('deduct',c.autoD||0)}</td>
+      <td><div class="paycell">${inp('bonus',c.autoB||0)}${pib('추가')}</div>
+        ${c.autoB?`<div class="autohint">${t('piAuto')} ${money(c.autoB)}</div>`:''}</td>
+      <td><div class="paycell">${inp('deduct',c.autoD||0)}${pib('공제')}</div>
+        ${c.autoD?`<div class="autohint">${t('piAuto')} ${money(c.autoD)}</div>`:''}</td>
       <td class="num"><b class="pay-est" style="font-size:14px">${money(c.total)}</b></td>
       <td>
         <button class="paybtn${c.p.paid?' on':''}" data-paytoggle="${k}"
@@ -3745,6 +3766,16 @@ $('payTable').addEventListener('change',async e=>{
   else{p[f]=el.value===''?null:Number(el.value);}
   renderPay();
   await savePayroll(name,m,p);
+});
+/* 급여표에서 ＋ 를 누르면 아래 내역 입력칸으로 갑니다 */
+$('payTable').addEventListener('click',e=>{
+  const b=e.target.closest('[data-pijump]'); if(!b)return;
+  piWho=b.dataset.pijump;
+  $('piKind').value=b.dataset.pikind||'공제';
+  renderPayItems();
+  const el=document.querySelector('[data-i="piTitle"]');
+  if(el)el.scrollIntoView({behavior:'smooth',block:'start'});
+  setTimeout(()=>$('piAmt').focus(),400);
 });
 /* 지급 여부는 버튼으로 토글합니다 */
 $('payTable').addEventListener('click',async e=>{
@@ -3856,7 +3887,8 @@ $('piAdd').addEventListener('click',async()=>{
     reason:$('piReason').value.trim(),amount:amt,
     days:$('piDays').value===''?null:Number($('piDays').value),date:null};
   const res=await op(t('opPayItem'),()=>sb.from('staff_pay_items').insert(row).select().single());
-  if(res.ok&&res.data)data.payItems.push({id:res.data.id,_sid:row.staff_id,staff:piWho,
+  if(!res.ok){ bkSay(t('piSaveFail'),'var(--coral)'); return; }   // 칸을 비우지 않습니다
+  if(res.data)data.payItems.push({id:res.data.id,_sid:row.staff_id,staff:piWho,
     month:m,kind:row.kind,reason:row.reason,amount:amt,days:row.days,date:'',seq:Date.now()});
   $('piAmt').value=''; $('piDays').value=''; $('piReason').value='';
   renderPayItems(); renderPay();
