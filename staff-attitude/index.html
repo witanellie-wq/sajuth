@@ -304,6 +304,10 @@
   .setupbox code{font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:700;color:var(--ink);}
   .setupbox .slist span{font-size:10.5px;color:var(--ink-soft);font-family:'IBM Plex Mono',monospace;}
   .setupbox small{display:block;font-size:10.5px;color:var(--ink-soft);line-height:1.6;}
+  .setupbox button.pri{background:var(--jade);border-color:var(--jade);color:#fff;
+    font-weight:700;padding:7px 14px;font-size:12px;margin:2px 0 8px;display:block;width:100%;}
+  .setupbox .sfiles{font-size:9.5px;color:var(--ink-soft);margin-top:6px;
+    font-family:'IBM Plex Mono',monospace;word-break:break-all;}
   .setupbox button{margin-top:8px;background:none;border:1px solid #EBDCB6;border-radius:3px;
     padding:4px 10px;font-size:11px;color:var(--amber);cursor:pointer;font-family:inherit;}
   .verline{text-align:center;font-size:10.5px;color:var(--line);padding:14px 0 22px;
@@ -1399,6 +1403,8 @@ const I={
   piHint:'<b>직원을 누르고 → 구분(공제/추가) → 사유 → 금액 → Enter</b> 로 한 줄이 들어갑니다.<br><b>무급휴가</b>는 <b>일수</b>만 넣으면 금액이 자동으로 채워집니다 (일급 × 일수, 월급이면 월급÷30 × 일수). 금액은 직접 고쳐도 됩니다.',
   piNote:'여기 적은 것이 위 <b>급여표의 보너스 · 공제 칸</b>에 자동으로 합산됩니다. 급여표 칸을 직접 고쳐 쓰면 그 값이 우선합니다.<br><b>무급휴가</b>로 뺀 금액, <b>가불</b>, <b>지각·결근</b> 공제, 커미션이 아닌 <b>보너스·수당</b> 같은 것을 사유와 함께 남겨 두세요 — 나중에 왜 그 금액이었는지 알 수 있습니다.<br>표 안의 <b>사유 · 일수 · 금액은 바로 고칠 수 있고</b>, 고치는 즉시 저장됩니다.',
   setupTitle:'아직 만들지 않은 표가 있습니다', setupHide:'닫기',
+  setupCopy:'📋 필요한 SQL 복사', setupCopied:'복사했습니다', setupDone:'설치 완료',
+  setupCopyHow:'위 단추를 누르면 필요한 SQL 이 통째로 복사됩니다. Supabase → SQL Editor → + New query → 붙여넣기(Ctrl+V) → Run 하세요. 파일을 열 필요가 없습니다. 여러 번 실행해도 안전합니다.',
   setupHow:'Supabase → SQL Editor → + New query → 위 파일 내용을 붙여넣고 Run 하세요. 여러 번 실행해도 안전합니다. 실행 전까지 그 기능만 안 되고 나머지는 정상으로 돌아갑니다.',
   cmQTodayBtn:'오늘', cmQNeedWho:'담당자를 먼저 누르세요.',
   cmQHint:'<b>담당자를 누르고 금액만 치면 Enter 로 한 줄이 들어갑니다.</b> 담당자와 날짜는 그대로 남아서 같은 사람 건을 연달아 넣기 좋습니다.<br>담당자를 <b>두 명 이상</b> 누르면 금액을 나눠 갖습니다. <b>내용</b>은 안 써도 됩니다. 날짜는 <b>◀ ▶</b> 로 옮깁니다.',
@@ -1600,6 +1606,8 @@ const I={
   piHint:'<b>กดชื่อพนักงาน → เลือกประเภท → เหตุผล → ยอดเงิน → Enter</b> ก็บันทึกหนึ่งรายการ<br><b>ลาไม่รับค่าจ้าง</b> ใส่แค่ <b>จำนวนวัน</b> ระบบจะคิดยอดให้ (ค่าจ้างรายวัน × วัน, ถ้ารายเดือนใช้ เงินเดือน÷30 × วัน) แก้ยอดเองได้',
   piNote:'รายการที่บันทึกที่นี่จะรวมเข้า<b>ช่องโบนัสและหักเงินในตารางเงินเดือน</b>อัตโนมัติ ถ้าแก้ในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้<br>บันทึกพร้อมเหตุผลไว้ เช่น <b>ลาไม่รับค่าจ้าง</b> <b>เบิกล่วงหน้า</b> <b>สาย·ขาดงาน</b> หรือ<b>โบนัส·เบี้ยเลี้ยง</b>ที่ไม่ใช่คอมมิชชั่น จะได้ย้อนดูได้ว่าทำไมยอดเป็นแบบนั้น<br><b>เหตุผล · จำนวนวัน · ยอดเงิน แก้ได้ทันที</b> และบันทึกทันทีที่แก้',
   setupTitle:'ยังมีตารางที่ยังไม่ได้สร้าง', setupHide:'ปิด',
+  setupCopy:'📋 คัดลอก SQL ที่ต้องใช้', setupCopied:'คัดลอกแล้ว', setupDone:'ติดตั้งเสร็จ',
+  setupCopyHow:'กดปุ่มด้านบนเพื่อคัดลอก SQL ทั้งหมดที่ต้องใช้ แล้วไปที่ Supabase → SQL Editor → + New query → วาง (Ctrl+V) → Run ไม่ต้องเปิดไฟล์ ทำซ้ำได้อย่างปลอดภัย',
   setupHow:'ไปที่ Supabase → SQL Editor → + New query แล้ววางเนื้อหาไฟล์ด้านบนและกด Run ทำซ้ำได้อย่างปลอดภัย ก่อนรัน ฟังก์ชันนั้นจะยังใช้ไม่ได้ แต่ส่วนอื่นทำงานปกติ',
   cmQTodayBtn:'วันนี้', cmQNeedWho:'เลือกผู้ทำก่อน',
   cmQHint:'<b>กดชื่อผู้ทำแล้วพิมพ์แค่ยอด กด Enter ก็บันทึกหนึ่งรายการ</b> ผู้ทำและวันที่ยังค้างไว้ จึงใส่รายการของคนเดิมต่อกันได้เร็ว<br>กดผู้ทำ<b>ตั้งแต่สองคน</b> ระบบจะแบ่งยอดให้ · ช่อง<b>รายละเอียด</b>ไม่ใส่ก็ได้ · เปลี่ยนวันด้วย <b>◀ ▶</b>',
@@ -1662,7 +1670,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v14';
+const APP_VER='v15';
 const APP_DATE='2026-09-29';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -1786,18 +1794,245 @@ const failQ=[];
 /* ── 아직 안 돌린 SQL 때문에 나는 오류 ─────────────────────────────────
    표나 칸이 아직 없는 것은 '고장' 이 아니라 '설치가 덜 된 것' 입니다.
    빨간 "저장 실패 — 창을 닫지 마세요" 대신, 무엇을 실행하면 되는지 알려 줍니다. */
+const SETUP_SQL={
+  'patch-06-wage-history.sql': `create table if not exists public.staff_wage_history (
+  id         uuid primary key default gen_random_uuid(),
+  staff_id   uuid not null references public.staff_members(id) on delete cascade,
+  from_month text not null,
+  pay_type   text not null default '일급',
+  wage       numeric(12,2) not null default 0,
+  memo       text default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  unique (staff_id, from_month)
+);
+create index if not exists staff_wage_history_staff_idx
+  on public.staff_wage_history(staff_id, from_month);
+drop trigger if exists staff_wage_history_touch on public.staff_wage_history;
+create trigger staff_wage_history_touch before update on public.staff_wage_history
+  for each row execute function staff_touch_updated_at();
+alter table public.staff_wage_history enable row level security;
+drop policy if exists staff_wage_history_rw on public.staff_wage_history;
+create policy staff_wage_history_rw on public.staff_wage_history
+  for all to authenticated using (staff_is_admin()) with check (staff_is_admin());
+grant select, insert, update, delete on public.staff_wage_history to authenticated;
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname='supabase_realtime' and schemaname='public' and tablename='staff_wage_history'
+  ) then
+    alter publication supabase_realtime add table public.staff_wage_history;
+  end if;
+end $$;
+alter table public.staff_wage_history replica identity full;
+insert into public.staff_wage_history (staff_id, from_month, pay_type, wage, memo)
+select m.id, '2000-01',
+       coalesce(nullif(m.pay_type,''), case when m.emp_type='알바' then '시급' else '일급' end),
+       m.wage, '최초 급여'
+from public.staff_members m
+where m.wage is not null and m.wage > 0
+  and not exists (select 1 from public.staff_wage_history h where h.staff_id = m.id);`,
+  'patch-07-reimburse.sql': `alter table public.staff_expenses
+  add column if not exists paid_by       text not null default '회사',
+  add column if not exists reimbursed_at date;
+create index if not exists staff_expenses_payer_idx
+  on public.staff_expenses(paid_by, reimbursed_at);
+alter table public.staff_fixed_payments
+  add column if not exists paid_by       text not null default '회사',
+  add column if not exists reimbursed_at date;`,
+  'patch-08-payees.sql': `create table if not exists public.staff_payees (
+  id           uuid primary key default gen_random_uuid(),
+  name         text not null,
+  category     text not null default '기타',
+  biz          text not null default '하나하얀',
+  bank_name    text default '',
+  bank_account text default '',
+  bank_holder  text default '',
+  memo         text default '',
+  active       boolean not null default true,
+  sort_order   integer not null default 0,
+  legacy_id    text unique,
+  created_at   timestamptz not null default now(),
+  updated_at   timestamptz not null default now()
+);
+create index if not exists staff_payees_biz_idx on public.staff_payees(biz, sort_order);
+drop trigger if exists staff_payees_touch on public.staff_payees;
+create trigger staff_payees_touch before update on public.staff_payees
+  for each row execute function staff_touch_updated_at();
+alter table public.staff_payees enable row level security;
+drop policy if exists staff_payees_rw on public.staff_payees;
+create policy staff_payees_rw on public.staff_payees
+  for all to authenticated using (staff_is_admin()) with check (staff_is_admin());
+grant select, insert, update, delete on public.staff_payees to authenticated;
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname='supabase_realtime' and schemaname='public' and tablename='staff_payees'
+  ) then
+    alter publication supabase_realtime add table public.staff_payees;
+  end if;
+end $$;
+alter table public.staff_payees replica identity full;`,
+  'patch-09-commission.sql': `create table if not exists public.staff_comm_config (
+  id            integer primary key default 1 check (id = 1),
+  rate          numeric(6,3) not null default 3,
+  gowabi_basis  text         not null default 'net',
+  min_amount    numeric(12,2) not null default 0,
+  updated_at    timestamptz  not null default now()
+);
+insert into public.staff_comm_config (id) values (1) on conflict (id) do nothing;
+create table if not exists public.staff_name_map (
+  booking_name text primary key,
+  staff_id     uuid references public.staff_members(id) on delete cascade,
+  updated_at   timestamptz not null default now()
+);
+create index if not exists staff_name_map_staff_idx on public.staff_name_map(staff_id);
+create table if not exists public.staff_comm_split (
+  booking_id   bigint not null,
+  booking_name text   not null,
+  share        numeric(7,4) not null default 0,
+  updated_at   timestamptz not null default now(),
+  primary key (booking_id, booking_name)
+);
+create index if not exists staff_comm_split_bk_idx on public.staff_comm_split(booking_id);
+create table if not exists public.staff_comm_override (
+  booking_id bigint primary key,
+  amount     numeric(12,2),
+  memo       text default '',
+  updated_at timestamptz not null default now()
+);
+drop trigger if exists staff_comm_config_touch on public.staff_comm_config;
+create trigger staff_comm_config_touch before update on public.staff_comm_config
+  for each row execute function staff_touch_updated_at();
+drop trigger if exists staff_name_map_touch on public.staff_name_map;
+create trigger staff_name_map_touch before update on public.staff_name_map
+  for each row execute function staff_touch_updated_at();
+drop trigger if exists staff_comm_split_touch on public.staff_comm_split;
+create trigger staff_comm_split_touch before update on public.staff_comm_split
+  for each row execute function staff_touch_updated_at();
+drop trigger if exists staff_comm_override_touch on public.staff_comm_override;
+create trigger staff_comm_override_touch before update on public.staff_comm_override
+  for each row execute function staff_touch_updated_at();
+alter table public.staff_comm_config   enable row level security;
+alter table public.staff_name_map      enable row level security;
+alter table public.staff_comm_split    enable row level security;
+alter table public.staff_comm_override enable row level security;
+drop policy if exists staff_comm_config_rw on public.staff_comm_config;
+create policy staff_comm_config_rw on public.staff_comm_config
+  for all to authenticated using (staff_is_admin()) with check (staff_is_admin());
+drop policy if exists staff_name_map_rw on public.staff_name_map;
+create policy staff_name_map_rw on public.staff_name_map
+  for all to authenticated using (staff_is_admin()) with check (staff_is_admin());
+drop policy if exists staff_comm_split_rw on public.staff_comm_split;
+create policy staff_comm_split_rw on public.staff_comm_split
+  for all to authenticated using (staff_is_admin()) with check (staff_is_admin());
+drop policy if exists staff_comm_override_rw on public.staff_comm_override;
+create policy staff_comm_override_rw on public.staff_comm_override
+  for all to authenticated using (staff_is_admin()) with check (staff_is_admin());
+grant select, insert, update, delete on public.staff_comm_config   to authenticated;
+grant select, insert, update, delete on public.staff_name_map      to authenticated;
+grant select, insert, update, delete on public.staff_comm_split    to authenticated;
+grant select, insert, update, delete on public.staff_comm_override to authenticated;
+do $$
+declare tb text;
+begin
+  foreach tb in array array['staff_comm_config','staff_name_map','staff_comm_split','staff_comm_override'] loop
+    if not exists (
+      select 1 from pg_publication_tables
+      where pubname='supabase_realtime' and schemaname='public' and tablename=tb
+    ) then
+      execute format('alter publication supabase_realtime add table public.%I', tb);
+    end if;
+    execute format('alter table public.%I replica identity full', tb);
+  end loop;
+end $$;`,
+  'patch-10-commission-lines.sql': `alter table public.staff_commissions
+  add column if not exists sale_amount numeric(12,2),
+  add column if not exists rate        numeric(6,3),
+  add column if not exists share       numeric(7,4),
+  add column if not exists src         text default '';
+create index if not exists staff_commissions_date_idx
+  on public.staff_commissions(date);`,
+  'patch-11-commission-start.sql': `alter table public.staff_comm_config
+  add column if not exists start_date date;
+create table if not exists public.staff_comm_skip (
+  day        date primary key,
+  memo       text default '',
+  updated_at timestamptz not null default now()
+);
+drop trigger if exists staff_comm_skip_touch on public.staff_comm_skip;
+create trigger staff_comm_skip_touch before update on public.staff_comm_skip
+  for each row execute function staff_touch_updated_at();
+alter table public.staff_comm_skip enable row level security;
+drop policy if exists staff_comm_skip_rw on public.staff_comm_skip;
+create policy staff_comm_skip_rw on public.staff_comm_skip
+  for all to authenticated using (staff_is_admin()) with check (staff_is_admin());
+grant select, insert, update, delete on public.staff_comm_skip to authenticated;
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname='supabase_realtime' and schemaname='public' and tablename='staff_comm_skip'
+  ) then
+    alter publication supabase_realtime add table public.staff_comm_skip;
+  end if;
+end $$;
+alter table public.staff_comm_skip replica identity full;`,
+  'patch-12-vat.sql': `alter table public.staff_comm_config
+  add column if not exists vat_rate numeric(6,3) not null default 0;`,
+  'patch-13-skip-booking.sql': `alter table public.staff_comm_override
+  add column if not exists skip     boolean not null default false,
+  add column if not exists skip_why text default '';`,
+  'patch-14-pay-items.sql': `create table if not exists public.staff_pay_items (
+  id         uuid primary key default gen_random_uuid(),
+  staff_id   uuid not null references public.staff_members(id) on delete cascade,
+  month      text not null,
+  kind       text not null default '공제',
+  reason     text default '',
+  amount     numeric(12,2) not null default 0,
+  days       numeric(5,2),
+  date       date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists staff_pay_items_idx
+  on public.staff_pay_items(staff_id, month);
+drop trigger if exists staff_pay_items_touch on public.staff_pay_items;
+create trigger staff_pay_items_touch before update on public.staff_pay_items
+  for each row execute function staff_touch_updated_at();
+alter table public.staff_pay_items enable row level security;
+drop policy if exists staff_pay_items_rw on public.staff_pay_items;
+create policy staff_pay_items_rw on public.staff_pay_items
+  for all to authenticated using (staff_is_admin()) with check (staff_is_admin());
+grant select, insert, update, delete on public.staff_pay_items to authenticated;
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname='supabase_realtime' and schemaname='public' and tablename='staff_pay_items'
+  ) then
+    alter publication supabase_realtime add table public.staff_pay_items;
+  end if;
+end $$;
+alter table public.staff_pay_items replica identity full;`
+};
 const PATCH_OF={
   staff_fixed_costs:'patch-02-expenses.sql', staff_fixed_payments:'patch-02-expenses.sql',
   staff_expenses:'patch-02-expenses.sql', staff_targets:'patch-04-targets.sql',
   staff_wage_history:'patch-06-wage-history.sql', staff_payees:'patch-08-payees.sql',
   staff_comm_config:'patch-09-commission.sql', staff_name_map:'patch-09-commission.sql',
-  staff_comm_split:'patch-09-commission.sql', staff_comm_override:'patch-09-commission.sql'};
+  staff_comm_split:'patch-09-commission.sql', staff_comm_override:'patch-09-commission.sql',
+  staff_comm_skip:'patch-11-commission-start.sql', staff_pay_items:'patch-14-pay-items.sql'};
 const COL_PATCH={
   biz:'patch-03-business.sql',
   bank_name:'patch-05-bank.sql', bank_account:'patch-05-bank.sql', bank_holder:'patch-05-bank.sql',
   paid_by:'patch-07-reimburse.sql', reimbursed_at:'patch-07-reimburse.sql',
   sale_amount:'patch-10-commission-lines.sql', share:'patch-10-commission-lines.sql',
-  src:'patch-10-commission-lines.sql'};
+  src:'patch-10-commission-lines.sql',
+  start_date:'patch-11-commission-start.sql', vat_rate:'patch-12-vat.sql',
+  skip:'patch-13-skip-booking.sql', skip_why:'patch-13-skip-booking.sql'};
 const setupMissing=new Map();          // '표 · 칸 이름' → 실행할 SQL 파일
 /** 이 오류가 'SQL 을 아직 안 돌려서' 나는 것이면 기록하고 true */
 function noteSetup(e){
@@ -1816,15 +2051,34 @@ function noteSetup(e){
 function paintSetup(){
   const box=$('setupBox'); if(!box)return;
   if(!setupMissing.size){box.classList.remove('on');box.innerHTML='';return;}
-  const byFile={};
-  setupMissing.forEach((f,n)=>{(byFile[f||'?']=byFile[f||'?']||[]).push(n);});
+  const files=[...new Set([...setupMissing.values()].filter(Boolean))].sort();
+  const names=[...setupMissing.keys()].sort();
+  const have=files.filter(f=>SETUP_SQL[f]);
   box.innerHTML=`<b>🛠 ${t('setupTitle')}</b>
-    <div class="slist">${Object.entries(byFile).sort().map(([f,ns])=>
-      `<div><code>${esc(f)}</code><span>${ns.map(esc).join(' · ')}</span></div>`).join('')}</div>
-    <small>${t('setupHow')}</small>
+    <div class="slist"><span>${names.map(esc).join(' · ')}</span></div>
+    ${have.length?`<button id="setupCopy" class="pri">${t('setupCopy')}</button>`:''}
+    <small>${have.length?t('setupCopyHow'):t('setupHow')}</small>
+    ${files.length?`<div class="sfiles">${files.map(esc).join(' · ')}</div>`:''}
     <button id="setupX">${t('setupHide')}</button>`;
   box.classList.add('on');
   $('setupX').onclick=()=>{box.classList.remove('on');};
+  const cp=$('setupCopy');
+  if(cp)cp.onclick=async()=>{
+    // 필요한 것만 모아서 한 번에 복사합니다 (파일을 열 필요가 없습니다)
+    const sql='-- '+t('setupTitle')+'\n'+have.map(f=>SETUP_SQL[f]).join('\n\n')
+      +`\n\nselect '${t('setupDone')}' as "결과";\n`;
+    try{ await navigator.clipboard.writeText(sql);
+         cp.textContent='✓ '+t('setupCopied');
+         setTimeout(()=>{cp.textContent=t('setupCopy');},2500);
+    }catch(e){
+      // 클립보드가 막혀 있으면 화면에 띄워서 직접 복사하게 합니다
+      const ta=document.createElement('textarea');
+      ta.value=sql; ta.style.cssText='position:fixed;inset:6% 6% auto;height:70vh;z-index:99;'
+        +'font-family:monospace;font-size:12px;padding:10px;border:2px solid #2E7D6B;border-radius:4px';
+      document.body.appendChild(ta); ta.select();
+      ta.onblur=()=>ta.remove();
+    }
+  };
 }
 function setNet(state){ // 'live' | 'con' | 'off'
   const d=$('netDot'),x=$('netTxt');
