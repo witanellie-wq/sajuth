@@ -314,6 +314,9 @@ create table if not exists public.staff_comm_skip (
   memo       text default '',
   updated_at timestamptz not null default now()
 );
+alter table public.staff_comm_skip
+  add column if not exists skip     boolean not null default true,
+  add column if not exists discount numeric(12,2) not null default 0;
 drop trigger if exists staff_comm_skip_touch on public.staff_comm_skip;
 create trigger staff_comm_skip_touch before update on public.staff_comm_skip
   for each row execute function staff_touch_updated_at();
