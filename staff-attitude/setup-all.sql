@@ -340,12 +340,13 @@ alter table public.staff_comm_skip replica identity full;
 alter table public.staff_comm_config
   add column if not exists vat_rate numeric(6,3) not null default 0;
 
--- ── 건별 커미션 제외 · 금액 확인 (patch-13 · patch-16) ──
+-- ── 건별 커미션 제외 · 금액 확인 · 결제 경로 (patch-13 · 16 · 17) ──
 alter table public.staff_comm_override
   add column if not exists skip       boolean not null default false,
   add column if not exists skip_why   text default '',
   add column if not exists checked    boolean not null default false,
-  add column if not exists checked_at timestamptz;
+  add column if not exists checked_at timestamptz,
+  add column if not exists pay_kind   text;
 
 -- ── 급여 추가 지급 · 공제 내역 (patch-14) ──
 create table if not exists public.staff_pay_items (
@@ -407,6 +408,7 @@ from (values
   ('staff_comm_config','vat_rate'),
   ('staff_comm_override','skip'),
   ('staff_comm_override','checked'),
+  ('staff_comm_override','pay_kind'),
   ('staff_comm_skip','discount')
 ) as c(tb,col)
 order by 1 desc, 2;
