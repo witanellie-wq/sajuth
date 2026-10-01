@@ -6,7 +6,7 @@
 <title>직원 근태 · 업무태도 관리 · HANAHAYAN</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Sans+Thai:wght@300;400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Noto+Sans+Thai:wght@300;400;600;700&family=Noto+Sans+Myanmar:wght@400;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#131C2E; --ink-soft:#5A6472; --paper:#F6F7F5; --card:#FFFFFF;
@@ -568,6 +568,10 @@
   .rcaddr{font-size:11px;color:var(--ink-soft);margin-top:2px;}
   .rchd h2{margin:12px 0 0;font-size:19px;font-weight:700;line-height:1.35;}
   .rchd h2 span{font-size:12.5px;color:var(--ink-soft);font-weight:600;}
+  .rchd h2 em.mm{font-size:15px;font-weight:700;font-style:normal;}
+  em.mm{font-family:'Noto Sans Myanmar','Noto Sans Thai',sans-serif;font-style:normal;
+    line-height:1.9;}
+  small.rcko{display:block;font-size:10px;color:var(--ink-soft);font-weight:400;margin-top:1px;}
   .rcmeta{display:grid;grid-template-columns:1fr 1fr;gap:7px 24px;margin-bottom:18px;font-size:12px;}
   .rcmeta>div{display:flex;gap:10px;align-items:baseline;border-bottom:1px dotted var(--line);
     padding-bottom:5px;}
@@ -1449,7 +1453,7 @@ const I={
   resign:'퇴사 처리', unresign:'복직', resigned:'퇴사',
   delStaffRec:'이 직원의 기록 · 커미션 · 급여 · 경고 · 평가가 모두 삭제됩니다. 계속할까요?',
   edit:'수정', edTitle:'기록 수정', cancel:'취소',
-  payNote:'<b>기본급</b>은 급여 방식에 따라 자동 계산됩니다 — 월급: 고정액 / 일급: 출근일 × 일급 / 시급: 근무시간 × 시급 (퇴근 시각을 입력한 날만 집계).<br>칸을 직접 고쳐 쓰면 그 값이 우선합니다. <b>보너스</b>와 <b>공제</b>(지각·가불 등)를 넣으면 지급 합계에 반영됩니다. <b>지급 여부</b>를 체크하면 그 달 급여가 지급 완료로 기록되고 지급일이 자동으로 들어갑니다.<br>급여 방식과 금액은 <b>직원 관리 → 고용 조건</b>에서 설정하세요. 퇴사 처리한 직원은 이 표에 나오지 않습니다.<br><b>커미션 · 보너스 · 공제 칸을 비워 두면</b> 아래 내역에서 자동으로 합산된 금액을 씁니다 (칸 아래 회색 글씨가 그 금액입니다). 숫자를 직접 넣으면 그 값이 우선합니다. <b>0 은 안 넣은 것과 같게 봅니다</b> — 자동 합계를 쓰지 않으려면 아래 내역에서 그 건을 지우세요.<br>보너스 · 공제 칸의 <b>＋</b> 를 누르면 아래 <b>추가 지급 · 공제 내역</b> 으로 바로 갑니다.<br><b>수령증</b> 단추를 누르면 그 달 급여 내역과 서명 자리가 들어간 <b>급여 수령증</b>이 나옵니다 — 인쇄하거나 PDF 로 저장해 서명을 받아 두세요. <b>계좌가 없어 현금으로 드리는 분은 통장 기록이 안 남으므로 꼭 받아 두시는 것이 좋습니다.</b> 금액은 태국 영수증 관행대로 숫자와 글자(บาทถ้วน)로 같이 적힙니다.',
+  payNote:'<b>기본급</b>은 급여 방식에 따라 자동 계산됩니다 — 월급: 고정액 / 일급: 출근일 × 일급 / 시급: 근무시간 × 시급 (퇴근 시각을 입력한 날만 집계).<br>칸을 직접 고쳐 쓰면 그 값이 우선합니다. <b>보너스</b>와 <b>공제</b>(지각·가불 등)를 넣으면 지급 합계에 반영됩니다. <b>지급 여부</b>를 체크하면 그 달 급여가 지급 완료로 기록되고 지급일이 자동으로 들어갑니다.<br>급여 방식과 금액은 <b>직원 관리 → 고용 조건</b>에서 설정하세요. 퇴사 처리한 직원은 이 표에 나오지 않습니다.<br><b>커미션 · 보너스 · 공제 칸을 비워 두면</b> 아래 내역에서 자동으로 합산된 금액을 씁니다 (칸 아래 회색 글씨가 그 금액입니다). 숫자를 직접 넣으면 그 값이 우선합니다. <b>0 은 안 넣은 것과 같게 봅니다</b> — 자동 합계를 쓰지 않으려면 아래 내역에서 그 건을 지우세요.<br>보너스 · 공제 칸의 <b>＋</b> 를 누르면 아래 <b>추가 지급 · 공제 내역</b> 으로 바로 갑니다.<br><b>수령증</b> 단추를 누르면 그 달 급여 내역과 서명 자리가 들어간 <b>급여 수령증</b>이 나옵니다 — 인쇄하거나 PDF 로 저장해 서명을 받아 두세요. <b>계좌가 없어 현금으로 드리는 분은 통장 기록이 안 남으므로 꼭 받아 두시는 것이 좋습니다.</b> 금액은 태국 영수증 관행대로 숫자와 글자(บาทถ้วน)로 같이 적힙니다.<br>종이에는 <b>태국어 · 미얀마어 · 한국어</b>가 같이 들어갑니다 — 미얀마에서 온 직원도 읽고 서명할 수 있습니다.',
   commNote:'<b>달력에서 날짜를 누르면</b> 그날 내역이 아래에 열리고, 거기서 바로 고치거나 지울 수 있습니다.<br><b>판매금액</b>을 넣으면 커미션이 비율(위쪽 %)로 자동 계산됩니다. <b>커미션 칸에 직접 숫자</b>를 넣으면 그 금액이 우선합니다 (보너스처럼 매출과 상관없는 건).<br><b>📷 사진에서 붙여넣기</b> — 종이 기록을 찍어 글자로 옮긴 것을 붙여넣으면 여러 건을 한 번에 넣을 수 있습니다. 넣기 전에 표에서 확인·수정합니다.<br>커미션은 <b>등록한 날짜가 속한 달</b>의 급여표에 자동 합산됩니다. 급여표의 커미션 칸을 직접 고치면 그 값이 우선합니다.',
   editNote:'기록 옆 <b>✎</b> 또는 월 근태표의 색깔 칸을 클릭하면 그 기록을 수정할 수 있습니다.',
   /* ── 색 기준 (태도 점수) ── */
@@ -1679,7 +1683,7 @@ const I={
   resign:'ตั้งเป็นลาออก', unresign:'กลับเข้าทำงาน', resigned:'ลาออกแล้ว',
   delStaffRec:'บันทึก คอมมิชชั่น เงินเดือน การเตือน และใบประเมินของพนักงานคนนี้จะถูกลบทั้งหมด ต้องการดำเนินการต่อหรือไม่?',
   edit:'แก้ไข', edTitle:'แก้ไขบันทึก', cancel:'ยกเลิก',
-  payNote:'<b>ค่าจ้างพื้นฐาน</b> คำนวณอัตโนมัติตามรูปแบบค่าจ้าง — รายเดือน: ยอดคงที่ / รายวัน: วันทำงาน × ค่าจ้างรายวัน / รายชั่วโมง: ชั่วโมงทำงาน × ค่าจ้างรายชั่วโมง (นับเฉพาะวันที่ใส่เวลาออกงาน)<br>หากแก้ตัวเลขในช่องเอง ระบบจะใช้ค่าที่แก้ ใส่ <b>โบนัส</b> และ <b>หักเงิน</b> แล้วยอดจ่ายรวมจะปรับตาม เมื่อติ๊ก <b>สถานะการจ่าย</b> ระบบจะบันทึกว่าจ่ายแล้วพร้อมวันที่โดยอัตโนมัติ<br>ตั้งค่ารูปแบบและจำนวนค่าจ้างได้ที่ <b>จัดการพนักงาน → เงื่อนไขการจ้าง</b> พนักงานที่ตั้งเป็นลาออกแล้วจะไม่แสดงในตารางนี้<br><b>ถ้าเว้นช่องคอมมิชชั่น · โบนัส · หักเงินไว้ว่าง</b> ระบบจะใช้ยอดรวมจากรายการด้านล่าง (ตัวเลขสีเทาใต้ช่อง) ถ้าใส่ตัวเลขเองจะใช้ค่าที่ใส่ · <b>ใส่ 0 เท่ากับเว้นว่าง</b> ถ้าไม่อยากใช้ยอดอัตโนมัติ ให้ลบรายการนั้นด้านล่าง<br>กด <b>＋</b> ในช่องโบนัส · หักเงิน เพื่อไปที่ <b>รายการจ่ายเพิ่ม · หักเงิน</b> ทันที<br>กดปุ่ม <b>ใบรับเงิน</b> จะได้ <b>ใบสำคัญรับเงินเดือน</b> พร้อมรายการและช่องลงลายมือชื่อ พิมพ์หรือบันทึกเป็น PDF แล้วให้เซ็น <b>คนที่รับเป็นเงินสดไม่มีหลักฐานในบัญชี จึงควรเก็บไว้ทุกครั้ง</b> ยอดเงินจะแสดงทั้งตัวเลขและตัวอักษร (บาทถ้วน) ตามแบบใบเสร็จไทย',
+  payNote:'<b>ค่าจ้างพื้นฐาน</b> คำนวณอัตโนมัติตามรูปแบบค่าจ้าง — รายเดือน: ยอดคงที่ / รายวัน: วันทำงาน × ค่าจ้างรายวัน / รายชั่วโมง: ชั่วโมงทำงาน × ค่าจ้างรายชั่วโมง (นับเฉพาะวันที่ใส่เวลาออกงาน)<br>หากแก้ตัวเลขในช่องเอง ระบบจะใช้ค่าที่แก้ ใส่ <b>โบนัส</b> และ <b>หักเงิน</b> แล้วยอดจ่ายรวมจะปรับตาม เมื่อติ๊ก <b>สถานะการจ่าย</b> ระบบจะบันทึกว่าจ่ายแล้วพร้อมวันที่โดยอัตโนมัติ<br>ตั้งค่ารูปแบบและจำนวนค่าจ้างได้ที่ <b>จัดการพนักงาน → เงื่อนไขการจ้าง</b> พนักงานที่ตั้งเป็นลาออกแล้วจะไม่แสดงในตารางนี้<br><b>ถ้าเว้นช่องคอมมิชชั่น · โบนัส · หักเงินไว้ว่าง</b> ระบบจะใช้ยอดรวมจากรายการด้านล่าง (ตัวเลขสีเทาใต้ช่อง) ถ้าใส่ตัวเลขเองจะใช้ค่าที่ใส่ · <b>ใส่ 0 เท่ากับเว้นว่าง</b> ถ้าไม่อยากใช้ยอดอัตโนมัติ ให้ลบรายการนั้นด้านล่าง<br>กด <b>＋</b> ในช่องโบนัส · หักเงิน เพื่อไปที่ <b>รายการจ่ายเพิ่ม · หักเงิน</b> ทันที<br>กดปุ่ม <b>ใบรับเงิน</b> จะได้ <b>ใบสำคัญรับเงินเดือน</b> พร้อมรายการและช่องลงลายมือชื่อ พิมพ์หรือบันทึกเป็น PDF แล้วให้เซ็น <b>คนที่รับเป็นเงินสดไม่มีหลักฐานในบัญชี จึงควรเก็บไว้ทุกครั้ง</b> ยอดเงินจะแสดงทั้งตัวเลขและตัวอักษร (บาทถ้วน) ตามแบบใบเสร็จไทย<br>ในเอกสารมีทั้ง <b>ภาษาไทย · ภาษาพม่า · ภาษาเกาหลี</b> พนักงานจากเมียนมาอ่านแล้วเซ็นได้',
   commNote:'<b>กดวันที่ในปฏิทิน</b> รายการของวันนั้นจะเปิดด้านล่าง แก้หรือลบได้ทันที<br>ใส่ <b>ยอดขาย</b> แล้วคอมมิชชั่นจะคิดตามอัตรา (% ด้านบน) ให้อัตโนมัติ ถ้า<b>ใส่ยอดคอมมิชชั่นเอง</b> ระบบจะใช้ยอดนั้น (เช่นโบนัสที่ไม่ผูกกับยอดขาย)<br><b>📷 วางข้อความจากรูป</b> — ถ่ายบันทึกในกระดาษแล้วแปลงเป็นข้อความ วางลงไปเพื่อบันทึกหลายรายการพร้อมกัน ตรวจและแก้ในตารางก่อนบันทึกได้<br>คอมมิชชั่นจะรวมเข้าตารางเงินเดือนของ<b>เดือนตามวันที่ที่บันทึก</b> หากแก้ช่องคอมมิชชั่นในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้',
   editNote:'กด <b>✎</b> ข้างบันทึก หรือคลิกช่องสีในตารางรายเดือน เพื่อแก้ไขบันทึกนั้น',
   /* ── สีตามคะแนน ── */
@@ -1868,7 +1872,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v28';
+const APP_VER='v29';
 const APP_DATE='2026-10-01';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -4401,6 +4405,22 @@ function bahtText(x){
   out+= st>0 ? thInt(st)+'สตางค์' : 'ถ้วน';
   return (neg?'ลบ':'')+out;
 }
+/* 수령증에 쓰는 미얀마어 — 맨쥬처럼 미얀마에서 온 직원이 읽고 서명하도록.
+   앱 화면 전체가 아니라 이 종이에만 들어갑니다. */
+const MM_T={
+  title:'လစာ ရရှိကြောင်း ပြေစာ',
+  date:'ပေးချေသည့် ရက်စွဲ', period:'လစာလ',
+  payee:'ငွေလက်ခံသူ', method:'ပေးချေမှု နည်းလမ်း',
+  cash:'ငွေသား', transfer:'ဘဏ်လွှဲ',
+  items:'အသေးစိတ်', baht:'ဘတ်',
+  base:'အခြေခံလစာ', comm:'ကော်မရှင်', bonus:'ဘောနပ်စ်',
+  deduct:'နုတ်ယူငွေ', total:'စုစုပေါင်း ပေးချေငွေ',
+  say:'အထက်ပါ ငွေပမာဏကို မှန်ကန်စွာ လက်ခံရရှိပါသည်။',
+  signGet:'ငွေလက်ခံသူ လက်မှတ်', signPay:'ငွေပေးချေသူ လက်မှတ်'
+};
+/** 태국어 · 미얀마어를 한 줄에, 쓰는 말(한국어)은 작게 아래에 */
+const lbl=(th,mm,key)=>`${th} · <em class="mm">${mm}</em>`
+  +(LANG==='th'?'':`<small class="rcko">${t(key)}</small>`);
 let rcName='', rcWay='cash';
 const RC_WAYS=[['cash','rcCash'],['transfer','rcTransfer']];
 function openReceipt(name){
@@ -4428,34 +4448,40 @@ function renderReceipt(){
     <div class="rchd">
       <div class="rcshop">HANAHAYAN Clinic &amp; Beauty</div>
       <div class="rcaddr">Sukhumvit 23, Bangkok</div>
-      <h2>ใบสำคัญรับเงิน<br><span>${t('rcTitle')}</span></h2>
+      <h2>ใบสำคัญรับเงิน<br><em class="mm">${MM_T.title}</em><br><span>${t('rcTitle')}</span></h2>
     </div>
     <div class="rcmeta">
-      <div><span>วันที่ · ${t('rcDate')}</span><b>${when}</b></div>
-      <div><span>งวด · ${t('rcPeriod')}</span><b>${Y}-${MM}</b></div>
-      <div><span>ผู้รับเงิน · ${t('rcPayee')}</span><b>${esc(s.name)}</b></div>
-      <div><span>วิธีจ่าย · ${t('rcMethod')}</span><b>${rcWay==='cash'?'เงินสด · '+t('rcCash')
-        :'โอน · '+t('rcTransfer')+(s.bankAcct?` (${esc(s.bankAcct)})`:'')}</b></div>
+      <div><span>${lbl('วันที่',MM_T.date,'rcDate')}</span><b>${when}</b></div>
+      <div><span>${lbl('งวด',MM_T.period,'rcPeriod')}</span><b>${Y}-${MM}</b></div>
+      <div><span>${lbl('ผู้รับเงิน',MM_T.payee,'rcPayee')}</span><b>${esc(s.name)}</b></div>
+      <div><span>${lbl('วิธีจ่าย',MM_T.method,'rcMethod')}</span><b>${rcWay==='cash'
+        ?`เงินสด · <em class="mm">${MM_T.cash}</em> · ${t('rcCash')}`
+        :`โอน · <em class="mm">${MM_T.transfer}</em> · ${t('rcTransfer')}${
+          s.bankAcct?` (${esc(s.bankAcct)})`:''}`}</b></div>
     </div>
     <table class="rcitem">
-      <thead><tr><th>รายการ · ${t('rcItems')}</th><th class="num">บาท</th></tr></thead>
+      <thead><tr><th>${lbl('รายการ',MM_T.items,'rcItems')}</th>
+        <th class="num">บาท · <em class="mm">${MM_T.baht}</em></th></tr></thead>
       <tbody>
-        ${li(`ค่าจ้างพื้นฐาน · ${t('cBase')}`,c.base)}
-        ${c.comm?li(`คอมมิชชั่น · ${t('cComm')}`,c.comm):''}
-        ${c.bonus?li(`โบนัส · ${t('cBonus')}`,c.bonus):''}
+        ${li(lbl('ค่าจ้างพื้นฐาน',MM_T.base,'cBase'),c.base)}
+        ${c.comm?li(lbl('คอมมิชชั่น',MM_T.comm,'cComm'),c.comm):''}
+        ${c.bonus?li(lbl('โบนัส',MM_T.bonus,'cBonus'),c.bonus):''}
         ${c.bonus?sub(plus):''}
-        ${c.deduct?li(`หักเงิน · ${t('cDeduct')}`,c.deduct,'mn'):''}
+        ${c.deduct?li(lbl('หักเงิน',MM_T.deduct,'cDeduct'),c.deduct,'mn'):''}
         ${c.deduct?sub(minus):''}
       </tbody>
-      <tfoot><tr><th>รวมสุทธิ · ${t('cTotalPay')}</th>
+      <tfoot><tr><th>${lbl('รวมสุทธิ',MM_T.total,'cTotalPay')}</th>
         <th class="num">${money(c.total)}</th></tr></tfoot>
     </table>
     <div class="rcwords">(${bahtText(c.total)})</div>
     <p class="rcsay">ข้าพเจ้าได้รับเงินตามรายการข้างต้นไว้ถูกต้องครบถ้วนแล้ว<br>
+      <em class="mm">${MM_T.say}</em><br>
       <span>${t('rcSay')}</span></p>
     <div class="rcsign">
-      <div><div class="ln"></div>ผู้รับเงิน · ${t('rcSignGet')}<br><span>(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</span></div>
-      <div><div class="ln"></div>ผู้จ่ายเงิน · ${t('rcSignPay')}<br><span>(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</span></div>
+      <div><div class="ln"></div>ผู้รับเงิน · <em class="mm">${MM_T.signGet}</em><br>${t('rcSignGet')}
+        <br><span>(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</span></div>
+      <div><div class="ln"></div>ผู้จ่ายเงิน · <em class="mm">${MM_T.signPay}</em><br>${t('rcSignPay')}
+        <br><span>(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</span></div>
     </div>
   </div>`;
 }
