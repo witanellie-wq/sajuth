@@ -335,6 +335,52 @@ begin
   end if;
 end $$;
 alter table public.staff_comm_skip replica identity full;
+
+-- ── VAT 제외 기준 (patch-12) ──
+alter table public.staff_comm_config
+  add column if not exists vat_rate numeric(6,3) not null default 0;
+
+-- ── 건별 커미션 제외 · 금액 확인 (patch-13 · patch-16) ──
+alter table public.staff_comm_override
+  add column if not exists skip       boolean not null default false,
+  add column if not exists skip_why   text default '',
+  add column if not exists checked    boolean not null default false,
+  add column if not exists checked_at timestamptz;
+
+-- ── 급여 추가 지급 · 공제 내역 (patch-14) ──
+create table if not exists public.staff_pay_items (
+  id         uuid primary key default gen_random_uuid(),
+  staff_id   uuid not null references public.staff_members(id) on delete cascade,
+  month      text not null,
+  kind       text not null default '공제',
+  reason     text default '',
+  amount     numeric(12,2) not null default 0,
+  days       numeric(5,2),
+  date       date,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists staff_pay_items_idx
+  on public.staff_pay_items(staff_id, month);
+drop trigger if exists staff_pay_items_touch on public.staff_pay_items;
+create trigger staff_pay_items_touch before update on public.staff_pay_items
+  for each row execute function staff_touch_updated_at();
+alter table public.staff_pay_items enable row level security;
+drop policy if exists staff_pay_items_rw on public.staff_pay_items;
+create policy staff_pay_items_rw on public.staff_pay_items
+  for all to authenticated using (staff_is_admin()) with check (staff_is_admin());
+grant select, insert, update, delete on public.staff_pay_items to authenticated;
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname='supabase_realtime' and schemaname='public' and tablename='staff_pay_items'
+  ) then
+    alter publication supabase_realtime add table public.staff_pay_items;
+  end if;
+end $$;
+alter table public.staff_pay_items replica identity full;
+
 select '표' as "종류", t.name as "이름",
        case when to_regclass('public.'||t.name) is null then '✗ 없음' else '✓ 있음' end as "상태"
 from (values
@@ -343,7 +389,7 @@ from (values
   ('staff_fixed_costs'),('staff_fixed_payments'),('staff_expenses'),('staff_targets'),
   ('staff_wage_history'),('staff_payees'),
   ('staff_comm_config'),('staff_name_map'),('staff_comm_split'),
-  ('staff_comm_override'),('staff_comm_skip')
+  ('staff_comm_override'),('staff_comm_skip'),('staff_pay_items')
 ) as t(name)
 union all
 select '칸', c.tb||' . '||c.col,
@@ -357,7 +403,11 @@ from (values
   ('staff_expenses','reimbursed_at'),
   ('staff_commissions','sale_amount'),
   ('staff_commissions','share'),
-  ('staff_comm_config','start_date')
+  ('staff_comm_config','start_date'),
+  ('staff_comm_config','vat_rate'),
+  ('staff_comm_override','skip'),
+  ('staff_comm_override','checked'),
+  ('staff_comm_skip','discount')
 ) as c(tb,col)
 order by 1 desc, 2;
 
