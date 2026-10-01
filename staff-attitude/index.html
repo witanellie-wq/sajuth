@@ -265,6 +265,9 @@
   tr.bcrow.grp.gfirst td{border-top:1px solid #CFE2DC;}
   tr.bcrow.grp.glast td{border-bottom:1px solid #CFE2DC;}
   tr.bcrow.grp:not(.gfirst) input.bcedit.nm{font-weight:400;color:var(--ink-soft);}
+  .mnav{padding:7px 9px;font-size:12px;line-height:1;min-width:0;}
+  .mbox{display:inline-flex;align-items:center;gap:5px;font-family:'IBM Plex Mono',monospace;
+    font-size:13px;}
   .bcdlab{font-size:9px;color:var(--ink-soft);}
   .bcdccell{text-align:right;white-space:nowrap;}
   .bcdclab{font-size:9.5px;color:var(--ink-soft);margin-right:4px;}
@@ -885,6 +888,11 @@
   <section class="panel adm-only" style="margin-top:20px">
     <h2 data-i="bcTitle"></h2>
     <div class="toolbar">
+      <span class="mbox">
+        <button type="button" class="ghost mnav" id="bcMPrev">◀</button>
+        <b id="bcMLabel"></b>
+        <button type="button" class="ghost mnav" id="bcMNext">▶</button>
+      </span>
       <label style="margin:0 2px 0 0;font-size:11.5px" data-i="bcRate"></label>
       <input type="number" id="bcRate" min="0" max="100" step="0.1" style="width:78px;text-align:right">
       <span style="font-size:12px;color:var(--ink-soft)">%</span>
@@ -1431,6 +1439,7 @@ const I={
   cmPasteParseBtn:'읽어들이기', cmPasteSaveBtn:'저장', cmPasteReady:'넣을 수 있는 줄',
   cmPasteWho:'담당자 이름', cmPasteDone:'커미션을 넣었습니다 ·',
   verLabel:'버전', verFresh:'최신으로 새로고침',
+  mPrev:'◀', mNext:'▶', bcGoPrev:'보기',
   piTitle:'추가 지급 · 공제 내역', piKind:'구분', piDays:'일수', piNone:'이 달 추가 지급 · 공제가 없습니다.',
   piMinus:'공제', piPlus:'추가', piReasonPh:'예: 무급휴가 3일 / 명절 보너스',
   piUnpaid:'무급휴가', piLate:'지각 · 결근', piAdvance:'가불', piEtcM:'기타 공제',
@@ -1641,6 +1650,7 @@ const I={
   cmPasteParseBtn:'อ่านข้อความ', cmPasteSaveBtn:'บันทึก', cmPasteReady:'แถวที่บันทึกได้',
   cmPasteWho:'ชื่อผู้ทำ', cmPasteDone:'บันทึกคอมมิชชั่นแล้ว ·',
   verLabel:'เวอร์ชัน', verFresh:'โหลดเวอร์ชันล่าสุด',
+  mPrev:'◀', mNext:'▶', bcGoPrev:'ดู',
   piTitle:'รายการจ่ายเพิ่ม · หักเงิน', piKind:'ประเภท', piDays:'จำนวนวัน', piNone:'เดือนนี้ยังไม่มีรายการจ่ายเพิ่มหรือหักเงิน',
   piMinus:'หักเงิน', piPlus:'จ่ายเพิ่ม', piReasonPh:'เช่น ลาไม่รับค่าจ้าง 3 วัน / โบนัสเทศกาล',
   piUnpaid:'ลาไม่รับค่าจ้าง', piLate:'สาย · ขาดงาน', piAdvance:'เบิกล่วงหน้า', piEtcM:'หักอื่นๆ',
@@ -1715,7 +1725,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v19';
+const APP_VER='v20';
 const APP_DATE='2026-10-01';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -2760,6 +2770,28 @@ function buildScores(){
 $('date').value=todayISO();
 const M0=todayISO().slice(0,7);
 ['logMonth','gridMonth','evMonth','payMonth','exMonth'].forEach(id=>$(id).value=M0);
+/* 달을 앞뒤로 넘기는 ◀ ▶ — 달이 바뀌자마자 지난달 정산을 못 보던 불편을 덜어 줍니다 */
+function shiftMonth(m,d){
+  const [y,mo]=String(m||todayISO().slice(0,7)).split('-').map(Number);
+  const t=new Date(y,(mo||1)-1+d,1);
+  return t.getFullYear()+'-'+String(t.getMonth()+1).padStart(2,'0');
+}
+function setMonth(id,v){
+  const el=$(id); if(!el)return;
+  el.value=v; el.dispatchEvent(new Event('change'));
+}
+['logMonth','gridMonth','evMonth','payMonth','exMonth'].forEach(id=>{
+  const el=$(id); if(!el)return;
+  const mk=(dir,label,key)=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='ghost mnav'; b.textContent=label;
+    b.dataset.i=key;
+    b.onclick=()=>setMonth(id,shiftMonth(el.value,dir));
+    return b;
+  };
+  el.insertAdjacentElement('beforebegin',mk(-1,'◀','mPrev'));
+  el.insertAdjacentElement('afterend',mk(1,'▶','mNext'));
+});
 $('exDate').value=todayISO();
 
 $('scores').addEventListener('click',e=>{
@@ -4717,6 +4749,7 @@ function renderBkComm(){
   const ae=document.activeElement;
   if(ae&&ae.closest&&ae.closest('#bcList,#bcWarn'))ae.blur();
   const m=$('payMonth').value||todayISO().slice(0,7);
+  $('bcMLabel').textContent=m;
   const rate=commRate();
   if(document.activeElement!==$('bcRate'))$('bcRate').value=rate;
   if(document.activeElement!==$('bcGw'))$('bcGw').value=(data.commCfg||{}).gowabiBasis||'net';
@@ -4796,7 +4829,15 @@ function renderBkComm(){
 
   /* ── 상세 — 날짜 줄만 먼저 보이고, 누르면 그날 건들이 펼쳐집니다 ──
      달마다 수십 건이 한꺼번에 나열되면 보기 힘들어서 접어 둡니다. */
-  if(!list.length){$('bcList').innerHTML=`<div class="empty">${t('bcNone')}</div>`;return;}
+  if(!list.length){
+    /* 달이 막 바뀐 날 지난달 정산을 찾기 어려워서 바로 가는 단추를 둡니다 */
+    const prev=shiftMonth(m,-1);
+    const has=(data.bookings||[]).some(b=>b.status==='방문'&&String(b.date||'').startsWith(prev));
+    $('bcList').innerHTML=`<div class="empty">${t('bcNone')}`
+      +(has?`<div style="margin-top:10px"><button class="ghost" id="bcPrevMonth">◀ ${prev} ${t('bcGoPrev')}</button></div>`:'')
+      +`</div>`;
+    if($('bcPrevMonth'))$('bcPrevMonth').onclick=()=>setMonth('payMonth',prev);
+    return;}
   const byDate={};
   list.forEach(b=>{(byDate[b.date]=byDate[b.date]||[]).push(b);});
   const dates=Object.keys(byDate).sort();
@@ -5015,6 +5056,8 @@ async function saveCommCfg(patch){
   await op(t('opComm'),()=>sb.from('staff_comm_config')
     .upsert({id:1,...patch},{onConflict:'id'}));
 }
+$('bcMPrev').onclick=()=>setMonth('payMonth',shiftMonth($('payMonth').value,-1));
+$('bcMNext').onclick=()=>setMonth('payMonth',shiftMonth($('payMonth').value,1));
 $('bcRate').addEventListener('change',async()=>{
   const v=Math.max(0,Math.min(100,Number($('bcRate').value||0)));
   $('bcRate').value=v;
