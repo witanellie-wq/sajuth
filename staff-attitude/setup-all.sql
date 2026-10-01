@@ -348,6 +348,10 @@ alter table public.staff_comm_override
   add column if not exists checked_at timestamptz,
   add column if not exists pay_kind   text;
 
+-- ── 직접 넣은 커미션의 결제 경로 (patch-18) ──
+alter table public.staff_commissions
+  add column if not exists pay_kind text;
+
 -- ── 급여 추가 지급 · 공제 내역 (patch-14) ──
 create table if not exists public.staff_pay_items (
   id         uuid primary key default gen_random_uuid(),
@@ -409,6 +413,7 @@ from (values
   ('staff_comm_override','skip'),
   ('staff_comm_override','checked'),
   ('staff_comm_override','pay_kind'),
+  ('staff_commissions','pay_kind'),
   ('staff_comm_skip','discount')
 ) as c(tb,col)
 order by 1 desc, 2;
