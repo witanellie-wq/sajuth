@@ -1725,7 +1725,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v20';
+const APP_VER='v21';
 const APP_DATE='2026-10-01';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -4882,7 +4882,8 @@ function renderBkComm(){
       <td class="bcwho">${who.map(n=>`<span>${esc(n)}</span>`).join('')}</td>
       <td class="num">${day.length}${t('cntRec')}</td>
       <td class="num"><span class="bcdlab">${t('bcBase')}</span> ${money(Math.round(dSales))}${
-        dc>0?`<div class="bcdcnote">${t('bcDiscNote')} −${money(Math.round(dc))}</div>`:''}</td>
+        dc>0?`<div class="bcdcnote">${t('bcDiscNote')} −${money(Math.round(dc))}`
+          +(dGross>0?` (−${Math.round(dc/dGross*1000)/10}%)`:'')+`</div>`:''}</td>
       <td class="num"><span class="bcdlab">${t('bcComm')}</span> <b class="pay-est">${money(dComm)}</b></td>
       <td class="bcdccell"><span class="bcdclab">${t('bcDisc')}</span>
         <input type="number" step="1" min="0" max="${Math.round(dGross)}" data-bcdisc="${d}"
