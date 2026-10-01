@@ -342,6 +342,9 @@
     font-family:'IBM Plex Mono',monospace;letter-spacing:.04em;}
   .verline b{color:var(--ink-soft);font-weight:700;}
   .verline.stale{color:var(--coral);font-size:12px;}
+  .verfresh{background:none;border:1px solid var(--line);border-radius:20px;cursor:pointer;
+    padding:2px 9px;font-size:10px;color:var(--ink-soft);font-family:inherit;margin-left:7px;}
+  .verfresh:hover{border-color:var(--jade);color:var(--jade);}
   /* ── 빠른 하루치 입력 ── */  .quick{background:#F7F9F8;border:1px solid var(--line);border-radius:4px;
     padding:12px 13px;margin-top:12px;}
   .qdate{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
@@ -1427,7 +1430,7 @@ const I={
   cmPasteBtn:'📷 사진에서 붙여넣기', cmPasteTitle:'사진에서 옮긴 글자로 한 번에 넣기',
   cmPasteParseBtn:'읽어들이기', cmPasteSaveBtn:'저장', cmPasteReady:'넣을 수 있는 줄',
   cmPasteWho:'담당자 이름', cmPasteDone:'커미션을 넣었습니다 ·',
-  verLabel:'버전',
+  verLabel:'버전', verFresh:'최신으로 새로고침',
   piTitle:'추가 지급 · 공제 내역', piKind:'구분', piDays:'일수', piNone:'이 달 추가 지급 · 공제가 없습니다.',
   piMinus:'공제', piPlus:'추가', piReasonPh:'예: 무급휴가 3일 / 명절 보너스',
   piUnpaid:'무급휴가', piLate:'지각 · 결근', piAdvance:'가불', piEtcM:'기타 공제',
@@ -1637,7 +1640,7 @@ const I={
   cmPasteBtn:'📷 วางข้อความจากรูป', cmPasteTitle:'วางข้อความจากรูปเพื่อบันทึกทีเดียว',
   cmPasteParseBtn:'อ่านข้อความ', cmPasteSaveBtn:'บันทึก', cmPasteReady:'แถวที่บันทึกได้',
   cmPasteWho:'ชื่อผู้ทำ', cmPasteDone:'บันทึกคอมมิชชั่นแล้ว ·',
-  verLabel:'เวอร์ชัน',
+  verLabel:'เวอร์ชัน', verFresh:'โหลดเวอร์ชันล่าสุด',
   piTitle:'รายการจ่ายเพิ่ม · หักเงิน', piKind:'ประเภท', piDays:'จำนวนวัน', piNone:'เดือนนี้ยังไม่มีรายการจ่ายเพิ่มหรือหักเงิน',
   piMinus:'หักเงิน', piPlus:'จ่ายเพิ่ม', piReasonPh:'เช่น ลาไม่รับค่าจ้าง 3 วัน / โบนัสเทศกาล',
   piUnpaid:'ลาไม่รับค่าจ้าง', piLate:'สาย · ขาดงาน', piAdvance:'เบิกล่วงหน้า', piEtcM:'หักอื่นๆ',
@@ -1712,8 +1715,8 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v18';
-const APP_DATE='2026-09-30';
+const APP_VER='v19';
+const APP_DATE='2026-10-01';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
                   fixedCosts:[],fixedPays:{},expenses:[],targets:{},wageHist:{},payees:[],
@@ -2708,7 +2711,17 @@ function applyI18n(){
   document.querySelectorAll('[data-ih]').forEach(el=>el.innerHTML=t(el.dataset.ih));
   /* 버전 — 이 숫자가 안 바뀌면 옛 빌드에 고정된 주소를 보고 있는 것입니다 */
   const vl=$('verLine');
-  if(vl)vl.innerHTML=`${t('verLabel')} <b>${APP_VER}</b> · ${APP_DATE}`;
+  if(vl){
+    vl.innerHTML=`${t('verLabel')} <b>${APP_VER}</b> · ${APP_DATE}`
+      +` <button class="verfresh" id="verFresh">${t('verFresh')}</button>`;
+    /* 브라우저가 들고 있는 옛 화면을 버리고 새로 받아옵니다.
+       기기마다 버전이 다르게 보일 때 쓰십니다. */
+    $('verFresh').onclick=()=>{
+      const u=new URL(location.href);
+      u.searchParams.set('v',String(Date.now()));
+      location.replace(u.toString());
+    };
+  }
 }
 async function setLang(l,save_=true){
   LANG=l;
