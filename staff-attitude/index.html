@@ -556,6 +556,39 @@
   #edModal .modal-box{max-width:520px;}
   #edScores{border:1px solid var(--line-soft);border-radius:var(--r);padding:2px 12px;}
 
+  /* 급여 수령증 */
+  .rctools{display:flex;gap:8px;align-items:center;margin-bottom:14px;}
+  .rcbtn{display:block;margin-top:6px;background:none;border:1px solid var(--line);
+    border-radius:20px;padding:2px 9px;font-size:10px;font-weight:700;cursor:pointer;
+    color:var(--ink-soft);font-family:inherit;white-space:nowrap;}
+  .rcbtn:hover{border-color:var(--jade);color:var(--jade);}
+  .rcpaper{border:1px solid var(--line);padding:26px 28px 30px;background:#fff;}
+  .rchd{text-align:center;border-bottom:2px solid var(--ink);padding-bottom:12px;margin-bottom:16px;}
+  .rcshop{font-size:15px;font-weight:700;letter-spacing:.04em;}
+  .rcaddr{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+  .rchd h2{margin:12px 0 0;font-size:19px;font-weight:700;line-height:1.35;}
+  .rchd h2 span{font-size:12.5px;color:var(--ink-soft);font-weight:600;}
+  .rcmeta{display:grid;grid-template-columns:1fr 1fr;gap:7px 24px;margin-bottom:18px;font-size:12px;}
+  .rcmeta>div{display:flex;gap:10px;align-items:baseline;border-bottom:1px dotted var(--line);
+    padding-bottom:5px;}
+  .rcmeta span{color:var(--ink-soft);white-space:nowrap;flex:0 0 auto;}
+  .rcmeta b{font-weight:700;}
+  table.rcitem{width:100%;border-collapse:collapse;font-size:12.5px;}
+  table.rcitem th,table.rcitem td{padding:7px 8px;border-bottom:1px solid var(--line);}
+  table.rcitem thead th{background:#F4F5F3;font-size:11px;color:var(--ink-soft);}
+  table.rcitem tr.sub td{font-size:11px;color:var(--ink-soft);padding-top:3px;padding-bottom:3px;
+    border-bottom:none;}
+  table.rcitem .num{text-align:right;font-family:'IBM Plex Mono',monospace;}
+  table.rcitem .num.mn{color:var(--coral);}
+  table.rcitem tfoot th{border-top:2px solid var(--ink);border-bottom:none;font-size:14px;
+    padding-top:10px;}
+  .rcwords{text-align:right;font-size:12px;margin-top:6px;color:var(--ink);}
+  .rcsay{font-size:11.5px;color:var(--ink);margin:20px 0 0;line-height:1.6;}
+  .rcsay span{color:var(--ink-soft);}
+  .rcsign{display:flex;gap:40px;margin-top:38px;}
+  .rcsign>div{flex:1;text-align:center;font-size:11px;color:var(--ink-soft);}
+  .rcsign .ln{border-bottom:1px solid var(--ink);height:34px;margin-bottom:6px;}
+  .rcsign span{font-size:10.5px;}
   /* modal */
   .modal{display:none;position:fixed;inset:0;background:rgba(19,28,46,.55);z-index:50;padding:24px;overflow:auto;}
   .modal.on{display:flex;align-items:flex-start;justify-content:center;}
@@ -691,6 +724,18 @@
   @media print{
     nav,.toolbar,.del,.save,header,.no-print,.modal,.bk-open,.lang,.netbar,.gate,
     .lockbox,.lockbox-wrap,.hr-add,.rbbtn,.acctcopy,.paybtn,.rm,.wbtn,.dw{display:none!important;}
+    /* 수령증을 뽑을 때는 그것만 나오게 합니다 */
+    body.rcprint .wrap,body.rcprint .netbar{display:none!important;}
+    body.rcprint #rcModal{display:block!important;position:static!important;inset:auto!important;
+      background:#fff!important;padding:0!important;overflow:visible!important;z-index:auto!important;}
+    body.rcprint #rcModal .modal-box{box-shadow:none!important;border:none!important;
+      padding:0!important;max-width:none!important;width:100%!important;}
+    body.rcprint .rcpaper{border:none!important;padding:0!important;}
+    body.rcprint table.rcitem{table-layout:auto!important;}
+    body.rcprint .rcmeta{font-size:9pt;}
+    body.rcprint table.rcitem th,body.rcprint table.rcitem td{font-size:9pt;padding:2mm;}
+    body.rcprint table.rcitem tfoot th{font-size:11pt;}
+    body.rcprint .rcsign{margin-top:26mm;}
     html,body{width:auto!important;background:#fff!important;
       -webkit-print-color-adjust:exact;print-color-adjust:exact;}
     .wrap{padding:0!important;margin:0!important;max-width:none!important;width:100%!important;}
@@ -1216,6 +1261,22 @@
 </div>
 
 <!-- ══ 기록 수정 모달 ══ -->
+<!-- 급여 수령증 — 계좌가 없어 현금으로 드리는 분께 서명을 받습니다 -->
+<div class="modal" id="rcModal">
+  <div class="modal-box" style="max-width:720px">
+    <div class="modal-head no-print">
+      <h3 data-i="rcTitle"></h3>
+      <button class="modal-x" id="rcClose">×</button>
+    </div>
+    <div class="rctools no-print">
+      <label style="font-size:11.5px" data-i="rcMethod"></label>
+      <select id="rcWay"></select>
+      <span style="flex:1"></span>
+      <button class="ghost" id="rcPrint" data-i="rcPrintBtn"></button>
+    </div>
+    <div id="rcSheet"></div>
+  </div>
+</div>
 <div class="modal" id="edModal">
   <div class="modal-box">
     <div class="modal-head">
@@ -1376,13 +1437,19 @@ const I={
   tPart:'알바', lPayType:'급여 방식', lAmount:'급여액 (฿)',
   pM:'월급', pD:'일급', pH:'시급', hrs:'시간', lOut:'퇴근 시각',
   cBase:'기본급', cComm:'커미션', cBonus:'보너스', cDeduct:'공제', cTotalPay:'지급 합계',
+  rcBtn:'수령증', rcTitle:'급여 수령증', rcPrintBtn:'인쇄 / PDF 저장',
+  rcHint:'받았다는 서명을 받는 종이입니다. 계좌가 없어 현금으로 드리는 분께 꼭 받아 두세요.',
+  rcDate:'지급일', rcPeriod:'급여 월', rcPayee:'받는 사람', rcMethod:'지급 방법',
+  rcCash:'현금', rcTransfer:'계좌이체', rcItems:'내역',
+  rcSay:'위 금액을 틀림없이 받았습니다.',
+  rcSignGet:'받는 사람 서명', rcSignPay:'지급한 사람 서명',
   cPaid:'지급 여부', cHours:'근무시간', paidY:'지급 완료', paidN:'미지급',
   payTotalRow:'전체 합계', commTotal:'커미션 합계', commNone:'이 달 커미션 기록이 없습니다.',
   commPh:'예: 리프팅 3건 · 제품 판매', lReason:'내용',
   resign:'퇴사 처리', unresign:'복직', resigned:'퇴사',
   delStaffRec:'이 직원의 기록 · 커미션 · 급여 · 경고 · 평가가 모두 삭제됩니다. 계속할까요?',
   edit:'수정', edTitle:'기록 수정', cancel:'취소',
-  payNote:'<b>기본급</b>은 급여 방식에 따라 자동 계산됩니다 — 월급: 고정액 / 일급: 출근일 × 일급 / 시급: 근무시간 × 시급 (퇴근 시각을 입력한 날만 집계).<br>칸을 직접 고쳐 쓰면 그 값이 우선합니다. <b>보너스</b>와 <b>공제</b>(지각·가불 등)를 넣으면 지급 합계에 반영됩니다. <b>지급 여부</b>를 체크하면 그 달 급여가 지급 완료로 기록되고 지급일이 자동으로 들어갑니다.<br>급여 방식과 금액은 <b>직원 관리 → 고용 조건</b>에서 설정하세요. 퇴사 처리한 직원은 이 표에 나오지 않습니다.<br><b>커미션 · 보너스 · 공제 칸을 비워 두면</b> 아래 내역에서 자동으로 합산된 금액을 씁니다 (칸 아래 회색 글씨가 그 금액입니다). 숫자를 직접 넣으면 그 값이 우선합니다. <b>0 은 안 넣은 것과 같게 봅니다</b> — 자동 합계를 쓰지 않으려면 아래 내역에서 그 건을 지우세요.<br>보너스 · 공제 칸의 <b>＋</b> 를 누르면 아래 <b>추가 지급 · 공제 내역</b> 으로 바로 갑니다.',
+  payNote:'<b>기본급</b>은 급여 방식에 따라 자동 계산됩니다 — 월급: 고정액 / 일급: 출근일 × 일급 / 시급: 근무시간 × 시급 (퇴근 시각을 입력한 날만 집계).<br>칸을 직접 고쳐 쓰면 그 값이 우선합니다. <b>보너스</b>와 <b>공제</b>(지각·가불 등)를 넣으면 지급 합계에 반영됩니다. <b>지급 여부</b>를 체크하면 그 달 급여가 지급 완료로 기록되고 지급일이 자동으로 들어갑니다.<br>급여 방식과 금액은 <b>직원 관리 → 고용 조건</b>에서 설정하세요. 퇴사 처리한 직원은 이 표에 나오지 않습니다.<br><b>커미션 · 보너스 · 공제 칸을 비워 두면</b> 아래 내역에서 자동으로 합산된 금액을 씁니다 (칸 아래 회색 글씨가 그 금액입니다). 숫자를 직접 넣으면 그 값이 우선합니다. <b>0 은 안 넣은 것과 같게 봅니다</b> — 자동 합계를 쓰지 않으려면 아래 내역에서 그 건을 지우세요.<br>보너스 · 공제 칸의 <b>＋</b> 를 누르면 아래 <b>추가 지급 · 공제 내역</b> 으로 바로 갑니다.<br><b>수령증</b> 단추를 누르면 그 달 급여 내역과 서명 자리가 들어간 <b>급여 수령증</b>이 나옵니다 — 인쇄하거나 PDF 로 저장해 서명을 받아 두세요. <b>계좌가 없어 현금으로 드리는 분은 통장 기록이 안 남으므로 꼭 받아 두시는 것이 좋습니다.</b> 금액은 태국 영수증 관행대로 숫자와 글자(บาทถ้วน)로 같이 적힙니다.',
   commNote:'<b>달력에서 날짜를 누르면</b> 그날 내역이 아래에 열리고, 거기서 바로 고치거나 지울 수 있습니다.<br><b>판매금액</b>을 넣으면 커미션이 비율(위쪽 %)로 자동 계산됩니다. <b>커미션 칸에 직접 숫자</b>를 넣으면 그 금액이 우선합니다 (보너스처럼 매출과 상관없는 건).<br><b>📷 사진에서 붙여넣기</b> — 종이 기록을 찍어 글자로 옮긴 것을 붙여넣으면 여러 건을 한 번에 넣을 수 있습니다. 넣기 전에 표에서 확인·수정합니다.<br>커미션은 <b>등록한 날짜가 속한 달</b>의 급여표에 자동 합산됩니다. 급여표의 커미션 칸을 직접 고치면 그 값이 우선합니다.',
   editNote:'기록 옆 <b>✎</b> 또는 월 근태표의 색깔 칸을 클릭하면 그 기록을 수정할 수 있습니다.',
   /* ── 색 기준 (태도 점수) ── */
@@ -1600,13 +1667,19 @@ const I={
   tPart:'พาร์ทไทม์', lPayType:'รูปแบบค่าจ้าง', lAmount:'จำนวนค่าจ้าง (฿)',
   pM:'รายเดือน', pD:'รายวัน', pH:'รายชั่วโมง', hrs:'ชม.', lOut:'เวลาออกงาน',
   cBase:'ค่าจ้างพื้นฐาน', cComm:'คอมมิชชั่น', cBonus:'โบนัส', cDeduct:'หักเงิน', cTotalPay:'ยอดจ่ายรวม',
+  rcBtn:'ใบรับเงิน', rcTitle:'ใบสำคัญรับเงินเดือน', rcPrintBtn:'พิมพ์ / บันทึก PDF',
+  rcHint:'เอกสารให้ลงลายมือชื่อว่าได้รับเงินแล้ว สำหรับคนที่รับเป็นเงินสดควรเก็บไว้ทุกครั้ง',
+  rcDate:'วันที่จ่าย', rcPeriod:'งวดเงินเดือน', rcPayee:'ผู้รับเงิน', rcMethod:'วิธีจ่าย',
+  rcCash:'เงินสด', rcTransfer:'โอนเข้าบัญชี', rcItems:'รายการ',
+  rcSay:'ได้รับเงินตามรายการข้างต้นไว้ถูกต้องครบถ้วนแล้ว',
+  rcSignGet:'ลายมือชื่อผู้รับเงิน', rcSignPay:'ลายมือชื่อผู้จ่ายเงิน',
   cPaid:'สถานะการจ่าย', cHours:'ชั่วโมงทำงาน', paidY:'จ่ายแล้ว', paidN:'ยังไม่จ่าย',
   payTotalRow:'รวมทั้งหมด', commTotal:'รวมคอมมิชชั่น', commNone:'เดือนนี้ยังไม่มีรายการคอมมิชชั่น',
   commPh:'เช่น: ลิฟติ้ง 3 เคส · ขายผลิตภัณฑ์', lReason:'รายละเอียด',
   resign:'ตั้งเป็นลาออก', unresign:'กลับเข้าทำงาน', resigned:'ลาออกแล้ว',
   delStaffRec:'บันทึก คอมมิชชั่น เงินเดือน การเตือน และใบประเมินของพนักงานคนนี้จะถูกลบทั้งหมด ต้องการดำเนินการต่อหรือไม่?',
   edit:'แก้ไข', edTitle:'แก้ไขบันทึก', cancel:'ยกเลิก',
-  payNote:'<b>ค่าจ้างพื้นฐาน</b> คำนวณอัตโนมัติตามรูปแบบค่าจ้าง — รายเดือน: ยอดคงที่ / รายวัน: วันทำงาน × ค่าจ้างรายวัน / รายชั่วโมง: ชั่วโมงทำงาน × ค่าจ้างรายชั่วโมง (นับเฉพาะวันที่ใส่เวลาออกงาน)<br>หากแก้ตัวเลขในช่องเอง ระบบจะใช้ค่าที่แก้ ใส่ <b>โบนัส</b> และ <b>หักเงิน</b> แล้วยอดจ่ายรวมจะปรับตาม เมื่อติ๊ก <b>สถานะการจ่าย</b> ระบบจะบันทึกว่าจ่ายแล้วพร้อมวันที่โดยอัตโนมัติ<br>ตั้งค่ารูปแบบและจำนวนค่าจ้างได้ที่ <b>จัดการพนักงาน → เงื่อนไขการจ้าง</b> พนักงานที่ตั้งเป็นลาออกแล้วจะไม่แสดงในตารางนี้<br><b>ถ้าเว้นช่องคอมมิชชั่น · โบนัส · หักเงินไว้ว่าง</b> ระบบจะใช้ยอดรวมจากรายการด้านล่าง (ตัวเลขสีเทาใต้ช่อง) ถ้าใส่ตัวเลขเองจะใช้ค่าที่ใส่ · <b>ใส่ 0 เท่ากับเว้นว่าง</b> ถ้าไม่อยากใช้ยอดอัตโนมัติ ให้ลบรายการนั้นด้านล่าง<br>กด <b>＋</b> ในช่องโบนัส · หักเงิน เพื่อไปที่ <b>รายการจ่ายเพิ่ม · หักเงิน</b> ทันที',
+  payNote:'<b>ค่าจ้างพื้นฐาน</b> คำนวณอัตโนมัติตามรูปแบบค่าจ้าง — รายเดือน: ยอดคงที่ / รายวัน: วันทำงาน × ค่าจ้างรายวัน / รายชั่วโมง: ชั่วโมงทำงาน × ค่าจ้างรายชั่วโมง (นับเฉพาะวันที่ใส่เวลาออกงาน)<br>หากแก้ตัวเลขในช่องเอง ระบบจะใช้ค่าที่แก้ ใส่ <b>โบนัส</b> และ <b>หักเงิน</b> แล้วยอดจ่ายรวมจะปรับตาม เมื่อติ๊ก <b>สถานะการจ่าย</b> ระบบจะบันทึกว่าจ่ายแล้วพร้อมวันที่โดยอัตโนมัติ<br>ตั้งค่ารูปแบบและจำนวนค่าจ้างได้ที่ <b>จัดการพนักงาน → เงื่อนไขการจ้าง</b> พนักงานที่ตั้งเป็นลาออกแล้วจะไม่แสดงในตารางนี้<br><b>ถ้าเว้นช่องคอมมิชชั่น · โบนัส · หักเงินไว้ว่าง</b> ระบบจะใช้ยอดรวมจากรายการด้านล่าง (ตัวเลขสีเทาใต้ช่อง) ถ้าใส่ตัวเลขเองจะใช้ค่าที่ใส่ · <b>ใส่ 0 เท่ากับเว้นว่าง</b> ถ้าไม่อยากใช้ยอดอัตโนมัติ ให้ลบรายการนั้นด้านล่าง<br>กด <b>＋</b> ในช่องโบนัส · หักเงิน เพื่อไปที่ <b>รายการจ่ายเพิ่ม · หักเงิน</b> ทันที<br>กดปุ่ม <b>ใบรับเงิน</b> จะได้ <b>ใบสำคัญรับเงินเดือน</b> พร้อมรายการและช่องลงลายมือชื่อ พิมพ์หรือบันทึกเป็น PDF แล้วให้เซ็น <b>คนที่รับเป็นเงินสดไม่มีหลักฐานในบัญชี จึงควรเก็บไว้ทุกครั้ง</b> ยอดเงินจะแสดงทั้งตัวเลขและตัวอักษร (บาทถ้วน) ตามแบบใบเสร็จไทย',
   commNote:'<b>กดวันที่ในปฏิทิน</b> รายการของวันนั้นจะเปิดด้านล่าง แก้หรือลบได้ทันที<br>ใส่ <b>ยอดขาย</b> แล้วคอมมิชชั่นจะคิดตามอัตรา (% ด้านบน) ให้อัตโนมัติ ถ้า<b>ใส่ยอดคอมมิชชั่นเอง</b> ระบบจะใช้ยอดนั้น (เช่นโบนัสที่ไม่ผูกกับยอดขาย)<br><b>📷 วางข้อความจากรูป</b> — ถ่ายบันทึกในกระดาษแล้วแปลงเป็นข้อความ วางลงไปเพื่อบันทึกหลายรายการพร้อมกัน ตรวจและแก้ในตารางก่อนบันทึกได้<br>คอมมิชชั่นจะรวมเข้าตารางเงินเดือนของ<b>เดือนตามวันที่ที่บันทึก</b> หากแก้ช่องคอมมิชชั่นในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้',
   editNote:'กด <b>✎</b> ข้างบันทึก หรือคลิกช่องสีในตารางรายเดือน เพื่อแก้ไขบันทึกนั้น',
   /* ── สีตามคะแนน ── */
@@ -1795,7 +1868,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v27';
+const APP_VER='v28';
 const APP_DATE='2026-10-01';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -2839,6 +2912,11 @@ async function setLang(l,save_=true){
   $('hrName').placeholder=t('namePh');
   $('cmQMemo').placeholder=t('commPh');
   buildEmpSelects(); buildExSelects(); buildBcSelects(); buildPiSelects();
+  /* 수령증을 열어 둔 채 말을 바꾸면 그 안도 같이 바뀌어야 합니다 */
+  if($('rcModal').classList.contains('on')){
+    $('rcWay').innerHTML=RC_WAYS.map(([v,k])=>`<option value="${v}">${t(k)}</option>`).join('');
+    $('rcWay').value=rcWay; renderReceipt();
+  }
   $('todayLabel').textContent=new Date().toLocaleDateString(l==='ko'?'ko-KR':'th-TH',
     {year:'numeric',month:'long',day:'numeric',weekday:'long'});
   $('storeNote').textContent=t('storeOk');
@@ -4275,6 +4353,7 @@ function renderPay(){
           c.p.paid?'✓ '+t('paidY'):t('markPaid')}</button>
         ${c.p.paid?`<input type="date" class="paydate" data-pay="date" data-k="${k}" value="${c.p.date||''}">`
                   :`<div style="font-size:11px;color:var(--coral);margin-top:4px">${t('paidN')}</div>`}
+        <button class="rcbtn no-print" data-rc="${k}" title="${t('rcHint')}">${t('rcBtn')}</button>
       </td></tr>`;
   }).join('')||`<tr><td colspan="8">${t('addStaffFirst')}</td></tr>`;
 
@@ -4285,6 +4364,115 @@ function renderPay(){
   $('payStat').textContent=`${t('paidY')} ${paidN}${t('cnt')} · ${t('paidN')} ${unpaidN}${t('cnt')} · ${money(paidSum)} / ${money(sum)}`;
 }
 
+/* ══════════ 급여 수령증 — 현금으로 드리는 분께 서명을 받습니다 ══════════
+   계좌가 없어 현금으로 받는 직원이 있습니다. 통장 기록이 안 남으므로
+   받았다는 종이를 남겨 두어야 나중에 말이 달라지지 않습니다.          */
+const THNUM=['ศูนย์','หนึ่ง','สอง','สาม','สี่','ห้า','หก','เจ็ด','แปด','เก้า'];
+const THPOS=['','สิบ','ร้อย','พัน','หมื่น','แสน'];
+/** 정수를 태국어로 — 태국 영수증은 금액을 글자로도 적습니다 */
+function thInt(n){
+  n=Math.floor(Math.abs(Number(n)||0));
+  if(n===0)return 'ศูนย์';
+  let out='';
+  if(n>=1000000){
+    out+=thInt(Math.floor(n/1000000))+'ล้าน';
+    n=n%1000000;
+    if(n===0)return out;
+  }
+  const str=String(n), L=str.length;
+  for(let i=0;i<L;i++){
+    const d=+str[i], pos=L-i-1;
+    if(d===0)continue;
+    if(pos===0&&d===1&&L>1)out+='เอ็ด';        // 끝자리 1 은 '엣'
+    else if(pos===1&&d===1){}                  // 십의 자리 1 은 '십' 만
+    else if(pos===1&&d===2)out+='ยี่';         // 20 은 '이십' 이 아니라 '이-십'
+    else out+=THNUM[d];
+    out+=THPOS[pos];
+  }
+  return out;
+}
+/** 금액을 태국어 글자로 (BAHTTEXT) */
+function bahtText(x){
+  const v=Math.round(Number(x||0)*100)/100;
+  const neg=v<0, a=Math.abs(v);
+  const b=Math.floor(a), st=Math.round((a-b)*100);
+  if(b===0&&st===0)return 'ศูนย์บาทถ้วน';
+  let out=(b>0?thInt(b):'ศูนย์')+'บาท';
+  out+= st>0 ? thInt(st)+'สตางค์' : 'ถ้วน';
+  return (neg?'ลบ':'')+out;
+}
+let rcName='', rcWay='cash';
+const RC_WAYS=[['cash','rcCash'],['transfer','rcTransfer']];
+function openReceipt(name){
+  rcName=name; rcWay=(data.staff.find(x=>x.name===name)||{}).bankAcct?'transfer':'cash';
+  $('rcWay').innerHTML=RC_WAYS.map(([v,k])=>`<option value="${v}">${t(k)}</option>`).join('');
+  $('rcWay').value=rcWay;
+  renderReceipt();
+  $('rcModal').classList.add('on');
+}
+function renderReceipt(){
+  const m=$('payMonth').value||todayISO().slice(0,7);
+  const s=data.staff.find(x=>x.name===rcName);
+  if(!s){$('rcSheet').innerHTML='';return;}
+  const c=payCalc(s,m);
+  const items=(data.payItems||[]).filter(x=>x.staff===s.name&&x.month===m);
+  const plus=items.filter(x=>x.kind==='추가'), minus=items.filter(x=>x.kind==='공제');
+  const when=c.p.date||todayISO();
+  const [Y,MM]=m.split('-');
+  const li=(label,v,cls)=>`<tr><td>${label}</td>
+    <td class="num${cls?' '+cls:''}">${cls==='mn'?'−':''}${money(Math.abs(v))}</td></tr>`;
+  const sub=list=>list.map(x=>`<tr class="sub"><td>· ${esc(x.reason||'')}${
+    x.days?` (${x.days}${t('day')})`:''}${x.date?` · ${x.date.slice(5)}`:''}</td>
+    <td class="num">${money(x.amount)}</td></tr>`).join('');
+  $('rcSheet').innerHTML=`<div class="rcpaper">
+    <div class="rchd">
+      <div class="rcshop">HANAHAYAN Clinic &amp; Beauty</div>
+      <div class="rcaddr">Sukhumvit 23, Bangkok</div>
+      <h2>ใบสำคัญรับเงิน<br><span>${t('rcTitle')}</span></h2>
+    </div>
+    <div class="rcmeta">
+      <div><span>วันที่ · ${t('rcDate')}</span><b>${when}</b></div>
+      <div><span>งวด · ${t('rcPeriod')}</span><b>${Y}-${MM}</b></div>
+      <div><span>ผู้รับเงิน · ${t('rcPayee')}</span><b>${esc(s.name)}</b></div>
+      <div><span>วิธีจ่าย · ${t('rcMethod')}</span><b>${rcWay==='cash'?'เงินสด · '+t('rcCash')
+        :'โอน · '+t('rcTransfer')+(s.bankAcct?` (${esc(s.bankAcct)})`:'')}</b></div>
+    </div>
+    <table class="rcitem">
+      <thead><tr><th>รายการ · ${t('rcItems')}</th><th class="num">บาท</th></tr></thead>
+      <tbody>
+        ${li(`ค่าจ้างพื้นฐาน · ${t('cBase')}`,c.base)}
+        ${c.comm?li(`คอมมิชชั่น · ${t('cComm')}`,c.comm):''}
+        ${c.bonus?li(`โบนัส · ${t('cBonus')}`,c.bonus):''}
+        ${c.bonus?sub(plus):''}
+        ${c.deduct?li(`หักเงิน · ${t('cDeduct')}`,c.deduct,'mn'):''}
+        ${c.deduct?sub(minus):''}
+      </tbody>
+      <tfoot><tr><th>รวมสุทธิ · ${t('cTotalPay')}</th>
+        <th class="num">${money(c.total)}</th></tr></tfoot>
+    </table>
+    <div class="rcwords">(${bahtText(c.total)})</div>
+    <p class="rcsay">ข้าพเจ้าได้รับเงินตามรายการข้างต้นไว้ถูกต้องครบถ้วนแล้ว<br>
+      <span>${t('rcSay')}</span></p>
+    <div class="rcsign">
+      <div><div class="ln"></div>ผู้รับเงิน · ${t('rcSignGet')}<br><span>(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</span></div>
+      <div><div class="ln"></div>ผู้จ่ายเงิน · ${t('rcSignPay')}<br><span>(&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;)</span></div>
+    </div>
+  </div>`;
+}
+$('payTable').addEventListener('click',e=>{
+  const b=e.target.closest('[data-rc]'); if(!b)return;
+  openReceipt(b.dataset.rc);
+});
+$('rcClose').addEventListener('click',()=>$('rcModal').classList.remove('on'));
+$('rcModal').addEventListener('click',e=>{if(e.target.id==='rcModal')$('rcModal').classList.remove('on');});
+$('rcWay').addEventListener('change',()=>{rcWay=$('rcWay').value;renderReceipt();});
+$('rcPrint').addEventListener('click',()=>{
+  document.body.classList.add('rcprint');
+  const off=()=>{document.body.classList.remove('rcprint');window.removeEventListener('afterprint',off);};
+  window.addEventListener('afterprint',off);
+  printAs('portrait');
+  setTimeout(off,3000);
+});
 async function savePayroll(name,m,p){
   return op(t('opPay'),()=>sb.from('staff_payroll').upsert({
     staff_id:sidOf(name),month:m,
