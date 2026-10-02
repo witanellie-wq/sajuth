@@ -488,6 +488,7 @@
     font-size:11px;color:var(--ink-soft);margin-top:1px;}
   .doccard small{display:block;font-size:10.5px;color:var(--ink-soft);margin-top:5px;line-height:1.5;}
   .doccard .dl{display:flex;gap:6px;margin-top:9px;}
+  .dl a.stale,a.ghost.stale{color:var(--amber);border-color:#EBDCB6;}
   .doccard .dl a{flex:1;text-align:center;border:1px solid var(--line);border-radius:20px;
     padding:4px 0;font-size:11px;font-weight:700;color:var(--jade);background:#fff;
     text-decoration:none;}
@@ -1457,6 +1458,8 @@ const I={
   rcSay:'위 금액을 틀림없이 받았습니다.',
   rcSignGet:'받는 사람 서명', rcSignPay:'지급한 사람 서명',
   rcEmptyLbl:'빈 양식',
+  dlStale:'<b>내려받는 PDF 는 옛 버전입니다</b> — 제7조 휴가 일수가 숫자(13·6·3일)로 박혀 있습니다. 빈칸으로 된 지금 내용은 <b>이 화면</b>과 <b>DOCX</b> 에만 들어 있습니다. 빈칸 버전을 PDF 로 받으시려면 아래 <b>화면 그대로 인쇄</b> → PDF 로 저장 하세요.',
+  dlStaleHint:'옛 버전입니다 — 제7조 휴가 일수가 숫자로 박혀 있습니다. 화면 그대로 인쇄를 쓰세요.',
   rcEmptyHint:'<b>빈 양식</b>을 켜면 이름 · 날짜 · 금액이 빈칸으로 나옵니다. 여러 장 뽑아 두고 손으로 채워 쓰시면 됩니다. 끄면 고른 직원의 그 달 급여가 채워져 나옵니다.',
   cPaid:'지급 여부', cHours:'근무시간', paidY:'지급 완료', paidN:'미지급',
   payTotalRow:'전체 합계', commTotal:'커미션 합계', commNone:'이 달 커미션 기록이 없습니다.',
@@ -1689,6 +1692,8 @@ const I={
   rcSay:'ได้รับเงินตามรายการข้างต้นไว้ถูกต้องครบถ้วนแล้ว',
   rcSignGet:'ลายมือชื่อผู้รับเงิน', rcSignPay:'ลายมือชื่อผู้จ่ายเงิน',
   rcEmptyLbl:'แบบฟอร์มเปล่า',
+  dlStale:'<b>ไฟล์ PDF ที่ดาวน์โหลดเป็นเวอร์ชันเก่า</b> — ข้อ 7 ยังมีจำนวนวันลา (13·6·3) พิมพ์ไว้ เนื้อหาแบบเว้นว่างอยู่ใน <b>หน้าจอนี้</b> และ <b>DOCX</b> เท่านั้น ถ้าต้องการ PDF แบบเว้นว่าง ให้กด <b>พิมพ์หน้าจอ</b> แล้วบันทึกเป็น PDF',
+  dlStaleHint:'เวอร์ชันเก่า — ข้อ 7 มีจำนวนวันลาพิมพ์ไว้ ให้ใช้พิมพ์หน้าจอแทน',
   rcEmptyHint:'เปิด <b>แบบฟอร์มเปล่า</b> ชื่อ · วันที่ · ยอดเงินจะเว้นว่างไว้ พิมพ์เก็บไว้หลายใบแล้วเขียนมือได้ ปิดไว้จะกรอกเงินเดือนของพนักงานที่เลือกให้อัตโนมัติ',
   cPaid:'สถานะการจ่าย', cHours:'ชั่วโมงทำงาน', paidY:'จ่ายแล้ว', paidN:'ยังไม่จ่าย',
   payTotalRow:'รวมทั้งหมด', commTotal:'รวมคอมมิชชั่น', commNone:'เดือนนี้ยังไม่มีรายการคอมมิชชั่น',
@@ -1885,7 +1890,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v31';
+const APP_VER='v32';
 const APP_DATE='2026-10-01';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -5873,7 +5878,9 @@ function renderDocs(){
       <b>${esc(d.ko)}</b><i>${esc(d.th||'')}</i>
       <small>${esc(d.note||'')}</small>
       ${(d.pdf||d.docx)?`<span class="dl">
-        ${d.pdf?`<a href="${d.pdf}" download onclick="event.stopPropagation()">${t('dlPdf')}</a>`:''}
+        ${d.pdf?`<a href="${d.pdf}" download onclick="event.stopPropagation()"${
+          d.pdfStale?` class="stale" title="${t('dlStaleHint')}"`:''}>${t('dlPdf')}${
+          d.pdfStale?' ⚠':''}</a>`:''}
         ${d.docx?`<a href="${d.docx}" download onclick="event.stopPropagation()">${t('dlDocx')}</a>`:''}
       </span>`:''}</div>`;
   }).join('')+'</div>';
@@ -5894,11 +5901,14 @@ function renderDocs(){
           w.date} · ${esc((w.reason||'').slice(0,26))}</option>`).join('')}
       </select>`:'')
     +(d.guide?'':`<span style="flex:1"></span>
-      ${d.pdf?`<a class="ghost" href="${d.pdf}" download style="text-decoration:none">${t('dlPdfBtn')}</a>`:''}
+      ${d.pdf?`<a class="ghost${d.pdfStale?' stale':''}" href="${d.pdf}" download
+        style="text-decoration:none"${d.pdfStale?` title="${t('dlStaleHint')}"`:''}>${
+        t('dlPdfBtn')}${d.pdfStale?' ⚠':''}</a>`:''}
       ${d.docx?`<a class="ghost" href="${d.docx}" download style="text-decoration:none">${t('dlDocxBtn')}</a>`:''}
       <button class="ghost" id="docPrint">${t('printScreen')}</button>`);
 
-  $('docSheet').innerHTML=fillForm(docCur,d.html||'');
+  $('docSheet').innerHTML=(d.pdfStale?`<div class="bcwarn no-print">⚠️ ${t('dlStale')}</div>`:'')
+    +fillForm(docCur,d.html||'');
 }
 
 /** 경고서 자동 채움 — 나머지 문서는 원본 그대로 */
