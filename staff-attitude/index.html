@@ -587,6 +587,13 @@
   table.rcitem tfoot th{border-top:2px solid var(--ink);border-bottom:none;font-size:14px;
     padding-top:10px;}
   .rcwords{text-align:right;font-size:12px;margin-top:6px;color:var(--ink);}
+  /* 손으로 채울 빈칸 */
+  .rcbl{display:inline-block;border-bottom:1px solid var(--ink-soft);height:1.15em;
+    vertical-align:-3px;}
+  .rcchk{display:flex;align-items:center;gap:5px;font-size:11.5px;font-weight:700;cursor:pointer;
+    white-space:nowrap;flex:0 0 auto;}
+  .rcchk input{width:15px;height:15px;cursor:pointer;}
+  .rchint{font-size:11px;color:var(--ink-soft);margin:-6px 0 14px;line-height:1.6;}
   .rcsay{font-size:11.5px;color:var(--ink);margin:20px 0 0;line-height:1.6;}
   .rcsay span{color:var(--ink-soft);}
   .rcsign{display:flex;gap:40px;margin-top:38px;}
@@ -1273,11 +1280,13 @@
       <button class="modal-x" id="rcClose">×</button>
     </div>
     <div class="rctools no-print">
-      <label style="font-size:11.5px" data-i="rcMethod"></label>
+      <label class="rcchk"><input type="checkbox" id="rcEmpty"><span data-i="rcEmptyLbl"></span></label>
+      <label style="font-size:11.5px;margin-left:8px" data-i="rcMethod"></label>
       <select id="rcWay"></select>
       <span style="flex:1"></span>
       <button class="ghost" id="rcPrint" data-i="rcPrintBtn"></button>
     </div>
+    <p class="rchint no-print" data-ih="rcEmptyHint"></p>
     <div id="rcSheet"></div>
   </div>
 </div>
@@ -1447,6 +1456,8 @@ const I={
   rcCash:'현금', rcTransfer:'계좌이체', rcItems:'내역',
   rcSay:'위 금액을 틀림없이 받았습니다.',
   rcSignGet:'받는 사람 서명', rcSignPay:'지급한 사람 서명',
+  rcEmptyLbl:'빈 양식',
+  rcEmptyHint:'<b>빈 양식</b>을 켜면 이름 · 날짜 · 금액이 빈칸으로 나옵니다. 여러 장 뽑아 두고 손으로 채워 쓰시면 됩니다. 끄면 고른 직원의 그 달 급여가 채워져 나옵니다.',
   cPaid:'지급 여부', cHours:'근무시간', paidY:'지급 완료', paidN:'미지급',
   payTotalRow:'전체 합계', commTotal:'커미션 합계', commNone:'이 달 커미션 기록이 없습니다.',
   commPh:'예: 리프팅 3건 · 제품 판매', lReason:'내용',
@@ -1677,6 +1688,8 @@ const I={
   rcCash:'เงินสด', rcTransfer:'โอนเข้าบัญชี', rcItems:'รายการ',
   rcSay:'ได้รับเงินตามรายการข้างต้นไว้ถูกต้องครบถ้วนแล้ว',
   rcSignGet:'ลายมือชื่อผู้รับเงิน', rcSignPay:'ลายมือชื่อผู้จ่ายเงิน',
+  rcEmptyLbl:'แบบฟอร์มเปล่า',
+  rcEmptyHint:'เปิด <b>แบบฟอร์มเปล่า</b> ชื่อ · วันที่ · ยอดเงินจะเว้นว่างไว้ พิมพ์เก็บไว้หลายใบแล้วเขียนมือได้ ปิดไว้จะกรอกเงินเดือนของพนักงานที่เลือกให้อัตโนมัติ',
   cPaid:'สถานะการจ่าย', cHours:'ชั่วโมงทำงาน', paidY:'จ่ายแล้ว', paidN:'ยังไม่จ่าย',
   payTotalRow:'รวมทั้งหมด', commTotal:'รวมคอมมิชชั่น', commNone:'เดือนนี้ยังไม่มีรายการคอมมิชชั่น',
   commPh:'เช่น: ลิฟติ้ง 3 เคส · ขายผลิตภัณฑ์', lReason:'รายละเอียด',
@@ -1872,7 +1885,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v29';
+const APP_VER='v30';
 const APP_DATE='2026-10-01';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -4421,10 +4434,11 @@ const MM_T={
 /** 태국어 · 미얀마어를 한 줄에, 쓰는 말(한국어)은 작게 아래에 */
 const lbl=(th,mm,key)=>`${th} · <em class="mm">${mm}</em>`
   +(LANG==='th'?'':`<small class="rcko">${t(key)}</small>`);
-let rcName='', rcWay='cash';
+let rcName='', rcWay='cash', rcEmpty=false;
 const RC_WAYS=[['cash','rcCash'],['transfer','rcTransfer']];
 function openReceipt(name){
-  rcName=name; rcWay=(data.staff.find(x=>x.name===name)||{}).bankAcct?'transfer':'cash';
+  rcName=name; rcEmpty=false; $('rcEmpty').checked=false;
+  rcWay=(data.staff.find(x=>x.name===name)||{}).bankAcct?'transfer':'cash';
   $('rcWay').innerHTML=RC_WAYS.map(([v,k])=>`<option value="${v}">${t(k)}</option>`).join('');
   $('rcWay').value=rcWay;
   renderReceipt();
@@ -4433,14 +4447,19 @@ function openReceipt(name){
 function renderReceipt(){
   const m=$('payMonth').value||todayISO().slice(0,7);
   const s=data.staff.find(x=>x.name===rcName);
-  if(!s){$('rcSheet').innerHTML='';return;}
-  const c=payCalc(s,m);
-  const items=(data.payItems||[]).filter(x=>x.staff===s.name&&x.month===m);
+  if(!s&&!rcEmpty){$('rcSheet').innerHTML='';return;}
+  /* 빈 양식 — 여러 사람에게 쓰려고 손으로 채울 종이입니다.
+     금액 · 이름 · 날짜를 비우고 밑줄만 남깁니다. */
+  const bl=w=>`<span class="rcbl" style="min-width:${w}px"></span>`;
+  const c=(!rcEmpty&&s)?payCalc(s,m):null;
+  const items=(!rcEmpty&&s)?(data.payItems||[]).filter(x=>x.staff===s.name&&x.month===m):[];
   const plus=items.filter(x=>x.kind==='추가'), minus=items.filter(x=>x.kind==='공제');
-  const when=c.p.date||todayISO();
+  const when=rcEmpty?bl(110):(c.p.date||todayISO());
   const [Y,MM]=m.split('-');
+  const per=rcEmpty?bl(90):`${Y}-${MM}`;
   const li=(label,v,cls)=>`<tr><td>${label}</td>
-    <td class="num${cls?' '+cls:''}">${cls==='mn'?'−':''}${money(Math.abs(v))}</td></tr>`;
+    <td class="num${cls?' '+cls:''}">${rcEmpty?bl(90)
+      :(cls==='mn'?'−':'')+money(Math.abs(v))}</td></tr>`;
   const sub=list=>list.map(x=>`<tr class="sub"><td>· ${esc(x.reason||'')}${
     x.days?` (${x.days}${t('day')})`:''}${x.date?` · ${x.date.slice(5)}`:''}</td>
     <td class="num">${money(x.amount)}</td></tr>`).join('');
@@ -4452,28 +4471,31 @@ function renderReceipt(){
     </div>
     <div class="rcmeta">
       <div><span>${lbl('วันที่',MM_T.date,'rcDate')}</span><b>${when}</b></div>
-      <div><span>${lbl('งวด',MM_T.period,'rcPeriod')}</span><b>${Y}-${MM}</b></div>
-      <div><span>${lbl('ผู้รับเงิน',MM_T.payee,'rcPayee')}</span><b>${esc(s.name)}</b></div>
-      <div><span>${lbl('วิธีจ่าย',MM_T.method,'rcMethod')}</span><b>${rcWay==='cash'
-        ?`เงินสด · <em class="mm">${MM_T.cash}</em> · ${t('rcCash')}`
-        :`โอน · <em class="mm">${MM_T.transfer}</em> · ${t('rcTransfer')}${
-          s.bankAcct?` (${esc(s.bankAcct)})`:''}`}</b></div>
+      <div><span>${lbl('งวด',MM_T.period,'rcPeriod')}</span><b>${per}</b></div>
+      <div><span>${lbl('ผู้รับเงิน',MM_T.payee,'rcPayee')}</span><b>${
+        rcEmpty?bl(190):esc(s.name)}</b></div>
+      <div><span>${lbl('วิธีจ่าย',MM_T.method,'rcMethod')}</span><b>${
+        rcEmpty?`☐ เงินสด · <em class="mm">${MM_T.cash}</em>　☐ โอน · <em class="mm">${MM_T.transfer}</em>`
+        :(rcWay==='cash'
+          ?`เงินสด · <em class="mm">${MM_T.cash}</em> · ${t('rcCash')}`
+          :`โอน · <em class="mm">${MM_T.transfer}</em> · ${t('rcTransfer')}${
+            s.bankAcct?` (${esc(s.bankAcct)})`:''}`)}</b></div>
     </div>
     <table class="rcitem">
       <thead><tr><th>${lbl('รายการ',MM_T.items,'rcItems')}</th>
         <th class="num">บาท · <em class="mm">${MM_T.baht}</em></th></tr></thead>
       <tbody>
-        ${li(lbl('ค่าจ้างพื้นฐาน',MM_T.base,'cBase'),c.base)}
-        ${c.comm?li(lbl('คอมมิชชั่น',MM_T.comm,'cComm'),c.comm):''}
-        ${c.bonus?li(lbl('โบนัส',MM_T.bonus,'cBonus'),c.bonus):''}
-        ${c.bonus?sub(plus):''}
-        ${c.deduct?li(lbl('หักเงิน',MM_T.deduct,'cDeduct'),c.deduct,'mn'):''}
-        ${c.deduct?sub(minus):''}
+        ${li(lbl('ค่าจ้างพื้นฐาน',MM_T.base,'cBase'),c&&c.base)}
+        ${(rcEmpty||c.comm)?li(lbl('คอมมิชชั่น',MM_T.comm,'cComm'),c&&c.comm):''}
+        ${(rcEmpty||c.bonus)?li(lbl('โบนัส',MM_T.bonus,'cBonus'),c&&c.bonus):''}
+        ${(!rcEmpty&&c.bonus)?sub(plus):''}
+        ${(rcEmpty||c.deduct)?li(lbl('หักเงิน',MM_T.deduct,'cDeduct'),c&&c.deduct,'mn'):''}
+        ${(!rcEmpty&&c.deduct)?sub(minus):''}
       </tbody>
       <tfoot><tr><th>${lbl('รวมสุทธิ',MM_T.total,'cTotalPay')}</th>
-        <th class="num">${money(c.total)}</th></tr></tfoot>
+        <th class="num">${rcEmpty?bl(120):money(c.total)}</th></tr></tfoot>
     </table>
-    <div class="rcwords">(${bahtText(c.total)})</div>
+    <div class="rcwords">${rcEmpty?`(${bl(300)})`:`(${bahtText(c.total)})`}</div>
     <p class="rcsay">ข้าพเจ้าได้รับเงินตามรายการข้างต้นไว้ถูกต้องครบถ้วนแล้ว<br>
       <em class="mm">${MM_T.say}</em><br>
       <span>${t('rcSay')}</span></p>
@@ -4492,6 +4514,12 @@ $('payTable').addEventListener('click',e=>{
 $('rcClose').addEventListener('click',()=>$('rcModal').classList.remove('on'));
 $('rcModal').addEventListener('click',e=>{if(e.target.id==='rcModal')$('rcModal').classList.remove('on');});
 $('rcWay').addEventListener('change',()=>{rcWay=$('rcWay').value;renderReceipt();});
+/* 빈 양식 — 여러 사람에게 쓰려고 미리 뽑아 두는 종이 */
+$('rcEmpty').addEventListener('change',()=>{
+  rcEmpty=$('rcEmpty').checked;
+  $('rcWay').disabled=rcEmpty;
+  renderReceipt();
+});
 $('rcPrint').addEventListener('click',()=>{
   document.body.classList.add('rcprint');
   const off=()=>{document.body.classList.remove('rcprint');window.removeEventListener('afterprint',off);};
