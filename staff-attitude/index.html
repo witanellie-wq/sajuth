@@ -342,6 +342,11 @@
   .pijump:hover{border-color:var(--jade);color:var(--jade);}
   .autohint{font-size:9.5px;color:var(--ink-soft);text-align:right;margin-top:2px;
     font-family:'IBM Plex Mono',monospace;}
+  .pimonth{font-size:11.5px;color:var(--ink-soft);}
+  .pigo{background:#FBF4E3;border:1px solid #EBDCB6;border-radius:20px;cursor:pointer;
+    padding:2px 9px;font-size:10.5px;font-weight:700;color:var(--amber);font-family:inherit;
+    margin-left:3px;white-space:nowrap;}
+  .pigo:hover{background:var(--amber);color:#fff;}
   .pikind{font-size:10.5px;font-weight:700;padding:2px 8px;border-radius:20px;white-space:nowrap;}
   .pikind.plus{background:#EEF5F3;color:var(--jade);border:1px solid #CFE2DC;}
   .pikind.minus{background:#FBF0EF;color:var(--coral);border:1px solid #F0D5D2;}
@@ -967,6 +972,16 @@
 
   <section class="panel adm-only" style="margin-top:20px">
     <h2 data-i="piTitle"></h2>
+    <div class="toolbar">
+      <span class="mbox">
+        <button type="button" class="ghost mnav" id="piMPrev">◀</button>
+        <b id="piMLabel"></b>
+        <button type="button" class="ghost mnav" id="piMNext">▶</button>
+      </span>
+      <span class="pimonth" id="piMSay"></span>
+      <span style="flex:1"></span>
+      <span class="paytot" id="piStat"></span>
+    </div>
     <div class="quick no-print">
       <div class="qwho" id="piWho"></div>
       <div class="qrow">
@@ -1458,6 +1473,10 @@ const I={
   rcSay:'위 금액을 틀림없이 받았습니다.',
   rcSignGet:'받는 사람 서명', rcSignPay:'지급한 사람 서명',
   rcEmptyLbl:'빈 양식',
+  piMonth:'반영 월', piMonthSay:'지금 <b>{m}</b> 급여에 넣고 있습니다',
+  piMoveHint:'달을 잘못 골라 넣었으면 여기서 다른 달로 옮기세요. 지우지 않아도 됩니다.',
+  piMoved:'{m} 급여로 옮겼습니다.',
+  piOther:'다른 달에 있는 내역',
   dlStale:'<b>내려받는 PDF 는 옛 버전입니다</b> — 제7조 휴가 일수가 숫자(13·6·3일)로 박혀 있습니다. 빈칸으로 된 지금 내용은 <b>이 화면</b>과 <b>DOCX</b> 에만 들어 있습니다. 빈칸 버전을 PDF 로 받으시려면 아래 <b>화면 그대로 인쇄</b> → PDF 로 저장 하세요.',
   dlStaleHint:'옛 버전입니다 — 제7조 휴가 일수가 숫자로 박혀 있습니다. 화면 그대로 인쇄를 쓰세요.',
   rcEmptyHint:'<b>빈 양식</b>을 켜면 이름 · 날짜 · 금액이 빈칸으로 나옵니다. 여러 장 뽑아 두고 손으로 채워 쓰시면 됩니다. 끄면 고른 직원의 그 달 급여가 채워져 나옵니다.',
@@ -1587,7 +1606,7 @@ const I={
   opPayItem:'추가 지급 · 공제', piAuto:'내역 합계', piJumpHint:'아래 내역에 한 줄 넣기',
   piSaveFail:'저장하지 못했습니다 — patch-14 SQL 을 실행했는지 확인해 주세요.',
   piHint:'<b>직원을 누르고 → 구분(공제/추가) → 사유 → 금액 → Enter</b> 로 한 줄이 들어갑니다.<br><b>무급휴가</b>는 <b>일수</b>만 넣으면 금액이 자동으로 채워집니다 (일급 × 일수, 월급이면 월급÷30 × 일수). 금액은 직접 고쳐도 됩니다.',
-  piNote:'여기 적은 것이 위 <b>급여표의 보너스 · 공제 칸</b>에 자동으로 합산됩니다. 급여표 칸을 직접 고쳐 쓰면 그 값이 우선합니다.<br><b>무급휴가</b>로 뺀 금액, <b>가불</b>, <b>지각·결근</b> 공제, 커미션이 아닌 <b>보너스·수당</b> 같은 것을 사유와 함께 남겨 두세요 — 나중에 왜 그 금액이었는지 알 수 있습니다.<br>표 안의 <b>사유 · 일수 · 금액은 바로 고칠 수 있고</b>, 고치는 즉시 저장됩니다.',
+  piNote:'여기 적은 것이 위 <b>급여표의 보너스 · 공제 칸</b>에 자동으로 합산됩니다. 급여표 칸을 직접 고쳐 쓰면 그 값이 우선합니다.<br><b>무급휴가</b>로 뺀 금액, <b>가불</b>, <b>지각·결근</b> 공제, 커미션이 아닌 <b>보너스·수당</b> 같은 것을 사유와 함께 남겨 두세요 — 나중에 왜 그 금액이었는지 알 수 있습니다.<br>표 안의 <b>사유 · 일수 · 금액 · 반영 월은 바로 고칠 수 있고</b>, 고치는 즉시 저장됩니다.<br><b>여기 적은 것은 그 달에만 들어갑니다</b> — 달마다 다시 넣으셔야 합니다. 지금 어느 달에 넣고 있는지는 위 <b>◀ 2026-10 ▶</b> 에 나옵니다. 달이 바뀌는 날 잘못 넣기 쉬우니 넣기 전에 한 번 보세요.<br>달을 잘못 골라 넣었으면 지우지 말고 그 줄의 <b>반영 월</b>을 바꾸시면 그 달로 옮겨집니다. 다른 달에 내역이 있으면 오른쪽 위에 <b>2026-09 · 2건</b> 처럼 나오고, 누르면 그 달로 갑니다.',
   setupTitle:'아직 만들지 않은 표가 있습니다', setupHide:'닫기',
   setupCopy:'📋 필요한 SQL 복사', setupCopied:'복사했습니다', setupDone:'설치 완료',
   setupOpen:'🔗 Supabase SQL 편집기 열기',
@@ -1692,6 +1711,10 @@ const I={
   rcSay:'ได้รับเงินตามรายการข้างต้นไว้ถูกต้องครบถ้วนแล้ว',
   rcSignGet:'ลายมือชื่อผู้รับเงิน', rcSignPay:'ลายมือชื่อผู้จ่ายเงิน',
   rcEmptyLbl:'แบบฟอร์มเปล่า',
+  piMonth:'เดือนที่คิด', piMonthSay:'กำลังใส่เข้าเงินเดือนเดือน <b>{m}</b>',
+  piMoveHint:'ถ้าใส่ผิดเดือน ย้ายไปเดือนอื่นได้ที่นี่ ไม่ต้องลบ',
+  piMoved:'ย้ายไปเงินเดือนเดือน {m} แล้ว',
+  piOther:'รายการในเดือนอื่น',
   dlStale:'<b>ไฟล์ PDF ที่ดาวน์โหลดเป็นเวอร์ชันเก่า</b> — ข้อ 7 ยังมีจำนวนวันลา (13·6·3) พิมพ์ไว้ เนื้อหาแบบเว้นว่างอยู่ใน <b>หน้าจอนี้</b> และ <b>DOCX</b> เท่านั้น ถ้าต้องการ PDF แบบเว้นว่าง ให้กด <b>พิมพ์หน้าจอ</b> แล้วบันทึกเป็น PDF',
   dlStaleHint:'เวอร์ชันเก่า — ข้อ 7 มีจำนวนวันลาพิมพ์ไว้ ให้ใช้พิมพ์หน้าจอแทน',
   rcEmptyHint:'เปิด <b>แบบฟอร์มเปล่า</b> ชื่อ · วันที่ · ยอดเงินจะเว้นว่างไว้ พิมพ์เก็บไว้หลายใบแล้วเขียนมือได้ ปิดไว้จะกรอกเงินเดือนของพนักงานที่เลือกให้อัตโนมัติ',
@@ -1823,7 +1846,7 @@ const I={
   opPayItem:'จ่ายเพิ่ม · หักเงิน', piAuto:'รวมจากรายการ', piJumpHint:'เพิ่มรายการด้านล่าง',
   piSaveFail:'บันทึกไม่สำเร็จ — กรุณาตรวจว่ารัน SQL patch-14 แล้ว',
   piHint:'<b>กดชื่อพนักงาน → เลือกประเภท → เหตุผล → ยอดเงิน → Enter</b> ก็บันทึกหนึ่งรายการ<br><b>ลาไม่รับค่าจ้าง</b> ใส่แค่ <b>จำนวนวัน</b> ระบบจะคิดยอดให้ (ค่าจ้างรายวัน × วัน, ถ้ารายเดือนใช้ เงินเดือน÷30 × วัน) แก้ยอดเองได้',
-  piNote:'รายการที่บันทึกที่นี่จะรวมเข้า<b>ช่องโบนัสและหักเงินในตารางเงินเดือน</b>อัตโนมัติ ถ้าแก้ในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้<br>บันทึกพร้อมเหตุผลไว้ เช่น <b>ลาไม่รับค่าจ้าง</b> <b>เบิกล่วงหน้า</b> <b>สาย·ขาดงาน</b> หรือ<b>โบนัส·เบี้ยเลี้ยง</b>ที่ไม่ใช่คอมมิชชั่น จะได้ย้อนดูได้ว่าทำไมยอดเป็นแบบนั้น<br><b>เหตุผล · จำนวนวัน · ยอดเงิน แก้ได้ทันที</b> และบันทึกทันทีที่แก้',
+  piNote:'รายการที่บันทึกที่นี่จะรวมเข้า<b>ช่องโบนัสและหักเงินในตารางเงินเดือน</b>อัตโนมัติ ถ้าแก้ในตารางเงินเดือนเอง ระบบจะใช้ค่าที่แก้<br>บันทึกพร้อมเหตุผลไว้ เช่น <b>ลาไม่รับค่าจ้าง</b> <b>เบิกล่วงหน้า</b> <b>สาย·ขาดงาน</b> หรือ<b>โบนัส·เบี้ยเลี้ยง</b>ที่ไม่ใช่คอมมิชชั่น จะได้ย้อนดูได้ว่าทำไมยอดเป็นแบบนั้น<br><b>เหตุผล · จำนวนวัน · ยอดเงิน · เดือนที่คิด แก้ได้ทันที</b> และบันทึกทันทีที่แก้<br><b>รายการที่ใส่จะคิดเฉพาะเดือนนั้น</b> เดือนใหม่ต้องใส่ใหม่ ดูเดือนที่กำลังใส่ได้ที่ <b>◀ 2026-10 ▶</b> ด้านบน วันที่ขึ้นเดือนใหม่มักใส่ผิด ควรดูก่อนใส่<br>ถ้าใส่ผิดเดือน ไม่ต้องลบ ให้แก้ช่อง <b>เดือนที่คิด</b> ของแถวนั้น ถ้ามีรายการในเดือนอื่นจะขึ้น <b>2026-09 · 2 รายการ</b> ที่มุมขวาบน กดแล้วไปเดือนนั้นได้',
   setupTitle:'ยังมีตารางที่ยังไม่ได้สร้าง', setupHide:'ปิด',
   setupCopy:'📋 คัดลอก SQL ที่ต้องใช้', setupCopied:'คัดลอกแล้ว', setupDone:'ติดตั้งเสร็จ',
   setupOpen:'🔗 เปิด Supabase SQL Editor',
@@ -1890,7 +1913,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v32';
+const APP_VER='v33';
 const APP_DATE='2026-10-01';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -4621,6 +4644,16 @@ function buildPiSelects(){
 }
 function renderPayItems(){
   const m=$('payMonth').value||todayISO().slice(0,7);
+  $('piMLabel').textContent=m;
+  $('piMSay').innerHTML=t('piMonthSay').replace('{m}',m);
+  /* 다른 달에 들어 있는 줄이 있으면 알려 줍니다 — 달을 잘못 골라 넣는 일이 있습니다 */
+  const other={};
+  (data.payItems||[]).forEach(x=>{if(x.month!==m)other[x.month]=(other[x.month]||0)+1;});
+  const ks=Object.keys(other).sort().reverse();
+  $('piStat').innerHTML=ks.length
+    ? `<span style="color:var(--ink-soft)">${t('piOther')}</span> `
+      +ks.map(k=>`<button class="pigo" data-pigo="${k}">${k} · ${other[k]}${t('cntRec')}</button>`).join(' ')
+    : '';
   const ae=document.activeElement;
   if(ae&&ae.closest&&ae.closest('#piList'))ae.blur();
   const live=liveStaff();
@@ -4633,17 +4666,20 @@ function renderPayItems(){
   const addT=money2(rows.filter(x=>x.kind==='추가').reduce((a,x)=>a+x.amount,0));
   const subT=money2(rows.filter(x=>x.kind==='공제').reduce((a,x)=>a+x.amount,0));
   $('piList').innerHTML=rows.length?`<div style="overflow-x:auto"><table>
-    <thead><tr><th style="width:18%">${t('cStaff')}</th>
-      <th style="width:10%">${t('piKind')}</th>
+    <thead><tr><th style="width:16%">${t('cStaff')}</th>
+      <th style="width:9%">${t('piKind')}</th>
       <th>${t('lReason')}</th>
-      <th class="num" style="width:11%">${t('piDays')}</th>
-      <th class="num" style="width:16%">${t('lAmount')}</th>
+      <th style="width:13%">${t('piMonth')}</th>
+      <th class="num" style="width:10%">${t('piDays')}</th>
+      <th class="num" style="width:15%">${t('lAmount')}</th>
       <th style="width:38px"></th></tr></thead>
     <tbody>${rows.map(x=>`<tr>
       <td><b>${esc(x.staff)}</b></td>
       <td><span class="pikind ${x.kind==='추가'?'plus':'minus'}">${x.kind==='추가'?'＋':'−'} ${esc(x.kind)}</span></td>
       <td><input type="text" data-pi="reason" data-id="${x.id}" value="${esc(x.reason)}"
         placeholder="${t('piReasonPh')}" style="width:100%"></td>
+      <td><input type="month" data-pi="month" data-id="${x.id}" value="${esc(x.month)}"
+        title="${t('piMoveHint')}" style="width:100%;font-size:11.5px"></td>
       <td><input type="number" step="0.5" min="0" data-pi="days" data-id="${x.id}"
         value="${x.days==null?'':x.days}" placeholder="—"
         style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
@@ -4652,12 +4688,19 @@ function renderPayItems(){
         font-family:'IBM Plex Mono',monospace;color:${x.kind==='추가'?'var(--jade)':'var(--coral)'}"></td>
       <td style="text-align:right"><button class="del" data-pidel="${x.id}">×</button></td></tr>`).join('')}</tbody>
     <tfoot><tr>
-      <th colspan="4" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">
+      <th colspan="5" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">
         ${t('piPlus')} ${money(addT)} · ${t('piMinus')} ${money(subT)}</th>
       <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:14px">${money(money2(addT-subT))}</th>
       <th style="border-top:1px solid var(--ink);border-bottom:none"></th></tr></tfoot></table></div>`
     :`<div class="empty">${t('piNone')}</div>`;
 }
+$('piMPrev').onclick=()=>setMonth('payMonth',shiftMonth($('payMonth').value,-1));
+$('piMNext').onclick=()=>setMonth('payMonth',shiftMonth($('payMonth').value,1));
+/* 다른 달에 들어 있는 줄 보러 가기 */
+$('piStat').addEventListener('click',e=>{
+  const b=e.target.closest('[data-pigo]'); if(!b)return;
+  setMonth('payMonth',b.dataset.pigo);
+});
 /* 담당 직원 고르기 */
 $('piWho').addEventListener('click',e=>{
   const b=e.target.closest('[data-piwho]'); if(!b)return;
@@ -4697,6 +4740,12 @@ $('piList').addEventListener('change',async e=>{
   const k=el.dataset.pi, patch={};
   if(k==='reason'){x.reason=el.value;patch.reason=x.reason;}
   else if(k==='days'){x.days=el.value===''?null:Number(el.value);patch.days=x.days;}
+  else if(k==='month'){
+    /* 달을 잘못 골라 넣은 줄을 지우지 않고 옮깁니다 */
+    const v=el.value; if(!v||v===x.month)return;
+    x.month=v; patch.month=v;
+    bkSay(t('piMoved').replace('{m}',v));
+  }
   else{x.amount=Math.max(0,Number(el.value||0));patch.amount=x.amount;}
   renderPayItems(); renderPay();
   await op(t('opPayItem'),()=>sb.from('staff_pay_items').update(patch).eq('id',x.id));
