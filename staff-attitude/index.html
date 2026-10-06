@@ -342,6 +342,16 @@
   .pijump:hover{border-color:var(--jade);color:var(--jade);}
   .autohint{font-size:9.5px;color:var(--ink-soft);text-align:right;margin-top:2px;
     font-family:'IBM Plex Mono',monospace;}
+  .revpay{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}
+  .revchip{display:inline-flex;align-items:center;gap:6px;background:#F4F5F3;
+    border:1px solid var(--line);border-radius:20px;padding:5px 13px;font-size:12px;
+    color:var(--ink-soft);white-space:nowrap;}
+  .revchip b{font-family:'IBM Plex Mono',monospace;color:var(--ink);font-size:12.5px;}
+  .revchip.gw{background:#FBF4E3;border-color:#EBDCB6;color:var(--amber);}
+  .revchip.gw b{color:var(--amber);}
+  .revgw{margin-top:10px;font-size:11.5px;color:var(--ink-soft);line-height:1.7;
+    border-left:2px solid #EBDCB6;padding-left:10px;}
+  .revgw b{color:var(--ink);font-family:'IBM Plex Mono',monospace;}
   .pimonth{font-size:11.5px;color:var(--ink-soft);}
   .pigo{background:#FBF4E3;border:1px solid #EBDCB6;border-radius:20px;cursor:pointer;
     padding:2px 9px;font-size:10.5px;font-weight:700;color:var(--amber);font-family:inherit;
@@ -1100,6 +1110,19 @@
   </section>
 
   <section class="panel adm-only">
+    <h2 data-i="revTitle"></h2>
+    <div class="toolbar">
+      <span class="mbox">
+        <button type="button" class="ghost mnav" id="revMPrev">◀</button>
+        <b id="revMLabel"></b>
+        <button type="button" class="ghost mnav" id="revMNext">▶</button>
+      </span>
+    </div>
+    <div id="revBox"></div>
+    <p class="note" data-ih="revNote"></p>
+  </section>
+
+  <section class="panel adm-only" style="margin-top:20px">
     <h2 data-i="exTitle"></h2>
     <div class="toolbar">
       <input type="month" id="exMonth">
@@ -1473,6 +1496,17 @@ const I={
   rcSay:'위 금액을 틀림없이 받았습니다.',
   rcSignGet:'받는 사람 서명', rcSignPay:'지급한 사람 서명',
   rcEmptyLbl:'빈 양식',
+  revTitle:'월 매출 · 실제로 들어온 돈',
+  revFixed:'확정 입금', revFixedNote:'부킹시트에서 확정',
+  revAdd:'별도 입금', revAddNote:'제품 판매 등 예약 외',
+  revBookOnly:'예약장부 기준', revBookOnlyNote:'아직 확정 안 넣은 날',
+  revTotal:'매출 합계', revProfit:'남은 돈',
+  revCash:'현금', revTransfer:'이체', revCard:'카드', revGw:'고와비', revEtc:'기타',
+  revGwSay:'고와비 <b>{a}</b> 는 이번 달에 손에 들어온 돈이 아닙니다 — 다음 달 15일에 수수료 {r}% 를 뺀 <b>{n}</b> 이 들어옵니다.<br>이번 달 실제로 받은 돈은 <b>{o}</b> 입니다.',
+  revNoFixWarn:'{n}일은 부킹시트에 <b>하루 총 매출</b>을 아직 안 넣으셔서 예약장부 합계로 셌습니다. 포스 금액을 넣으시면 정확해집니다.',
+  revNone:'이 달 매출 기록이 없습니다.',
+  revOtherBiz:'매출은 예약장부(하나하얀)에서만 들어옵니다. 사업장을 전체 또는 하나하얀으로 두세요.',
+  revNote:'<b>부킹시트에 넣으신 \'하루 총 매출\'(포스 · 고와비에서 확인한 확정 금액)</b>이 기준입니다 — 직원이 적은 예약장부 합계가 아닙니다.<br>확정을 아직 안 넣은 날은 어쩔 수 없이 예약장부 합계로 세고, 몇 일인지 위에 알려 드립니다.<br><b>고와비</b>는 이번 달에 손에 들어온 돈이 아니라 다음 달 15일에 수수료를 뗀 금액이 들어옵니다. 그래서 따로 떼어 보여 드립니다.<br><b>남은 돈 = 매출 합계 − 급여 · 커미션 · 고정비 · 지출 전체</b> 입니다. 아래 목표 매출 대비 예상 이익과 달리 <b>실제로 들어온 돈</b>으로 계산합니다.',
   piMonth:'반영 월', piMonthSay:'지금 <b>{m}</b> 급여에 넣고 있습니다',
   piMoveHint:'달을 잘못 골라 넣었으면 여기서 다른 달로 옮기세요. 지우지 않아도 됩니다.',
   piMoved:'{m} 급여로 옮겼습니다.',
@@ -1711,6 +1745,17 @@ const I={
   rcSay:'ได้รับเงินตามรายการข้างต้นไว้ถูกต้องครบถ้วนแล้ว',
   rcSignGet:'ลายมือชื่อผู้รับเงิน', rcSignPay:'ลายมือชื่อผู้จ่ายเงิน',
   rcEmptyLbl:'แบบฟอร์มเปล่า',
+  revTitle:'ยอดขายรายเดือน · เงินที่เข้าจริง',
+  revFixed:'ยอดยืนยัน', revFixedNote:'ยืนยันในตารางจอง',
+  revAdd:'เงินเข้าแยก', revAddNote:'ขายสินค้า ฯลฯ',
+  revBookOnly:'ตามตารางจอง', revBookOnlyNote:'วันที่ยังไม่ยืนยัน',
+  revTotal:'ยอดขายรวม', revProfit:'เงินคงเหลือ',
+  revCash:'เงินสด', revTransfer:'โอน', revCard:'บัตร', revGw:'GoWabi', revEtc:'อื่นๆ',
+  revGwSay:'GoWabi <b>{a}</b> ยังไม่เข้ามือในเดือนนี้ — จะเข้าวันที่ 15 เดือนถัดไป หลังหักค่าธรรมเนียม {r}% เหลือ <b>{n}</b><br>เงินที่ได้รับจริงในเดือนนี้คือ <b>{o}</b>',
+  revNoFixWarn:'{n} วันยังไม่ได้ใส่ <b>ยอดขายรวมทั้งวัน</b> ในตารางจอง จึงนับตามตารางจองไปก่อน ใส่ยอดจาก POS แล้วจะแม่นยำขึ้น',
+  revNone:'เดือนนี้ยังไม่มียอดขาย',
+  revOtherBiz:'ยอดขายมาจากตารางจอง (하나하얀) เท่านั้น เลือกสาขาเป็นทั้งหมดหรือ 하나하얀',
+  revNote:'ใช้ <b>ยอดขายรวมทั้งวันที่ยืนยันในตารางจอง</b> (ยอดจาก POS · GoWabi) เป็นเกณฑ์ ไม่ใช่ยอดที่พนักงานบันทึก<br>วันที่ยังไม่ยืนยันจะนับตามตารางจองไปก่อน และแจ้งจำนวนวันไว้ด้านบน<br><b>GoWabi</b> ยังไม่เข้ามือในเดือนนี้ จะเข้าวันที่ 15 เดือนถัดไปหลังหักค่าธรรมเนียม จึงแยกแสดงไว้<br><b>เงินคงเหลือ = ยอดขายรวม − เงินเดือน · คอมมิชชั่น · ค่าใช้จ่ายประจำ · ค่าใช้จ่ายทั้งหมด</b> ต่างจากกำไรคาดการณ์ด้านล่างที่คิดจากเป้า ตรงนี้คิดจาก<b>เงินที่เข้าจริง</b>',
   piMonth:'เดือนที่คิด', piMonthSay:'กำลังใส่เข้าเงินเดือนเดือน <b>{m}</b>',
   piMoveHint:'ถ้าใส่ผิดเดือน ย้ายไปเดือนอื่นได้ที่นี่ ไม่ต้องลบ',
   piMoved:'ย้ายไปเงินเดือนเดือน {m} แล้ว',
@@ -1913,7 +1958,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v33';
+const APP_VER='v34';
 const APP_DATE='2026-10-01';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -2811,6 +2856,34 @@ function dayGap(d){
   const f=dayFixed(d); if(f==null)return null;
   return money2(f-dayGross(d));
 }
+/* ── 실 매출 — 부킹시트에 넣으신 '하루 총 매출'(확정 입금)이 기준입니다 ──────
+   예약장부 합계는 직원이 적은 금액이라 실제 들어온 돈과 다를 수 있습니다.
+   확정을 안 넣은 날은 어쩔 수 없이 예약장부 합계로 대신 세고, 몇 일인지 알려 줍니다. */
+function revOfMonth(m){
+  const days=new Set();
+  (data.bookings||[]).forEach(b=>{
+    if(b.status==='방문'&&String(b.date||'').startsWith(m))days.add(b.date);});
+  (data.commissions||[]).forEach(c=>{
+    if(c.sale!=null&&String(c.date||'').startsWith(m))days.add(c.date);});
+  Object.keys(data.dayRev||{}).forEach(d=>{if(d.startsWith(m))days.add(d);});
+  const out={days:0,fixDays:0,noFixDays:0,fixed:0,add:0,bookOnly:0,book:0,byPay:{}};
+  [...days].sort().forEach(d=>{
+    const o=(data.dayRev||{})[d], g=dayGross(d);
+    out.days++; out.book+=g;
+    if(o&&o.total>0){
+      out.fixDays++; out.fixed+=o.total; out.add+=o.add||0;
+      Object.keys(o.byPay).forEach(k=>{out.byPay[k]=(out.byPay[k]||0)+o.byPay[k];});
+    }else if(g>0){
+      out.noFixDays++; out.bookOnly+=g;
+    }
+  });
+  out.gw=Number(out.byPay['GoWabi']||0);           // 익월 15일에 들어옵니다
+  out.total=money2(out.fixed+out.add+out.bookOnly);
+  out.onsite=money2(out.total-out.gw);             // 이번 달 손에 들어온 돈
+  out.gwNet=money2(out.gw*(100-gwRate())/100);     // 수수료 뺀 실수령
+  out.gap=money2(out.fixed-(out.book-out.bookOnly));  // 확정 넣은 날의 장부 대비 차액
+  return out;
+}
 /** 덜 들어온 비율 (%) — 사장님이 손으로 계산하던 그 숫자입니다 */
 function dayGapPct(d){
   const g=dayGross(d), gap=dayGap(d);
@@ -3217,6 +3290,45 @@ function render(){
 }
 
 /* ══════════ 지출 — 고정비 · 소모품 (관리자) ══════════ */
+/* ══════════ 월 매출 — 실제로 들어온 돈 기준 ══════════ */
+const PAYKO={'현금':'revCash','이체':'revTransfer','카드':'revCard','GoWabi':'revGw','기타':'revEtc'};
+function renderRev(m,withPay,spend){
+  $('revMLabel').textContent=m;
+  /* 매출은 예약장부(하나하얀)에서 옵니다 — 다른 사업장을 고르면 숨깁니다 */
+  if(!withPay){$('revBox').innerHTML=`<div class="empty">${t('revOtherBiz')}</div>`;return;}
+  if(data.bkOk===false){$('revBox').innerHTML=`<div class="bcwarn">⚠️ ${t('bcNoLink')}</div>`;return;}
+  const r=revOfMonth(m);
+  if(!r.days){$('revBox').innerHTML=`<div class="empty">${t('revNone')}</div>`;return;}
+  const pays=Object.keys(r.byPay).filter(k=>r.byPay[k]>0).sort((a,b)=>r.byPay[b]-r.byPay[a]);
+  const profit=money2(r.total-spend);
+  $('revBox').innerHTML=`<div class="sumcards">
+      <div class="sumcard"><b>${t('revFixed')}</b><i>${money(Math.round(r.fixed))}</i>
+        <small>${r.fixDays}${t('day')} ${t('revFixedNote')}</small></div>
+      ${r.add?`<div class="sumcard"><b>${t('revAdd')}</b><i>${money(Math.round(r.add))}</i>
+        <small>${t('revAddNote')}</small></div>`:''}
+      ${r.bookOnly?`<div class="sumcard"><b>${t('revBookOnly')}</b><i>${money(Math.round(r.bookOnly))}</i>
+        <small>${r.noFixDays}${t('day')} ${t('revBookOnlyNote')}</small></div>`:''}
+      <div class="sumcard total"><b>${t('revTotal')}</b><i>${money(Math.round(r.total))}</i>
+        <small>${m} · ${r.days}${t('day')}</small></div>
+    </div>
+    ${pays.length?`<div class="revpay">${pays.map(k=>`<span class="revchip${
+        k==='GoWabi'?' gw':''}">${PAYKO[k]?t(PAYKO[k]):esc(k)}
+        <b>${money(Math.round(r.byPay[k]))}</b></span>`).join('')}</div>`:''}
+    ${r.gw?`<div class="revgw">${t('revGwSay')
+        .replace('{a}',money(Math.round(r.gw)))
+        .replace('{n}',money(Math.round(r.gwNet)))
+        .replace('{r}',gwRate())
+        .replace('{o}',money(Math.round(r.onsite)))}</div>`:''}
+    ${r.noFixDays?`<div class="bcwarn" style="margin-top:10px">⚠️ ${
+      t('revNoFixWarn').replace('{n}',r.noFixDays)}</div>`:''}
+    <div class="profit ${profit>=0?'plus':'minus'}" style="margin-top:12px">
+      <span class="eq">${t('revTotal')} ${money(Math.round(r.total))} − ${t('cGrandSum')} ${money(spend)} =</span>
+      <span>${t('revProfit')}</span> <b>${money(profit)}</b>
+      ${r.total>0?`<span class="eq">· ${t('tgMargin')} ${Math.round(profit/r.total*100)}%</span>`:''}
+    </div>`;
+}
+$('revMPrev').onclick=()=>setMonth('exMonth',shiftMonth($('exMonth').value,-1));
+$('revMNext').onclick=()=>setMonth('exMonth',shiftMonth($('exMonth').value,1));
 function renderEx(){
   // 표 안의 칸에 포커스가 남은 채로 innerHTML 을 갈아끼우면 크롬이 예외를 던집니다
   const ae=document.activeElement;
@@ -3240,6 +3352,8 @@ function renderEx(){
   ].map(([k,v,cls,sub])=>`<div class="sumcard ${cls}"><b>${t(k)}</b>
       <i>${v==null?'—':money(v)}</i>
       <small>${esc(sub||'')}</small></div>`).join('');
+
+  renderRev(m,withPay,monthly+exp);
 
   /* 직원별 커미션 — 지출에서도 한눈에 보이게 (자세한 계산·수정은 급여 탭에서) */
   const cm=withPay?liveStaff().map(s=>({name:s.name,v:payCalc(s,m).comm}))
