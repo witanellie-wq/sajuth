@@ -1443,7 +1443,7 @@ const I={
   rEnter:'도착 시각을 입력하세요', rNoTime:'도착 시각 입력 없이 저장할 수 있습니다',
   rLate:'지각', rOnTime:'정시 도착', rEarly:'조기 도착', rOnTimeShort:'정시',
   cStaff:'직원', cMonth:'월', cDays:'출근일', cOff:'휴무', cLate:'지각', cUnex:'무단',
-  cTotalLate:'누적 지각(분)', cAvg:'태도 평균', cGrade:'등급', cTier:'경고 단계',
+  cTotalLate:'누적 지각(분)', cOT:'초과근무(분)', cAvg:'태도 평균', cGrade:'등급', cTier:'경고 단계',
   cCount:'기록 수', cRegOff:'정기 휴무 요일', cNote:'',
   sumHint:'지각 / 무단 / 누적분 / 태도',
   lgNormal:'정상 / 승인', lgPre:'지각 (사전 통보)', lgUnex:'무단 지각', lgAbsent:'무단 결근',
@@ -1692,7 +1692,7 @@ const I={
   rEnter:'กรุณาใส่เวลามาถึง', rNoTime:'บันทึกได้โดยไม่ต้องใส่เวลา',
   rLate:'สาย', rOnTime:'มาตรงเวลา', rEarly:'มาก่อนเวลา', rOnTimeShort:'ตรงเวลา',
   cStaff:'พนักงาน', cMonth:'เดือน', cDays:'วันทำงาน', cOff:'วันหยุด', cLate:'สาย', cUnex:'ไม่แจ้ง',
-  cTotalLate:'สายรวม (นาที)', cAvg:'คะแนนเฉลี่ย', cGrade:'เกรด', cTier:'ระดับการเตือน',
+  cTotalLate:'สายรวม (นาที)', cOT:'ทำงานเกินเวลา (นาที)', cAvg:'คะแนนเฉลี่ย', cGrade:'เกรด', cTier:'ระดับการเตือน',
   cCount:'จำนวนบันทึก', cRegOff:'วันหยุดประจำสัปดาห์', cNote:'',
   sumHint:'สาย / ไม่แจ้ง / นาที / คะแนน',
   lgNormal:'ตรงเวลา / อนุมัติ', lgPre:'สาย (แจ้งล่วงหน้า)', lgUnex:'สายโดยไม่แจ้ง', lgAbsent:'ขาดงาน',
@@ -2063,6 +2063,7 @@ const recFromRow=(r,nm)=>({
   id:r.id, _sid:r.staff_id, staff:nm, date:r.date,
   sched:r.sched||'', actual:r.actual||'', out:r.out_time||'',
   late:r.late==null?null:Number(r.late), type:r.type||'정상',
+  ot:r.overtime_min==null?0:Number(r.overtime_min),
   scores:r.scores||{}, avg:r.avg_score==null?null:Number(r.avg_score),
   memo:r.memo||'', lid:r.legacy_id||null,
   seq:r.created_at?new Date(r.created_at).getTime():0
@@ -2733,6 +2734,7 @@ function stat(name,month){
   const lateCnt=rs.filter(r=>r.late>0).length;
   const unex=rs.filter(r=>r.type==='무단'||r.type==='무단결근').length;
   const totalLate=rs.reduce((a,r)=>a+(r.late||0),0);
+  const totalOT=rs.reduce((a,r)=>a+(r.ot||0),0);
   const avgs=rs.map(r=>r.avg).filter(v=>v!=null);
   const avg=avgs.length?avgs.reduce((a,b)=>a+b,0)/avgs.length:null;
   const adj=avg!=null?Math.max(0,avg-unex*0.3):null;
@@ -2747,7 +2749,7 @@ function stat(name,month){
   const sick=rs.filter(r=>r.type==='병가').length;
   const preAbs=rs.filter(r=>r.type==='사전통보결근').length;
   const hours=rs.reduce((a,r)=>a+hoursOf(r),0);
-  return{rs,days,off,sick,preAbs,hours,lateCnt,unex,totalLate,avg,adj,grade,tier:Math.min(unex,4)};
+  return{rs,days,off,sick,preAbs,hours,lateCnt,unex,totalLate,totalOT,avg,adj,grade,tier:Math.min(unex,4)};
 }
 
 /* ══════════ 급여 · 커미션 ══════════ */
@@ -3173,7 +3175,7 @@ function printAs(orient){
 /* ══════════ render ══════════ */
 const entryHTML=r=>`<div class="entry ${sev(r)}">
   <div class="meta">${r.date.slice(2)}<br>${r.actual||'—'}</div>
-  <div class="body"><b>${esc(r.staff)}</b> · <em>${typeLabel(r.type)}${r.late>0?` · ${r.late}${t('min')} ${t('rLate')}`:''}</em>${
+  <div class="body"><b>${esc(r.staff)}</b> · <em>${typeLabel(r.type)}${r.late>0?` · ${r.late}${t('min')} ${t('rLate')}`:''}${r.ot>0?` · OT ${r.ot}${t('min')}`:''}</em>${
     r.avg!=null?` <span class="sc sv${SCORE_SEV(r.avg)}">${r.avg}</span>`:''}
   ${r.memo?`<p>${esc(r.memo)}</p>`:''}</div>
   <button class="del edb" data-ed="${r.id}" title="${t('edit')}">✎</button>
@@ -3230,8 +3232,8 @@ function render(){
 
   /* 월 집계 — 경고는 해당 월 말 기준 유효분 (경고 열은 관리자만) */
   const gmRef=`${gm}-${pad(daysInMonth(gm))}`;
-  const cols=['cStaff','cDays','cOff','cLate','cUnex','cTotalLate','cAvg','cGrade','cWarn'];
-  $('sumHead').innerHTML='<tr>'+cols.map((k,i)=>`<th${i&&i<8?' class="num"':''}>${t(k)}</th>`).join('')+'</tr>';
+  const cols=['cStaff','cDays','cOff','cLate','cUnex','cTotalLate','cOT','cAvg','cGrade','cWarn'];
+  $('sumHead').innerHTML='<tr>'+cols.map((k,i)=>`<th${i&&i<9?' class="num"':''}>${t(k)}</th>`).join('')+'</tr>';
   $('summary').innerHTML=liveStaff().map(s=>{
     const x=stat(s.name,gm);
     const aw=activeWarnings(s.name,gmRef), fire=aw>=FIRE_THRESHOLD;
@@ -3244,18 +3246,19 @@ function render(){
       <td class="num${x.lateCnt?' bad':''}">${x.lateCnt}</td>
       <td class="num${x.unex?' bad':''}">${x.unex}</td>
       <td class="num${x.totalLate?' bad':''}">${x.totalLate}</td>
+      <td class="num">${x.totalOT||''}</td>
       <td class="num">${g1(x.avg)}</td>
       <td class="num"><span class="gr ${x.grade}">${x.grade}</span></td>
       <td class="num">${!isAdmin?'<span style="color:var(--line)">🔒</span>':fire
         ?`<span class="fire-badge">${aw}/3 · ${t('cFire')}</span>`
         :`<b style="color:${aw?'var(--coral)':'var(--ink-soft)'}">${aw}</b> / 3`}</td></tr>`;
-  }).join('')||`<tr><td colspan="9">${t('addStaffFirst')}</td></tr>`;
+  }).join('')||`<tr><td colspan="10">${t('addStaffFirst')}</td></tr>`;
 
   if(isAdmin)renderWarnBoard();
 
   /* 직원별 */
-  const stCols=['cMonth','cDays','cOff','cLate','cUnex','cTotalLate','cAvg','cGrade','cTier'];
-  $('stHead').innerHTML='<tr>'+stCols.map((k,i)=>`<th${i&&i<8?' class="num"':''}>${t(k)}</th>`).join('')+'</tr>';
+  const stCols=['cMonth','cDays','cOff','cLate','cUnex','cTotalLate','cOT','cAvg','cGrade','cTier'];
+  $('stHead').innerHTML='<tr>'+stCols.map((k,i)=>`<th${i&&i<9?' class="num"':''}>${t(k)}</th>`).join('')+'</tr>';
   const sn=data.staff[+$('stSel').value]?.name;
   if(sn){
     const months=[...new Set(data.records.filter(r=>r.staff===sn).map(r=>r.date.slice(0,7)))].sort().reverse();
@@ -3266,6 +3269,7 @@ function render(){
         <td class="num${x.lateCnt?' bad':''}">${x.lateCnt}</td>
         <td class="num${x.unex?' bad':''}">${x.unex}</td>
         <td class="num${x.totalLate?' bad':''}">${x.totalLate}</td>
+        <td class="num">${x.totalOT||''}</td>
         <td class="num">${g1(x.avg)}</td>
         <td class="num"><span class="gr ${x.grade}">${x.grade}</span></td>
         <td><span class="tier t${x.tier}">${L(TIERS[x.tier])}</span></td></tr>`;
@@ -4405,6 +4409,7 @@ function renderSheet(){
       <th class="num">지각<u style="display:block">สาย</u></th>
       <th class="num">무단<u style="display:block">ไม่แจ้ง</u></th>
       <th class="num">누적 지각(분)<u style="display:block">สายรวม (นาที)</u></th>
+      <th class="num">초과근무(분)<u style="display:block">ทำงานเกินเวลา (นาที)</u></th>
       <th class="num">사전 통보<u style="display:block">แจ้งล่วงหน้า</u></th>
       <th class="num">사전 결근<u style="display:block">ลาแจ้งล่วงหน้า</u></th>
       <th class="num">병가<u style="display:block">ลาป่วย</u></th>
@@ -4414,6 +4419,7 @@ function renderSheet(){
       <td class="num${x.lateCnt?' bad':''}">${x.lateCnt}</td>
       <td class="num${x.unex?' bad':''}">${x.unex}</td>
       <td class="num${x.totalLate?' bad':''}">${x.totalLate}</td>
+      <td class="num">${x.totalOT||0}</td>
       <td class="num">${x.rs.filter(r=>r.type==='사전통보').length}</td>
       <td class="num">${x.preAbs||''}</td>
       <td class="num">${x.sick}</td>
