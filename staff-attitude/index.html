@@ -1633,8 +1633,8 @@ const I={
   piePend:'정산 대기 · 지급 예정', piePendSub:'지출 아님', pendTo:'받을 사람 · 곳',
   expPaidOnly:'지급 · 정산 완료분만', expNotThisMonth:'위 목록 중 이달 지출에서 빠진 금액 (정산 대기 또는 다른 달에 지급)',
   pieNote:'<b>납부 완료한 고정비</b>와 <b>소모품 · 기타 지출</b>을 내용 · 분류 · 메모의 단어로 묶어 보여줍니다 (급여 탭의 급여 · 커미션은 포함하지 않습니다). 어느 묶음에도 안 맞는 항목(청소비 포함)은 <b>소모품·배송·기타</b>로 들어갑니다. <b>아직 지급 · 정산하지 않은 것은 지출에 넣지 않고</b> 정산 대기 상자에만 보이며, 지급 · 정산하면 <b>실제로 돈이 나간 달</b>의 지출로 옮겨집니다.',
-  pcFix:'고정비', pcAd:'광고·마케팅 (고와비)', pcSabi:'회장님 사비 정산', pcMat:'시술 재료', pcMonthly:'화장품·매달 소모품',
-  pcSign:'간판·라벨 인쇄', pcLoan:'회장님 차용금 상환', pcLabor:'인건비', pcEtc:'일시적 지출 (소파 등)',
+  pcFix:'고정비', pcAd:'광고·마케팅 (고와비)', pcSabi:'회장님 사비 정산', pcMat:'시술 재료', pcMonthly:'화장품·매달 소모품', pcRegular:'상시 지출 (주유·배송 등)',
+  pcSign:'간판·라벨 인쇄', pcLoan:'회장님 차용금 상환', pcLabor:'인건비', pcEtc:'일시적 지출 (간판·라벨 발주 등)',
   /* ── 자동 커미션 (예약장부 연동) ── */
   bcTitle:'자동 커미션 · 예약장부 연동', bcRate:'커미션 비율', bcGwBasis:'고와비 기준',
   bcGwNet:'수수료 뺀 실수령액', bcGwGross:'고객 결제 전액', bcGwNone:'커미션 제외',
@@ -1897,8 +1897,8 @@ const I={
   piePend:'รอคืนเงิน · ยอดค้างจ่าย', piePendSub:'ยังไม่นับเป็นค่าใช้จ่าย', pendTo:'จ่ายให้',
   expPaidOnly:'เฉพาะที่จ่าย · คืนเงินแล้ว', expNotThisMonth:'ยอดในรายการที่ไม่นับในเดือนนี้ (รอคืนเงิน หรือจ่ายเดือนอื่น)',
   pieNote:'รวม<b>ค่าใช้จ่ายประจำที่จ่ายแล้ว</b>และ<b>ค่าใช้จ่ายอื่น</b> จัดกลุ่มตามคำในรายการ · หมวด · หมายเหตุ (ไม่รวมเงินเดือน · คอมมิชชั่นในแท็บเงินเดือน)',
-  pcFix:'ค่าใช้จ่ายประจำ', pcAd:'โฆษณา·การตลาด (GoWabi)', pcSabi:'คืนเงินส่วนตัวประธาน', pcMat:'วัสดุทรีทเมนต์', pcMonthly:'เครื่องสำอาง·ของใช้รายเดือน',
-  pcSign:'ป้าย·ฉลาก·พิมพ์', pcLoan:'คืนเงินกู้ประธาน', pcLabor:'ค่าแรง', pcEtc:'ค่าใช้จ่ายครั้งเดียว (โซฟา ฯลฯ)',
+  pcFix:'ค่าใช้จ่ายประจำ', pcAd:'โฆษณา·การตลาด (GoWabi)', pcSabi:'คืนเงินส่วนตัวประธาน', pcMat:'วัสดุทรีทเมนต์', pcMonthly:'เครื่องสำอาง·ของใช้รายเดือน', pcRegular:'ค่าใช้จ่ายประจำ (น้ำมัน·ขนส่ง)',
+  pcSign:'ป้าย·ฉลาก·พิมพ์', pcLoan:'คืนเงินกู้ประธาน', pcLabor:'ค่าแรง', pcEtc:'ค่าใช้จ่ายครั้งเดียว (ป้าย·สั่งฉลาก ฯลฯ)',
   /* ── คอมมิชชั่นอัตโนมัติ (เชื่อมกับตารางจอง) ── */
   bcTitle:'คอมมิชชั่นอัตโนมัติ · เชื่อมตารางจอง', bcRate:'อัตราคอมมิชชั่น', bcGwBasis:'เกณฑ์ GoWabi',
   bcGwNet:'ยอดสุทธิหลังหักค่าธรรมเนียม', bcGwGross:'ยอดที่ลูกค้าจ่ายทั้งหมด', bcGwNone:'ไม่คิดคอมมิชชั่น',
@@ -2030,7 +2030,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v37';
+const APP_VER='v38';
 const APP_DATE='2026-10-31';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -2057,10 +2057,12 @@ const PIECATS=[
   ['pcAd',   '#C98A0E', /광고|마케팅|고와비|gowabi|facebook|페북|메타|meta|instagram|인스타|tiktok|틱톡|부스트|boost|ads?\b/i],
   ['pcLoan', '#BE4237', /차용|상환|빌린|대여금|loan/i],
   /* 일시적 지출 — 한 번 사고 끝나는 것 (사장님 10/31: 소파 구입 등). 어디에도 안 맞는 것도 여기로 갑니다 */
-  ['pcEtc',  '#69758A', /소파|sofa|가구|책상|의자|선반|진열대|거울|조명|인테리어|공사|시공|설치|수리|가전|냉장고|에어컨|정수기|세탁기|모니터|컴퓨터|노트북|프린터|태블릿|카메라|삼각대/i],
+  ['pcEtc',  '#69758A', /간판|라벨\s*발주|아이프린트|소파|sofa|가구|책상|의자|선반|진열대|거울|조명|인테리어|공사|시공|설치|수리|가전|냉장고|에어컨|정수기|세탁기|모니터|컴퓨터|노트북|프린터|태블릿|카메라|삼각대/i],
   ['pcSabi', '#5B4B8A', /사비/i],
+  /* 상시 지출 — 고정비는 아니지만 자주 나가는 것 (사장님 10/31 23:01: 주유 등) */
+  ['pcRegular','#8A6FB0', /주유|기름|유류|fuel|petrol|배송|택배|라라무브|lalamove|그랩|grab|딜리버리|delivery|퀵/i],
   /* 화장품 · 매달 나가는 소모품 (사장님 10/31: 방콕뷰티 · 쇼피 등) */
-  ['pcMonthly','#3E8E9E', /화장품|방콕\s*뷰티|bangkok\s*beauty|쇼피|shopee|라자다|lazada|소모품|휴지|티슈|물티슈|세제|청소|위생|장갑|솜|화장솜|면봉|생수|커피|간식|배송|택배|라라무브|lalamove|그랩|grab|퀵|크림|마스크팩|제품|재고/i],
+  ['pcMonthly','#3E8E9E', /화장품|방콕\s*뷰티|bangkok\s*beauty|쇼피|shopee|라자다|lazada|소모품|휴지|티슈|물티슈|세제|청소|위생|장갑|솜|화장솜|면봉|생수|커피|간식|크림|마스크팩|제품|재고/i],
   ['pcMat',  '#4A6FA5', /재료|앰플|세럼|serum|ampoule|니들|needle|stayve|잉크|색소|마취/i],
   ['pcSign', '#A38A5C', /간판|라벨|인쇄|스티커|현수막|배너|sign|label|print/i],
   ['pcLabor','#D46A8C', /인건비|급여|월급|일당|일급|알바|커미션|수당|wage|salary/i]];
@@ -2799,8 +2801,8 @@ function pieSlices(m,b){
   expPaidIn(m,b).forEach(e=>{const k=pieCatOf(e);sums[k]=(sums[k]||0)+Number(e.amount||0);});
   let sl=PIECATS.map(([k,color])=>({k,color,v:money2(sums[k]||0)})).filter(x=>x.v>0)
     .sort((x,y)=>y.v-x.v);
-  if(sl.length>9){ // 넘치면 작은 것부터 '기타' 로 접습니다
-    const keep=sl.slice(0,8).filter(x=>x.k!=='pcEtc');
+  if(sl.length>10){ // 넘치면 작은 것부터 '기타' 로 접습니다
+    const keep=sl.slice(0,9).filter(x=>x.k!=='pcEtc');
     const rest=sl.filter(x=>!keep.includes(x));
     sl=keep.concat([{k:'pcEtc',color:'#69758A',v:money2(rest.reduce((a,x)=>a+x.v,0))}]);
   }
