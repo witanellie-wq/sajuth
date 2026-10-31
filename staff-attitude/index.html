@@ -2468,7 +2468,19 @@ async function loadAll(){
     admQ('staff_comm_skip',()=>sb.from('staff_comm_skip').select('*').limit(LIM)),
     admQ('staff_pay_items',()=>sb.from('staff_pay_items').select('*').limit(LIM)),
     /* ── 예약장부 (다른 앱의 표) ── */
-    softQ(()=>sb.from('bookings').select('id,data').limit(LIM)),
+    /* Supabase(PostgREST)는 limit와 상관없이 한 번에 최대 1,000행만 돌려주므로
+       예약장부는 id 순으로 1,000행씩 끝까지 나눠 읽는다 (예약 1,000건 넘은 뒤 최근 날짜가 빠지던 문제). */
+    softQ(async()=>{
+      const out=[];
+      for(let from=0;;from+=1000){
+        const r=await sb.from('bookings').select('id,data')
+          .order('id',{ascending:true}).range(from,from+999);
+        if(r.error)return r;
+        if(r.data&&r.data.length)out.push(...r.data);
+        if(!r.data||r.data.length<1000)break;
+      }
+      return {data:out,error:null};
+    }),
     softQ(()=>sb.from('staff').select('name,sort_order').order('sort_order',{ascending:true})),
     softQ(()=>sb.from('settings').select('key,value'))
   ]);
