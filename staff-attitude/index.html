@@ -340,6 +340,7 @@
   .pijump{background:none;border:1px solid var(--line);border-radius:3px;cursor:pointer;
     padding:4px 6px;font-size:12px;color:var(--ink-soft);font-family:inherit;line-height:1;flex:0 0 auto;}
   .pijump:hover{border-color:var(--jade);color:var(--jade);}
+  .autohint.cashc{color:var(--jade);font-weight:600}
   .autohint{font-size:9.5px;color:var(--ink-soft);text-align:right;margin-top:2px;
     font-family:'IBM Plex Mono',monospace;}
   .revpay{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px;}
@@ -1637,6 +1638,7 @@ const I={
   piMinus:'공제', piPlus:'추가', piReasonPh:'예: 무급휴가 3일 / 명절 보너스',
   piUnpaid:'무급휴가', piLate:'지각 · 결근', piAdvance:'가불', piEtcM:'기타 공제',
   piBonus:'보너스', piAllow:'수당', piTrans:'교통비', piEtcP:'기타 지급',
+  piCashComm:'기타 커미션(현금)', pcCash:'현금', pcXfer:'이체',
   opPayItem:'추가 지급 · 공제', piAuto:'내역 합계', piJumpHint:'아래 내역에 한 줄 넣기',
   piSaveFail:'저장하지 못했습니다 — patch-14 SQL 을 실행했는지 확인해 주세요.',
   piHint:'<b>직원을 누르고 → 구분(공제/추가) → 사유 → 금액 → Enter</b> 로 한 줄이 들어갑니다.<br><b>무급휴가</b>는 <b>일수</b>만 넣으면 금액이 자동으로 채워집니다 (일급 × 일수, 월급이면 월급÷30 × 일수). 금액은 직접 고쳐도 됩니다.',
@@ -1888,6 +1890,7 @@ const I={
   piMinus:'หักเงิน', piPlus:'จ่ายเพิ่ม', piReasonPh:'เช่น ลาไม่รับค่าจ้าง 3 วัน / โบนัสเทศกาล',
   piUnpaid:'ลาไม่รับค่าจ้าง', piLate:'สาย · ขาดงาน', piAdvance:'เบิกล่วงหน้า', piEtcM:'หักอื่นๆ',
   piBonus:'โบนัส', piAllow:'เบี้ยเลี้ยง', piTrans:'ค่าเดินทาง', piEtcP:'จ่ายเพิ่มอื่นๆ',
+  piCashComm:'คอมมิชชั่นอื่น (เงินสด)', pcCash:'เงินสด', pcXfer:'โอน',
   opPayItem:'จ่ายเพิ่ม · หักเงิน', piAuto:'รวมจากรายการ', piJumpHint:'เพิ่มรายการด้านล่าง',
   piSaveFail:'บันทึกไม่สำเร็จ — กรุณาตรวจว่ารัน SQL patch-14 แล้ว',
   piHint:'<b>กดชื่อพนักงาน → เลือกประเภท → เหตุผล → ยอดเงิน → Enter</b> ก็บันทึกหนึ่งรายการ<br><b>ลาไม่รับค่าจ้าง</b> ใส่แค่ <b>จำนวนวัน</b> ระบบจะคิดยอดให้ (ค่าจ้างรายวัน × วัน, ถ้ารายเดือนใช้ เงินเดือน÷30 × วัน) แก้ยอดเองได้',
@@ -1958,8 +1961,8 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v34';
-const APP_DATE='2026-10-01';
+const APP_VER='v35';
+const APP_DATE='2026-10-31';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
                   fixedCosts:[],fixedPays:{},expenses:[],targets:{},wageHist:{},payees:[],
@@ -2628,7 +2631,7 @@ const payrollTotal=m=>liveStaff().reduce((a,s)=>a+payCalc(s,m).total,0);
    둘을 더하면 payrollTotal 과 같습니다 — 중복으로 세지 않습니다. */
 const payrollBaseTotal=m=>liveStaff().reduce((a,s)=>{
   const c=payCalc(s,m); return a+c.base+c.bonus-c.deduct;},0);
-const payrollCommTotal=m=>money2(liveStaff().reduce((a,s)=>a+payCalc(s,m).comm,0));
+const payrollCommTotal=m=>money2(liveStaff().reduce((a,s)=>{const c=payCalc(s,m);return a+c.comm+c.cashC;},0));
 /* ── 사비 결제 · 정산 ──
    달과 무관하게 '아직 안 갚은 것 전부' 를 봅니다 (지난달 건도 갚을 때까지 남습니다) */
 const needsRb=e=>(e.payer||COMPANY)!==COMPANY;
@@ -2993,8 +2996,13 @@ const payOf=(n,m)=>(data.payroll||{})[payKey(n,m)]||{};
 /* 추가 지급 · 공제 내역 — 급여표의 보너스 · 공제 칸에 자동으로 더해집니다 */
 const piOf=(name,month)=>(data.payItems||[]).filter(x=>x.staff===name&&x.month===month)
   .sort((a,b)=>(a.seq||0)-(b.seq||0));
+/* 기타 커미션(현금) — 매장에서 현금으로 따로 준 커미션. 보너스 칸이 아니라 커미션 칸 아래에 따로 보이고,
+   지급 합계에는 들어가지만 '이체 / 현금' 으로 나눠 보여 줍니다 (사장님 10/31). */
+const isCashComm=x=>x.kind==='추가'&&/^기타\s*커미션/.test(String(x.reason||''));
 const piSum=(name,month,kind)=>money2(piOf(name,month)
-  .filter(x=>x.kind===kind).reduce((a,x)=>a+Number(x.amount||0),0));
+  .filter(x=>x.kind===kind&&!isCashComm(x)).reduce((a,x)=>a+Number(x.amount||0),0));
+const cashCommOf=(name,month)=>money2(piOf(name,month)
+  .filter(isCashComm).reduce((a,x)=>a+Number(x.amount||0),0));
 /** 하루치 급여 — 무급휴가 일수로 금액을 자동 계산할 때 씁니다 */
 function dailyWage(s,m){
   const {wage:w,payType:pt}=wageAt(s,m);
@@ -3012,8 +3020,9 @@ function payCalc(s,m){
   const autoB=piSum(s.name,m,'추가'), autoD=piSum(s.name,m,'공제');
   const bonus=numSet(p.bonus)!=null?numSet(p.bonus):autoB;
   const deduct=numSet(p.deduct)!=null?numSet(p.deduct):autoD;
-  return{auto,autoC,manC,bkC,base,comm,autoB,autoD,bonus,deduct,
-         total:base+comm+bonus-deduct,p};
+  const cashC=cashCommOf(s.name,m);
+  return{auto,autoC,manC,bkC,base,comm,autoB,autoD,bonus,deduct,cashC,
+         total:base+comm+bonus-deduct+cashC,xfer:base+comm+bonus-deduct,p};
 }
 
 /* ══════════ language ══════════ */
@@ -3978,7 +3987,8 @@ $('exCsvBtn').addEventListener('click',()=>{
   if(!bf||bf===PAY_BIZ){
     rows.push([m,bizLabel(PAY_BIZ),'급여','','(전체 직원 기본급 · 보너스 · 공제)',payrollBaseTotal(m),'','','','','']);
     liveStaff().forEach(s=>{const c=payCalc(s,m);
-      if(c.comm)rows.push([m,bizLabel(PAY_BIZ),'커미션','',s.name,c.comm,'','','','','']);});
+      if(c.comm)rows.push([m,bizLabel(PAY_BIZ),'커미션','',s.name,c.comm,'','','','','']);
+      if(c.cashC)rows.push([m,bizLabel(PAY_BIZ),'커미션','',s.name+' (현금)',c.cashC,'','','','','']);});
   }
   (bf?[bf]:bizAll()).forEach(bz=>{
     if(tgAmt(bz,m))rows.push([m,bizLabel(bz),'목표매출','','',tgAmt(bz,m),'','','','',tgOf(bz,m).memo||'']);});
@@ -4518,12 +4528,14 @@ function renderPay(){
           data-copy="${esc(s.bankAcct)}" title="${t('acCopy')}">⧉</button></span>`:''}</td>
       <td class="num" style="font-size:12px">${x.days}${t('day')}${x.hours?`<br><span style="color:var(--ink-soft)">${x.hours.toFixed(1)}${t('hrs')}</span>`:''}</td>
       <td>${inp('base',c.auto||0)}</td>
-      <td>${inp('comm',c.autoC||0)}</td>
+      <td>${inp('comm',c.autoC||0)}
+        ${c.cashC?`<div class="autohint cashc">＋ ${t('piCashComm')} ${money(c.cashC)}</div>`:''}</td>
       <td><div class="paycell">${inp('bonus',c.autoB||0)}${pib('추가')}</div>
         ${c.autoB?`<div class="autohint">${t('piAuto')} ${money(c.autoB)}</div>`:''}</td>
       <td><div class="paycell">${inp('deduct',c.autoD||0)}${pib('공제')}</div>
         ${c.autoD?`<div class="autohint">${t('piAuto')} ${money(c.autoD)}</div>`:''}</td>
-      <td class="num"><b class="pay-est" style="font-size:14px">${money(c.total)}</b></td>
+      <td class="num"><b class="pay-est" style="font-size:14px">${money(c.total)}</b>
+        ${c.cashC?`<div class="autohint">${t('pcXfer')} ${money(c.xfer)} · ${t('pcCash')} ${money(c.cashC)}</div>`:''}</td>
       <td>
         <button class="paybtn${c.p.paid?' on':''}" data-paytoggle="${k}"
           title="${c.p.paid?t('undoPaidHint'):t('markPaidHint')}">${
@@ -4647,8 +4659,9 @@ function renderReceipt(){
       <tbody>
         ${li(lbl('ค่าจ้างพื้นฐาน',MM_T.base,'cBase'),c&&c.base)}
         ${(rcEmpty||c.comm)?li(lbl('คอมมิชชั่น',MM_T.comm,'cComm'),c&&c.comm):''}
+        ${(!rcEmpty&&c.cashC)?li('คอมมิชชั่นอื่น (เงินสด) · '+t('piCashComm'),c.cashC):''}
         ${(rcEmpty||c.bonus)?li(lbl('โบนัส',MM_T.bonus,'cBonus'),c&&c.bonus):''}
-        ${(!rcEmpty&&c.bonus)?sub(plus):''}
+        ${(!rcEmpty&&c.bonus)?sub(plus.filter(x=>!isCashComm(x))):''}
         ${(rcEmpty||c.deduct)?li(lbl('หักเงิน',MM_T.deduct,'cDeduct'),c&&c.deduct,'mn'):''}
         ${(!rcEmpty&&c.deduct)?sub(minus):''}
       </tbody>
@@ -4764,7 +4777,7 @@ const cmOfMonth=m=>(data.commissions||[]).filter(c=>(c.date||'').startsWith(m));
 const PIKINDS=[['공제','piMinus'],['추가','piPlus']];
 const PIREASON={
   '공제':[['무급휴가','piUnpaid'],['지각·결근','piLate'],['가불','piAdvance'],['기타 공제','piEtcM']],
-  '추가':[['보너스','piBonus'],['수당','piAllow'],['교통비','piTrans'],['기타 지급','piEtcP']]};
+  '추가':[['보너스','piBonus'],['수당','piAllow'],['교통비','piTrans'],['기타 커미션(현금)','piCashComm'],['기타 지급','piEtcP']]};
 let piWho='';
 function buildPiSelects(){
   const k=$('piKind'), v=k.value;
