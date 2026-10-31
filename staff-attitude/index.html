@@ -710,6 +710,24 @@
   .catbar span{display:block;height:9px;}
   .catlist{display:flex;gap:14px;flex-wrap:wrap;font-size:11.5px;color:var(--ink-soft);}
   .catlist b{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:5px;vertical-align:0;}
+  /* 지출 비중 파이 · 입금 */
+  .sumcards.k3{grid-template-columns:repeat(4,1fr);}
+  @media(max-width:1000px){.sumcards.k3{grid-template-columns:1fr 1fr;}}
+  @media(max-width:640px){.sumcards.k3{grid-template-columns:1fr;}}
+  .sumcard.pend{background:#FBF5E8;border-color:#EAD9B0;border-style:dashed;} .sumcard.pend i{color:var(--amber);}
+  .pendlist{grid-column:1/-1;border:1px dashed #EAD9B0;border-radius:var(--r);padding:10px 12px;background:#FFFCF5;}
+  .pendlist h4{margin:0 0 6px;font-size:12px;color:var(--amber);}
+  .pendlist td,.pendlist th{font-size:11.5px;padding:4px 6px;}
+  .pendlist td.num{font-family:'IBM Plex Mono',monospace;}
+  .sumcard.inc{background:#F1F5FA;border-color:#CCD8E8;} .sumcard.inc i{color:#4A6FA5;}
+  .piewrap{display:flex;gap:22px;align-items:center;flex-wrap:wrap;margin-top:16px;}
+  .piewrap svg{width:200px;height:200px;flex:none;}
+  .pielegend{flex:1;min-width:240px;border-collapse:collapse;}
+  .pielegend td{padding:5px 6px;border-bottom:1px solid var(--line-soft);font-size:12px;}
+  .pielegend td.num{text-align:right;font-family:'IBM Plex Mono',monospace;white-space:nowrap;}
+  .pielegend b.sw{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:7px;vertical-align:-1px;}
+  #inAmt{width:100%;padding:9px 10px;border:1px solid var(--line);border-radius:var(--r);background:#FCFDFC;outline:none;text-align:right;font-family:'IBM Plex Mono',monospace;}
+  .incmonths{margin-top:14px;width:auto;min-width:min(320px,100%);}
 
   /* ── 동기화 상태 표시 ── */
   .netbar{position:fixed;right:14px;bottom:14px;z-index:60;display:flex;flex-direction:column;
@@ -1141,6 +1159,13 @@
   </section>
 
   <section class="panel adm-only" style="margin-top:20px">
+    <h2 data-i="pieTitle"></h2>
+    <div class="sumcards k3" id="pieCards"></div>
+    <div id="pieBox"></div>
+    <p class="note" data-ih="pieNote"></p>
+  </section>
+
+  <section class="panel adm-only" style="margin-top:20px">
     <h2 data-i="tgTitle"></h2>
     <div style="overflow-x:auto"><table>
       <thead id="tgHead"></thead><tbody id="tgTable"></tbody><tfoot id="tgFoot"></tfoot></table></div>
@@ -1217,6 +1242,26 @@
     <div id="exList" style="margin-top:16px"></div>
     <div id="exByCat" style="margin-top:16px"></div>
     <p class="note" data-ih="expNote"></p>
+  </section>
+
+  <section class="panel adm-only" style="margin-top:20px">
+    <h2 data-i="incTitle"></h2>
+    <div class="hr-add no-print" style="margin-top:0;padding-top:0;border-top:none">
+      <div class="field" style="width:145px;margin:0"><label data-i="expDate"></label>
+        <input type="date" id="inDate"></div>
+      <div class="field" style="width:170px;margin:0"><label data-i="incKind"></label>
+        <select id="inKind"></select></div>
+      <div class="field" style="width:150px;margin:0"><label data-i="lBiz"></label>
+        <select id="inBiz"></select></div>
+      <div class="field" style="width:130px;margin:0"><label data-i="expAmt"></label>
+        <input type="number" id="inAmt" min="0" step="0.01"></div>
+      <div class="field" style="flex:1;min-width:140px;margin:0"><label data-i="expMemo"></label>
+        <input type="text" id="inMemo"></div>
+      <button class="save" id="inAdd" style="width:auto;margin:0;padding:9px 18px;align-self:flex-end" data-i="add"></button>
+    </div>
+    <div id="inList" style="margin-top:16px"></div>
+    <div id="inMonths"></div>
+    <p class="note" data-ih="incNote"></p>
   </section>
 </div>
 
@@ -1577,7 +1622,19 @@ const I={
   tgNone:'목표 매출을 입력하면 총지출과 비교해 예상 이익이 여기에 나옵니다.',
   tgNote:'<b>다음 달 목표</b>를 미리 적어두면 달이 바뀌어도 그대로 남습니다 — 월을 넘기면 자동으로 <b>이달 목표</b> 자리로 옮겨집니다.<br>예상 이익 = <b>목표 매출 − 이달 총지출</b>(급여 + 고정비 + 소모품). 목표보다 지출이 크면 붉게 표시됩니다.<br>사업장별로 따로 잡을 수 있고, 위쪽 <b>사업장</b> 선택으로 한쪽만 볼 수 있습니다.', fixBaseHint:'매달 기본으로 잡히는 금액입니다. 여기를 고치면 앞으로 모든 달에 적용됩니다.',
   fixThisHint:'이 달만 다른 금액일 때 넣으세요. 비워두면 기본 금액을 씁니다.',
-  opFix:'고정비', opExp:'지출',
+  opFix:'고정비', opExp:'지출', opInc:'입금',
+  incTitle:'입금(수입) 기록', incKind:'구분', incNone:'이 달 입금 기록이 없습니다.',
+  incTotal:'입금 합계', incByMonth:'월별 입금 합계', incMonth:'월',
+  ikCash:'현금 입금(이인규)', ikGowabi:'고와비 정산금', ikRefund:'지출 환급', ikEtc:'기타 입금',
+  incNote:'가게로 <b>들어온 돈</b>(현금 입금 · 고와비 정산금 · 지출 환급 등)을 적는 곳입니다. 위 지출 합계에는 더하지 않고 <b>따로</b> 모읍니다. 위의 <b>달 · 사업장</b> 선택을 그대로 따릅니다.',
+  pieTitle:'지출 비중 (분류별)', pieExp:'지출 합계', pieExpSub:'납부한 고정비 + 소모품 · 기타',
+  pieInc:'수입 합계', pieIncSub:'입금 기록', pieNet:'순지출', pieNetSub:'지출 − 수입',
+  pieNone:'이 달 지출 기록이 없습니다.', pieShare:'비중',
+  piePend:'정산 대기 · 지급 예정', piePendSub:'지출 아님', pendTo:'받을 사람 · 곳',
+  expPaidOnly:'지급 · 정산 완료분만', expNotThisMonth:'위 목록 중 이달 지출에서 빠진 금액 (정산 대기 또는 다른 달에 지급)',
+  pieNote:'<b>납부 완료한 고정비</b>와 <b>소모품 · 기타 지출</b>을 내용 · 분류 · 메모의 단어로 묶어 보여줍니다 (급여 탭의 급여 · 커미션은 포함하지 않습니다). 어느 묶음에도 안 맞는 항목(청소비 포함)은 <b>소모품·배송·기타</b>로 들어갑니다. <b>아직 지급 · 정산하지 않은 것은 지출에 넣지 않고</b> 정산 대기 상자에만 보이며, 지급 · 정산하면 <b>실제로 돈이 나간 달</b>의 지출로 옮겨집니다.',
+  pcFix:'고정비', pcAd:'광고·마케팅 (고와비)', pcSabi:'회장님 사비 정산', pcMat:'시술 재료', pcMonthly:'화장품·매달 소모품',
+  pcSign:'간판·라벨 인쇄', pcLoan:'회장님 차용금 상환', pcLabor:'인건비', pcEtc:'일시적 지출 (소파 등)',
   /* ── 자동 커미션 (예약장부 연동) ── */
   bcTitle:'자동 커미션 · 예약장부 연동', bcRate:'커미션 비율', bcGwBasis:'고와비 기준',
   bcGwNet:'수수료 뺀 실수령액', bcGwGross:'고객 결제 전액', bcGwNone:'커미션 제외',
@@ -1829,7 +1886,19 @@ const I={
   tgNone:'ใส่เป้ายอดขายแล้วระบบจะเทียบกับรายจ่ายรวมและแสดงกำไรคาดการณ์ที่นี่',
   tgNote:'ใส่ <b>เป้าเดือนหน้า</b> ไว้ล่วงหน้าได้ พอขึ้นเดือนใหม่ระบบจะเลื่อนมาเป็น <b>เป้าเดือนนี้</b> ให้เอง<br>กำไรคาดการณ์ = <b>เป้ายอดขาย − รายจ่ายรวมของเดือน</b> (เงินเดือน + ค่าใช้จ่ายประจำ + วัสดุ) ถ้ารายจ่ายมากกว่าเป้าจะแสดงเป็นสีแดง<br>ตั้งแยกตามกิจการได้ และเลือกดูเฉพาะกิจการเดียวได้จากช่อง <b>กิจการ</b> ด้านบน', fixBaseHint:'ยอดที่ใช้เป็นค่าเริ่มต้นทุกเดือน แก้ตรงนี้จะมีผลกับทุกเดือนต่อไป',
   fixThisHint:'ใส่เมื่อเดือนนี้ยอดต่างจากปกติ เว้นว่างไว้จะใช้ยอดตั้งต้น',
-  opFix:'ค่าใช้จ่ายประจำ', opExp:'ค่าใช้จ่าย',
+  opFix:'ค่าใช้จ่ายประจำ', opExp:'ค่าใช้จ่าย', opInc:'เงินเข้า',
+  incTitle:'บันทึกเงินเข้า (รายรับ)', incKind:'ประเภท', incNone:'เดือนนี้ยังไม่มีรายการเงินเข้า',
+  incTotal:'รวมเงินเข้า', incByMonth:'เงินเข้ารายเดือน', incMonth:'เดือน',
+  ikCash:'เงินสดเข้า (อีอินกยู)', ikGowabi:'เงินโอนจาก GoWabi', ikRefund:'คืนเงินค่าใช้จ่าย', ikEtc:'เงินเข้าอื่นๆ',
+  incNote:'ใช้บันทึก<b>เงินที่เข้าร้าน</b> (เงินสด · GoWabi · คืนเงินค่าใช้จ่าย ฯลฯ) แยกจากค่าใช้จ่าย <b>ไม่รวม</b>ในยอดค่าใช้จ่ายด้านบน และใช้เดือน · สาขาที่เลือกด้านบน',
+  pieTitle:'สัดส่วนค่าใช้จ่าย (ตามหมวด)', pieExp:'รวมค่าใช้จ่าย', pieExpSub:'ค่าใช้จ่ายประจำที่จ่ายแล้ว + อื่นๆ',
+  pieInc:'รวมรายรับ', pieIncSub:'บันทึกเงินเข้า', pieNet:'ค่าใช้จ่ายสุทธิ', pieNetSub:'ค่าใช้จ่าย − รายรับ',
+  pieNone:'เดือนนี้ยังไม่มีรายการค่าใช้จ่าย', pieShare:'สัดส่วน',
+  piePend:'รอคืนเงิน · ยอดค้างจ่าย', piePendSub:'ยังไม่นับเป็นค่าใช้จ่าย', pendTo:'จ่ายให้',
+  expPaidOnly:'เฉพาะที่จ่าย · คืนเงินแล้ว', expNotThisMonth:'ยอดในรายการที่ไม่นับในเดือนนี้ (รอคืนเงิน หรือจ่ายเดือนอื่น)',
+  pieNote:'รวม<b>ค่าใช้จ่ายประจำที่จ่ายแล้ว</b>และ<b>ค่าใช้จ่ายอื่น</b> จัดกลุ่มตามคำในรายการ · หมวด · หมายเหตุ (ไม่รวมเงินเดือน · คอมมิชชั่นในแท็บเงินเดือน)',
+  pcFix:'ค่าใช้จ่ายประจำ', pcAd:'โฆษณา·การตลาด (GoWabi)', pcSabi:'คืนเงินส่วนตัวประธาน', pcMat:'วัสดุทรีทเมนต์', pcMonthly:'เครื่องสำอาง·ของใช้รายเดือน',
+  pcSign:'ป้าย·ฉลาก·พิมพ์', pcLoan:'คืนเงินกู้ประธาน', pcLabor:'ค่าแรง', pcEtc:'ค่าใช้จ่ายครั้งเดียว (โซฟา ฯลฯ)',
   /* ── คอมมิชชั่นอัตโนมัติ (เชื่อมกับตารางจอง) ── */
   bcTitle:'คอมมิชชั่นอัตโนมัติ · เชื่อมตารางจอง', bcRate:'อัตราคอมมิชชั่น', bcGwBasis:'เกณฑ์ GoWabi',
   bcGwNet:'ยอดสุทธิหลังหักค่าธรรมเนียม', bcGwGross:'ยอดที่ลูกค้าจ่ายทั้งหมด', bcGwNone:'ไม่คิดคอมมิชชั่น',
@@ -1961,7 +2030,7 @@ const DEFAULT_STAFF=[
 ];
 /* 화면에 찍히는 버전. 새로 올릴 때마다 이 두 줄만 고칩니다.
    맨 아래에 보이므로, 이 숫자가 안 바뀌면 옛 주소를 보고 계신 것입니다. */
-const APP_VER='v35';
+const APP_VER='v37';
 const APP_DATE='2026-10-31';
 const WEEK=7*24*60*60*1000;
 const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commissions:[],
@@ -1969,7 +2038,7 @@ const EMPTY=()=>({staff:[],records:[],evals:{},warnings:[],payroll:{},commission
                   bookings:[],bkRoster:[],gwRate:null,
                   commCfg:{rate:3,gowabiBasis:'net',minAmount:0},
                   nameMap:{},commSplit:{},commOvr:{},commSkip:new Set(),commDisc:{},
-                  dayRev:{},payItems:[]});
+                  dayRev:{},payItems:[],income:[]});
 let data=EMPTY();
 const EMPTYPES=[['정직원','tRegular'],['수습','tProbation'],['인턴','tIntern'],['알바','tPart']];
 /* 지출 분류 — [한국어, 태국어] (DB 에는 한국어 값이 들어갑니다) */
@@ -1977,6 +2046,24 @@ const FIXCATS=[['임대료','fcRent'],['공과금','fcUtil'],['통신','fcTel'],
                ['구독·서비스','fcSub'],['세금','fcTax'],['기타','fcEtc']];
 const EXCATS=[['소모품','ecSupply'],['제품·재고','ecStock'],['장비·수리','ecEquip'],
               ['마케팅','ecMkt'],['세금·수수료','ecFee'],['기타','ecEtc']];
+/* 입금 구분 — [DB 저장값, 번역키] */
+const INKINDS=[['현금 입금(이인규)','ikCash'],['고와비 정산금','ikGowabi'],
+               ['지출 환급','ikRefund'],['기타 입금','ikEtc']];
+/* 지출 비중 파이 — 위에서부터 차례로 맞춰 보고, 처음 맞는 묶음에 넣습니다.
+   (내용 · 분류 · 메모 · 결제자를 합친 글자에서 찾습니다. 단어만 고치면 묶음이 바뀝니다)
+   고정비는 단어와 상관없이 항상 '고정비' 입니다. 어디에도 안 맞으면 마지막 '기타' 묶음. */
+const PIECATS=[
+  ['pcFix',  '#2E7D6B', null],
+  ['pcAd',   '#C98A0E', /광고|마케팅|고와비|gowabi|facebook|페북|메타|meta|instagram|인스타|tiktok|틱톡|부스트|boost|ads?\b/i],
+  ['pcLoan', '#BE4237', /차용|상환|빌린|대여금|loan/i],
+  /* 일시적 지출 — 한 번 사고 끝나는 것 (사장님 10/31: 소파 구입 등). 어디에도 안 맞는 것도 여기로 갑니다 */
+  ['pcEtc',  '#69758A', /소파|sofa|가구|책상|의자|선반|진열대|거울|조명|인테리어|공사|시공|설치|수리|가전|냉장고|에어컨|정수기|세탁기|모니터|컴퓨터|노트북|프린터|태블릿|카메라|삼각대/i],
+  ['pcSabi', '#5B4B8A', /사비/i],
+  /* 화장품 · 매달 나가는 소모품 (사장님 10/31: 방콕뷰티 · 쇼피 등) */
+  ['pcMonthly','#3E8E9E', /화장품|방콕\s*뷰티|bangkok\s*beauty|쇼피|shopee|라자다|lazada|소모품|휴지|티슈|물티슈|세제|청소|위생|장갑|솜|화장솜|면봉|생수|커피|간식|배송|택배|라라무브|lalamove|그랩|grab|퀵|크림|마스크팩|제품|재고/i],
+  ['pcMat',  '#4A6FA5', /재료|앰플|세럼|serum|ampoule|니들|needle|stayve|잉크|색소|마취/i],
+  ['pcSign', '#A38A5C', /간판|라벨|인쇄|스티커|현수막|배너|sign|label|print/i],
+  ['pcLabor','#D46A8C', /인건비|급여|월급|일당|일급|알바|커미션|수당|wage|salary/i]];
 /* 기타 이체 계좌 분류 — 직원이 아닌 곳으로 보내는 돈 */
 const PYCATS=[['임대료','fcRent'],['거래처','pcVendor'],['공과금','fcUtil'],['통신','fcTel'],
               ['세금·세무','pcTax'],['개인','pcPerson'],['기타','fcEtc']];
@@ -2320,7 +2407,42 @@ alter table public.staff_pay_items replica identity full;`,
   add column if not exists pay_kind text;
 
 alter table public.staff_commissions
-  add column if not exists pay_kind text;`
+  add column if not exists pay_kind text;`,
+  'patch-20-income.sql': `create table if not exists public.staff_income (
+  id         uuid primary key default gen_random_uuid(),
+  date       date not null,
+  kind       text not null default '기타 입금',   -- 현금 입금(이인규) / 고와비 정산금 / 지출 환급 / 기타 입금
+  biz        text not null default '하나하얀',    -- 하나하얀 / 위튼
+  amount     numeric(12,2) not null default 0,
+  memo       text default '',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists staff_income_date_idx on public.staff_income(date);
+
+drop trigger if exists staff_income_touch on public.staff_income;
+create trigger staff_income_touch before update on public.staff_income
+  for each row execute function staff_touch_updated_at();
+
+alter table public.staff_income enable row level security;
+
+drop policy if exists staff_income_rw on public.staff_income;
+create policy staff_income_rw on public.staff_income
+  for all to authenticated using (staff_is_admin()) with check (staff_is_admin());
+
+grant select, insert, update, delete on public.staff_income to authenticated;
+
+do $$
+begin
+  if not exists (
+    select 1 from pg_publication_tables
+    where pubname='supabase_realtime' and schemaname='public' and tablename='staff_income'
+  ) then
+    alter publication supabase_realtime add table public.staff_income;
+  end if;
+end $$;
+
+alter table public.staff_income replica identity full;`
 };
 const PATCH_OF={
   staff_fixed_costs:'patch-02-expenses.sql', staff_fixed_payments:'patch-02-expenses.sql',
@@ -2328,7 +2450,8 @@ const PATCH_OF={
   staff_wage_history:'patch-06-wage-history.sql', staff_payees:'patch-08-payees.sql',
   staff_comm_config:'patch-09-commission.sql', staff_name_map:'patch-09-commission.sql',
   staff_comm_split:'patch-09-commission.sql', staff_comm_override:'patch-09-commission.sql',
-  staff_comm_skip:'patch-11-commission-start.sql', staff_pay_items:'patch-14-pay-items.sql'};
+  staff_comm_skip:'patch-11-commission-start.sql', staff_pay_items:'patch-14-pay-items.sql',
+  staff_income:'patch-20-income.sql'};
 const COL_PATCH={
   biz:'patch-03-business.sql',
   bank_name:'patch-05-bank.sql', bank_account:'patch-05-bank.sql', bank_holder:'patch-05-bank.sql',
@@ -2433,7 +2556,24 @@ async function op(label,fn,retryable=true){
 }
 
 /* ── 전체 불러오기 ── */
-const LIM=50000;
+/* Supabase(PostgREST)는 .limit() 을 크게 줘도 한 번에 최대 1,000행만 돌려줍니다.
+   그래서 .range(from, from+999) 로 페이지를 넘기며 마지막 페이지까지 읽습니다.
+   orderBy 는 [[칼럼, 오름차순?], …] — 마지막에 기본 키를 넣어 순서를 고정해야
+   페이지 사이에 행이 빠지거나 겹치지 않습니다. 결과는 supabase-js 와 같은 {data, error}. */
+const PAGE_ROWS=1000;
+async function fetchAll(table,select,orderBy){
+  const out=[];
+  for(let from=0;;from+=PAGE_ROWS){
+    let qb=sb.from(table).select(select);
+    (orderBy||[]).forEach(([col,asc])=>{qb=qb.order(col,{ascending:asc!==false});});
+    const res=await qb.range(from,from+PAGE_ROWS-1);
+    if(res.error)return {data:null,error:res.error};
+    const rows=res.data||[];
+    out.push(...rows);
+    if(rows.length<PAGE_ROWS)break;
+  }
+  return {data:out,error:null};
+}
 async function loadAll(){
   if(!sb)return;
   setupMissing.clear();
@@ -2445,47 +2585,31 @@ async function loadAll(){
   const softQ=fn=>!isAdmin?Promise.resolve({ok:true,data:[]})
     :Promise.resolve().then(fn).then(r=>r&&r.error?{ok:false,data:[],error:r.error}:{ok:true,data:r?r.data:[]})
      .catch(e=>({ok:false,data:[],error:e}));
-  const [m,r,p,c,w,e,fc,fp,ex,tg,wh,py,cc,nmp,csp,cov,csk,pit,bk,bkr,bks]=await Promise.all([
-    q('staff_members',()=>sb.from('staff_members').select('*')
-        .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
-    q('staff_records',()=>sb.from('staff_records').select('*')
-        .order('date',{ascending:false}).order('created_at',{ascending:false}).limit(LIM)),
-    admQ('staff_payroll',()=>sb.from('staff_payroll').select('*').limit(LIM)),
-    admQ('staff_commissions',()=>sb.from('staff_commissions').select('*').limit(LIM)),
-    admQ('staff_warnings',()=>sb.from('staff_warnings').select('*').limit(LIM)),
-    q('staff_evals',()=>sb.from('staff_evals').select('*').limit(LIM)),
-    admQ('staff_fixed_costs',()=>sb.from('staff_fixed_costs').select('*')
-        .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
-    admQ('staff_fixed_payments',()=>sb.from('staff_fixed_payments').select('*').limit(LIM)),
-    admQ('staff_expenses',()=>sb.from('staff_expenses').select('*')
-        .order('date',{ascending:false}).order('created_at',{ascending:false}).limit(LIM)),
-    admQ('staff_targets',()=>sb.from('staff_targets').select('*').limit(LIM)),
-    admQ('staff_wage_history',()=>sb.from('staff_wage_history').select('*')
-        .order('from_month',{ascending:true}).limit(LIM)),
-    admQ('staff_payees',()=>sb.from('staff_payees').select('*')
-        .order('sort_order',{ascending:true}).order('created_at',{ascending:true}).limit(LIM)),
+  const A=true,D=false; // 정렬 방향 (오름/내림)
+  const [m,r,p,c,w,e,fc,fp,ex,tg,wh,py,cc,nmp,csp,cov,csk,pit,bk,bkr,bks,inc]=await Promise.all([
+    q('staff_members',()=>fetchAll('staff_members','*',[['sort_order',A],['created_at',A],['id',A]])),
+    q('staff_records',()=>fetchAll('staff_records','*',[['date',D],['created_at',D],['id',A]])),
+    admQ('staff_payroll',()=>fetchAll('staff_payroll','*',[['id',A]])),
+    admQ('staff_commissions',()=>fetchAll('staff_commissions','*',[['id',A]])),
+    admQ('staff_warnings',()=>fetchAll('staff_warnings','*',[['id',A]])),
+    q('staff_evals',()=>fetchAll('staff_evals','*',[['id',A]])),
+    admQ('staff_fixed_costs',()=>fetchAll('staff_fixed_costs','*',[['sort_order',A],['created_at',A],['id',A]])),
+    admQ('staff_fixed_payments',()=>fetchAll('staff_fixed_payments','*',[['id',A]])),
+    admQ('staff_expenses',()=>fetchAll('staff_expenses','*',[['date',D],['created_at',D],['id',A]])),
+    admQ('staff_targets',()=>fetchAll('staff_targets','*',[['id',A]])),
+    admQ('staff_wage_history',()=>fetchAll('staff_wage_history','*',[['from_month',A],['id',A]])),
+    admQ('staff_payees',()=>fetchAll('staff_payees','*',[['sort_order',A],['created_at',A],['id',A]])),
     admQ('staff_comm_config',()=>sb.from('staff_comm_config').select('*').limit(1)),
-    admQ('staff_name_map',()=>sb.from('staff_name_map').select('*').limit(LIM)),
-    admQ('staff_comm_split',()=>sb.from('staff_comm_split').select('*').limit(LIM)),
-    admQ('staff_comm_override',()=>sb.from('staff_comm_override').select('*').limit(LIM)),
-    admQ('staff_comm_skip',()=>sb.from('staff_comm_skip').select('*').limit(LIM)),
-    admQ('staff_pay_items',()=>sb.from('staff_pay_items').select('*').limit(LIM)),
+    admQ('staff_name_map',()=>fetchAll('staff_name_map','*',[['booking_name',A]])),
+    admQ('staff_comm_split',()=>fetchAll('staff_comm_split','*',[['booking_id',A],['booking_name',A]])),
+    admQ('staff_comm_override',()=>fetchAll('staff_comm_override','*',[['booking_id',A]])),
+    admQ('staff_comm_skip',()=>fetchAll('staff_comm_skip','*',[['day',A]])),
+    admQ('staff_pay_items',()=>fetchAll('staff_pay_items','*',[['id',A]])),
     /* ── 예약장부 (다른 앱의 표) ── */
-    /* Supabase(PostgREST)는 limit와 상관없이 한 번에 최대 1,000행만 돌려주므로
-       예약장부는 id 순으로 1,000행씩 끝까지 나눠 읽는다 (예약 1,000건 넘은 뒤 최근 날짜가 빠지던 문제). */
-    softQ(async()=>{
-      const out=[];
-      for(let from=0;;from+=1000){
-        const r=await sb.from('bookings').select('id,data')
-          .order('id',{ascending:true}).range(from,from+999);
-        if(r.error)return r;
-        if(r.data&&r.data.length)out.push(...r.data);
-        if(!r.data||r.data.length<1000)break;
-      }
-      return {data:out,error:null};
-    }),
-    softQ(()=>sb.from('staff').select('name,sort_order').order('sort_order',{ascending:true})),
-    softQ(()=>sb.from('settings').select('key,value'))
+    softQ(()=>fetchAll('bookings','id,data',[['id',A]])),
+    softQ(()=>fetchAll('staff','name,sort_order',[['sort_order',A],['name',A]])),
+    softQ(()=>fetchAll('settings','key,value',[['key',A]])),
+    admQ('staff_income',()=>fetchAll('staff_income','*',[['date',D],['created_at',D],['id',A]]))
   ]);
   if(!m.ok)return false;
 
@@ -2540,6 +2664,11 @@ async function loadAll(){
     id:x.id,date:x.date,biz:x.biz||DEF_BIZ,category:x.category||'기타',item:x.item||'',
     payer:x.paid_by||COMPANY,reimbursedAt:x.reimbursed_at||null,
     amount:Number(x.amount||0),memo:x.memo||'',lid:x.legacy_id||null,
+    seq:x.created_at?new Date(x.created_at).getTime():0}));
+
+  data.income=(inc.data||[]).map(x=>({
+    id:x.id,date:x.date,kind:x.kind||'기타 입금',biz:x.biz||DEF_BIZ,
+    amount:Number(x.amount||0),memo:x.memo||'',
     seq:x.created_at?new Date(x.created_at).getTime():0}));
 
   data.targets={};
@@ -2623,9 +2752,60 @@ const fixAmt=(c,m)=>{const p=fixPay(c,m);return p.amount!=null?Number(p.amount):
 /** b 가 비어 있으면 전체 사업장 */
 const bizOK=(x,b)=>!b||(x.biz||DEF_BIZ)===b;
 const fixListIn=(m,b)=>data.fixedCosts.filter(c=>fixLiveIn(c,m)&&bizOK(c,b));
-const fixTotal=(m,b)=>fixListIn(m,b).reduce((a,c)=>a+fixAmt(c,m),0);
+/* ── 지출은 '실제로 돈이 나간 달' 에만 셉니다 (2026-10-31 사장님 규칙) ──
+   · 고정비: 납부 완료(✓)한 것만, 납부일이 있으면 그 달 · 없으면 그 고정비의 달
+   · 소모품 · 기타: 회사가 낸 것은 그 날짜의 달, 사비로 낸 것은 정산(갚은) 날짜의 달
+   · 아직 안 낸 · 안 갚은 것은 지출이 아니라 '정산 대기 · 지급 예정' 상자에만 보입니다 */
+const fixPaidItems=(m,b)=>{
+  const out=[];
+  Object.entries(data.fixedPays||{}).forEach(([key,p])=>{
+    if(!p||!p.paid)return;
+    const i=key.lastIndexOf('|'), cid=key.slice(0,i), mo=key.slice(i+1);
+    const c=data.fixedCosts.find(x=>String(x.id)===cid);
+    if(!c||!bizOK(c,b))return;
+    if(String(p.date||mo).slice(0,7)!==m)return;
+    out.push({c,mo,amount:p.amount!=null?Number(p.amount):Number(c.amount||0)});
+  });
+  return out;
+};
+const fixTotal=(m,b)=>money2(fixPaidItems(m,b).reduce((a,x)=>a+x.amount,0));
 const expListIn=(m,b)=>(data.expenses||[]).filter(e=>(e.date||'').startsWith(m)&&bizOK(e,b));
-const expTotal=(m,b)=>expListIn(m,b).reduce((a,e)=>a+Number(e.amount||0),0);
+/** 이 지출이 실제로 나간 달 ('' = 아직 정산 전) */
+const expPaidMonth=e=>(e.payer||COMPANY)!==COMPANY?String(e.reimbursedAt||'').slice(0,7):String(e.date||'').slice(0,7);
+const expPaidIn=(m,b)=>(data.expenses||[]).filter(e=>expPaidMonth(e)===m&&bizOK(e,b));
+const expTotal=(m,b)=>money2(expPaidIn(m,b).reduce((a,e)=>a+Number(e.amount||0),0));
+/** 정산 대기 · 지급 예정 — 사비로 내고 아직 안 갚은 것 전부 + 그 달 미납 고정비 */
+function pendingItems(m,b){
+  const out=(data.expenses||[]).filter(e=>(e.payer||COMPANY)!==COMPANY&&!e.reimbursedAt&&bizOK(e,b))
+    .map(e=>({date:e.date,what:e.item||e.category||'',amount:Number(e.amount||0),to:e.payer,kind:'rb'}));
+  fixListIn(m,b).filter(c=>!fixPay(c,m).paid).forEach(c=>out.push({date:m+(c.dueDay?'-'+pad(c.dueDay):''),
+    what:c.name,amount:fixAmt(c,m),to:c.name,kind:'fix'}));
+  return out.sort((x,y)=>String(x.date).localeCompare(String(y.date)));
+}
+const incListIn=(m,b)=>(data.income||[]).filter(x=>(x.date||'').startsWith(m)&&bizOK(x,b));
+const incTotal=(m,b)=>money2(incListIn(m,b).reduce((a,x)=>a+Number(x.amount||0),0));
+const inKindLabel=k=>catLabel(INKINDS,k);
+/** 소모품 · 기타 지출 한 줄이 어느 파이 묶음인지 */
+const pieCatOf=e=>{
+  const txt=[e.item,e.category,e.memo,e.payer].filter(Boolean).join(' ');
+  const hit=PIECATS.find(([,,re])=>re&&re.test(txt));
+  return hit?hit[0]:'pcEtc';
+};
+/** 그 달 파이 조각 — 납부 완료 고정비 + 소모품 · 기타 지출. 최대 8 조각 */
+function pieSlices(m,b){
+  const sums={};
+  const fixPaid=fixTotal(m,b);
+  if(fixPaid)sums.pcFix=fixPaid;
+  expPaidIn(m,b).forEach(e=>{const k=pieCatOf(e);sums[k]=(sums[k]||0)+Number(e.amount||0);});
+  let sl=PIECATS.map(([k,color])=>({k,color,v:money2(sums[k]||0)})).filter(x=>x.v>0)
+    .sort((x,y)=>y.v-x.v);
+  if(sl.length>9){ // 넘치면 작은 것부터 '기타' 로 접습니다
+    const keep=sl.slice(0,8).filter(x=>x.k!=='pcEtc');
+    const rest=sl.filter(x=>!keep.includes(x));
+    sl=keep.concat([{k:'pcEtc',color:'#69758A',v:money2(rest.reduce((a,x)=>a+x.v,0))}]);
+  }
+  return sl;
+}
 const payrollTotal=m=>liveStaff().reduce((a,s)=>a+payCalc(s,m).total,0);
 /* 지출 요약에서는 급여를 '기본급(+보너스−공제)' 과 '커미션' 으로 나눠 보여줍니다.
    둘을 더하면 payrollTotal 과 같습니다 — 중복으로 세지 않습니다. */
@@ -2694,7 +2874,7 @@ function subscribeLive(){
                      'staff_fixed_costs','staff_fixed_payments','staff_expenses','staff_targets',
                      'staff_wage_history','staff_payees',
                      'staff_comm_config','staff_name_map','staff_comm_split','staff_comm_override','staff_comm_skip',
-                     'bookings']:[]);
+                     'staff_income','bookings']:[]);
   tables.forEach(tb=>ch.on('postgres_changes',{event:'*',schema:'public',table:tb},scheduleReload));
   ch.subscribe(st=>{
     if(st==='SUBSCRIBED'){liveCh=ch;setNet('live');}
@@ -3503,7 +3683,7 @@ function renderEx(){
         <button class="rm" data-fxdel="${c.id}">${t('del')}</button></td></tr>`).join(''));
 
   $('fixFoot').innerHTML=list.length?`<tr>
-    <th colspan="5" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('fixTotalRow')}</th>
+    <th colspan="5" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('fixTotalRow')} <span style="font-weight:400;color:var(--ink-soft)">(${t('expPaidOnly')})</span></th>
     <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:14px">${money(fix)}</th>
     <th colspan="3" style="border-top:1px solid var(--ink);border-bottom:none"></th></tr>`:'';
 
@@ -3544,7 +3724,10 @@ function renderEx(){
     </div>`:'');
 
   /* 소모품 · 기타 지출 */
-  const el=expListIn(m,bf).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.seq||0)-(a.seq||0));
+  const el=[...new Set([...expListIn(m,bf),...expPaidIn(m,bf)])]
+    .sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.seq||0)-(a.seq||0));
+  const elPaid=el.filter(e=>expPaidMonth(e)===m);
+  const elOther=money2(el.filter(e=>expPaidMonth(e)!==m).reduce((a,e)=>a+Number(e.amount||0),0));
   $('exList').innerHTML=el.length?`<table>
     <thead><tr><th style="width:140px">${t('expDate')}</th><th style="width:15%">${t('lBiz')}</th>
       <th style="width:15%">${t('expCat')}</th>
@@ -3561,21 +3744,23 @@ function renderEx(){
       <td><input type="text" data-ex="payer" data-id="${e.id}" value="${esc(e.payer||COMPANY)}"
         class="hascombo" data-combo="payer">
         ${needsRb(e)?(e.reimbursedAt
-          ? `<span class="raise up" title="${e.reimbursedAt}">✓ ${t('rbDoneShort')}</span>`
+          ? `<span class="raise up" title="${e.reimbursedAt}">✓ ${t('rbDoneShort')} ${esc(String(e.reimbursedAt).slice(5,10))}</span>`
           : `<span class="payer-tag">${t('rbPending')}</span>`):''}</td>
       <td><input type="text" data-ex="memo" data-id="${e.id}" value="${esc(e.memo||'')}"
         placeholder="${t('memoPhShort')}" style="width:100%"></td>
       <td><input type="number" step="10" min="0" data-ex="amount" data-id="${e.id}" value="${e.amount||''}"
         style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
       <td style="text-align:right"><button class="del" data-exdel="${e.id}">×</button></td></tr>`).join('')}</tbody>
-    <tfoot><tr><th colspan="6" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('expTotal')}</th>
-      <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:13.5px">${money(exp)}</th>
-      <th style="border-top:1px solid var(--ink);border-bottom:none"></th></tr></tfoot></table>`
+    <tfoot><tr><th colspan="6" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${t('expTotal')} <span style="font-weight:400;color:var(--ink-soft)">(${t('expPaidOnly')})</span></th>
+      <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:13.5px">${moneyD(exp)}</th>
+      <th style="border-top:1px solid var(--ink);border-bottom:none"></th></tr>
+      ${elOther?`<tr><td colspan="6" style="text-align:right;font-size:11px;color:var(--amber);border:none">${t('expNotThisMonth')}</td>
+        <td class="num" style="font-size:11px;color:var(--amber);border:none">${moneyD(elOther)}</td><td style="border:none"></td></tr>`:''}</tfoot></table>`
     :`<div class="empty">${t('expNone')}</div>`;
 
   /* 분류별 소계 막대 — 자유 입력 분류도 포함 */
-  const usedCats=[...new Set(el.map(e=>e.category))];
-  const byCat=usedCats.map((v,i)=>({v,i,sum:el.filter(e=>e.category===v)
+  const usedCats=[...new Set(elPaid.map(e=>e.category))];
+  const byCat=usedCats.map((v,i)=>({v,i,sum:elPaid.filter(e=>e.category===v)
     .reduce((a,e)=>a+Number(e.amount||0),0)})).filter(x=>x.sum>0)
     .sort((a,b)=>b.sum-a.sum);
   $('exByCat').innerHTML=byCat.length?`
@@ -3583,6 +3768,93 @@ function renderEx(){
     <div class="catbar">${byCat.map((x,i)=>`<span style="width:${x.sum/exp*100}%;background:${CATCOLOR[i%CATCOLOR.length]}"></span>`).join('')}</div>
     <div class="catlist">${byCat.map((x,i)=>`<span><b style="background:${CATCOLOR[i%CATCOLOR.length]}"></b>${
       esc(catLabel(EXCATS,x.v))} ${money(x.sum)}</span>`).join('')}</div>`:'';
+
+  renderPie(m,bf);
+  renderInc(m,bf,bizSel);
+}
+/* ── 지출 비중 파이 + 지출 / 수입 / 순지출 ── */
+const moneyD=n=>'฿'+Number(n||0).toLocaleString(undefined,{maximumFractionDigits:2});
+function renderPie(m,bf){
+  const sl=pieSlices(m,bf);
+  const tot=money2(sl.reduce((a,x)=>a+x.v,0)), inc=incTotal(m,bf);
+  const pend=pendingItems(m,bf), pendSum=money2(pend.reduce((a,x)=>a+x.amount,0));
+  $('pieCards').innerHTML=[
+    ['pieExp',tot,'',t('pieExpSub')],
+    ['pieInc',inc,'inc',t('pieIncSub')],
+    ['pieNet',money2(tot-inc),'total',t('pieNetSub')+' · '+m],
+    ['piePend',pendSum,'pend',pend.length+t('cntRec')+' · '+t('piePendSub')]
+  ].map(([k,v,cls,sub])=>`<div class="sumcard ${cls}"><b>${t(k)}</b>
+      <i>${moneyD(v)}</i><small>${esc(sub)}</small></div>`).join('')
+    +(pend.length?`<div class="pendlist"><h4>⏳ ${t('piePend')} — ${t('piePendSub')}</h4>
+      <div style="overflow-x:auto"><table><thead><tr><th>${t('expDate')}</th><th>${t('expItem')}</th>
+        <th>${t('pendTo')}</th><th class="num">${t('expAmt')}</th></tr></thead>
+      <tbody>${pend.map(x=>`<tr><td>${esc(x.date||'')}</td>
+        <td>${esc(x.what)}${x.kind==='fix'?` <span class="payer-tag">${t('cFixSum')} · ${t('paidN')}</span>`:''}</td>
+        <td>${esc(x.to||'')}</td><td class="num">${moneyD(x.amount)}</td></tr>`).join('')}</tbody></table></div></div>`:'');
+  if(!tot){$('pieBox').innerHTML=`<div class="empty" style="margin-top:14px">${t('pieNone')}</div>`;return;}
+  /* 순수 SVG 도넛 — 12시 방향에서 시계 방향 */
+  const R=90,r=52,C=100;
+  const pt=(a,rad)=>[C+rad*Math.sin(a),C-rad*Math.cos(a)];
+  let a0=0;
+  const paths=sl.map(x=>{
+    const frac=x.v/tot;
+    if(frac>=0.9999)return `<circle cx="${C}" cy="${C}" r="${(R+r)/2}" fill="none" stroke="${x.color}" stroke-width="${R-r}"><title>${esc(t(x.k))}</title></circle>`;
+    const a1=a0+frac*2*Math.PI, big=frac>0.5?1:0;
+    const [x0,y0]=pt(a0,R),[x1,y1]=pt(a1,R),[x2,y2]=pt(a1,r),[x3,y3]=pt(a0,r);
+    a0=a1;
+    return `<path d="M${x0.toFixed(2)} ${y0.toFixed(2)}A${R} ${R} 0 ${big} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}L${x2.toFixed(2)} ${y2.toFixed(2)}A${r} ${r} 0 ${big} 0 ${x3.toFixed(2)} ${y3.toFixed(2)}Z"
+      fill="${x.color}" stroke="#fff" stroke-width="1.5"><title>${esc(t(x.k))} · ${moneyD(x.v)} · ${(frac*100).toFixed(1)}%</title></path>`;
+  }).join('');
+  $('pieBox').innerHTML=`<div class="piewrap">
+    <svg viewBox="0 0 200 200" role="img" aria-label="${esc(t('pieTitle'))}">${paths}
+      <text x="100" y="96" text-anchor="middle" font-size="10" fill="#5A6472">${esc(t('pieExp'))}</text>
+      <text x="100" y="113" text-anchor="middle" font-size="12.5" font-weight="600" fill="#131C2E"
+        font-family="IBM Plex Mono,monospace">${moneyD(Math.round(tot))}</text></svg>
+    <table class="pielegend"><tbody>${sl.map(x=>`<tr>
+      <td><b class="sw" style="background:${x.color}"></b>${esc(t(x.k))}</td>
+      <td class="num">${moneyD(x.v)}</td>
+      <td class="num" style="color:var(--ink-soft)">${(x.v/tot*100).toFixed(1)}%</td></tr>`).join('')}
+      <tr><td><b>${t('expTotal')}</b></td><td class="num"><b>${moneyD(tot)}</b></td><td class="num">100%</td></tr>
+    </tbody></table></div>`;
+}
+/* ── 입금(수입) 기록 ── */
+function renderInc(m,bf,bizSel){
+  const kinds=[...new Set([...INKINDS.map(x=>x[0]),...(data.income||[]).map(x=>x.kind)])].filter(Boolean);
+  const kindSel=(v,attr)=>`<select ${attr}>${kinds.map(k=>
+      `<option value="${esc(k)}"${v===k?' selected':''}>${esc(inKindLabel(k))}</option>`).join('')}</select>`;
+  const ik=$('inKind'), ikv=ik.value;
+  ik.innerHTML=INKINDS.map(([k,lab])=>`<option value="${esc(k)}">${esc(t(lab))}</option>`).join('');
+  if(ikv)ik.value=ikv;
+  const il=incListIn(m,bf).slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')||(b.seq||0)-(a.seq||0));
+  const tot=incTotal(m,bf);
+  $('inList').innerHTML=il.length?`<div style="overflow-x:auto"><table>
+    <thead><tr><th style="width:140px">${t('expDate')}</th><th style="width:19%">${t('incKind')}</th>
+      <th style="width:16%">${t('lBiz')}</th><th>${t('expMemo')}</th>
+      <th class="num" style="width:130px">${t('expAmt')}</th><th style="width:38px"></th></tr></thead>
+    <tbody>${il.map(x=>`<tr>
+      <td><input type="date" data-in="date" data-id="${x.id}" value="${x.date}" style="width:100%"></td>
+      <td>${kindSel(x.kind,`data-in="kind" data-id="${x.id}"`)}</td>
+      <td>${bizSel(x.biz,`data-in="biz" data-id="${x.id}"`)}</td>
+      <td><input type="text" data-in="memo" data-id="${x.id}" value="${esc(x.memo||'')}"
+        placeholder="${t('memoPhShort')}" style="width:100%"></td>
+      <td><input type="number" step="0.01" min="0" data-in="amount" data-id="${x.id}" value="${x.amount||''}"
+        style="width:100%;text-align:right;font-family:'IBM Plex Mono',monospace"></td>
+      <td style="text-align:right"><button class="del" data-indel="${x.id}">×</button></td></tr>`).join('')}</tbody>
+    <tfoot><tr><th colspan="4" style="text-align:right;border-top:1px solid var(--ink);border-bottom:none">${m} · ${t('incTotal')}</th>
+      <th class="num" style="border-top:1px solid var(--ink);border-bottom:none;font-family:'IBM Plex Mono',monospace;font-size:13.5px">${moneyD(tot)}</th>
+      <th style="border-top:1px solid var(--ink);border-bottom:none"></th></tr></tfoot></table></div>`
+    :`<div class="empty">${t('incNone')}</div>`;
+  /* 월별 합계 — 기록이 있는 달 전부 (최근 달이 위) */
+  const byM={};
+  (data.income||[]).filter(x=>bizOK(x,bf)).forEach(x=>{
+    const k=(x.date||'').slice(0,7); if(!k)return;
+    (byM[k]=byM[k]||{sum:0,n:0}); byM[k].sum+=Number(x.amount||0); byM[k].n++;});
+  const ms=Object.keys(byM).sort().reverse();
+  $('inMonths').innerHTML=ms.length?`<table class="incmonths">
+    <thead><tr><th>${t('incMonth')}</th><th class="num">${t('cntRec')}</th><th class="num">${t('incByMonth')}</th></tr></thead>
+    <tbody>${ms.map(k=>`<tr${k===m?' style="background:#F1F5FA"':''}><td>${k}</td>
+      <td class="num">${byM[k].n}</td>
+      <td class="num" style="font-family:'IBM Plex Mono',monospace">${moneyD(money2(byM[k].sum))}</td></tr>`).join('')}</tbody></table>`:'';
 }
 /** 그 달 납부일이 이미 지났는가 (이번 달일 때만 의미 있음) */
 function isPastDue(m,day){
@@ -3675,7 +3947,7 @@ window.addEventListener('resize',comboPlace);
 
 function buildExSelects(){
   const opts=sel=>bizAll().map(b=>`<option value="${esc(b)}">${esc(bizLabel(b))}</option>`).join('');
-  ['fxBiz','exBizIn','pyBiz'].forEach(id=>{const el=$(id),v=el.value;el.innerHTML=opts();if(v)el.value=v;});
+  ['fxBiz','exBizIn','pyBiz','inBiz'].forEach(id=>{const el=$(id),v=el.value;el.innerHTML=opts();if(v)el.value=v;});
   const f=$('exBiz'), fv=f.value;
   f.innerHTML=`<option value="">${t('bizAll')}</option>`+opts();
   f.value=fv||'';
@@ -3960,6 +4232,42 @@ $('exList').addEventListener('click',async e=>{
   data.expenses=data.expenses.filter(x=>String(x.id)!==String(id));
   renderEx();
   await op(t('opExp')+' · '+t('opDel'),()=>sb.from('staff_expenses').delete().eq('id',id));
+});
+
+/* ── 입금(수입) 기록 ── */
+$('inDate').value=todayISO();
+$('inAdd').addEventListener('click',async()=>{
+  const amt=money2($('inAmt').value||0);
+  if(!amt||amt<0){$('inAmt').focus();return;}
+  const row={date:$('inDate').value||todayISO(),kind:$('inKind').value||'기타 입금',
+    biz:$('inBiz').value||DEF_BIZ,amount:amt,memo:$('inMemo').value.trim()};
+  const res=await op(t('opInc'),()=>sb.from('staff_income').insert(row).select().single());
+  if(res.ok&&res.data)(data.income=data.income||[]).unshift({id:res.data.id,date:res.data.date,
+    kind:row.kind,biz:row.biz,amount:amt,memo:row.memo,seq:Date.now()});
+  $('inAmt').value=''; $('inMemo').value='';
+  renderEx();
+});
+['inAmt','inMemo'].forEach(id=>
+  $(id).addEventListener('keydown',e=>{if(e.key==='Enter')$('inAdd').click();}));
+$('inList').addEventListener('change',async e=>{
+  const el=e.target.closest('[data-in]'); if(!el)return;
+  const x=(data.income||[]).find(v=>String(v.id)===String(el.dataset.id)); if(!x)return;
+  const k=el.dataset.in, patch={};
+  if(k==='date'){ if(!el.value){el.value=x.date;return;} x.date=el.value; patch.date=x.date; }
+  else if(k==='kind'){ x.kind=el.value||'기타 입금'; patch.kind=x.kind; }
+  else if(k==='biz'){ x.biz=el.value||DEF_BIZ; patch.biz=x.biz; }
+  else if(k==='memo'){ x.memo=el.value; patch.memo=x.memo; }
+  else if(k==='amount'){ x.amount=el.value===''?0:Math.max(0,money2(el.value)); patch.amount=x.amount; }
+  renderEx();
+  await op(t('opInc'),()=>sb.from('staff_income').update(patch).eq('id',x.id));
+});
+$('inList').addEventListener('click',async e=>{
+  const b=e.target.closest('[data-indel]'); if(!b)return;
+  if(!confirm(t('confirmDel')))return;
+  const id=b.dataset.indel;
+  data.income=(data.income||[]).filter(x=>String(x.id)!==String(id));
+  renderEx();
+  await op(t('opInc')+' · '+t('opDel'),()=>sb.from('staff_income').delete().eq('id',id));
 });
 
 $('tgTable').addEventListener('change',async e=>{

@@ -29,6 +29,7 @@ staff-attitude/
 ├── patch-16-checked.sql           건별 '금액 확인함' 표시
 ├── patch-17-pay-kind.sql          건별 결제 경로 (고와비 · 현장) 고르기
 ├── patch-18-manual-pay-kind.sql   직접 넣은 건도 고와비 고르기
+├── patch-20-income.sql            입금(수입) 기록 — 지출 탭 (현금 입금 · 고와비 정산금 · 지출 환급 · 기타)
 ├── rename-person.sql             이름 · 직함을 모든 표에서 한꺼번에 바꾸기 (필요할 때만)
 ├── forms.js                      인사 서식 5종 (docx 원본에서 변환)
 ├── docs-source/                  서식 원본 docx · md (수정 시 여기를 고치고 재변환)
@@ -42,7 +43,7 @@ staff-attitude/
 > 맨 아래에 무엇이 설치됐는지 확인표가 나옵니다.
 >
 > 개별 파일을 따로 돌리셔도 됩니다 — 그때는 **번호 순서대로**.
-> 처음부터 새로 세팅한다면 `schema.sql` → `patch-01` → `patch-02` → `patch-03` → `patch-04` → `patch-05` → `patch-06` → `patch-07` → `patch-08` → `patch-09` → `patch-10` → `patch-11` → `patch-12` → `patch-13` → `patch-14` → `patch-15` → `patch-16` → `patch-17` → `patch-18` 순서입니다.
+> 처음부터 새로 세팅한다면 `schema.sql` → `patch-01` → `patch-02` → `patch-03` → `patch-04` → `patch-05` → `patch-06` → `patch-07` → `patch-08` → `patch-09` → `patch-10` → `patch-11` → `patch-12` → `patch-13` → `patch-14` → `patch-15` → `patch-16` → `patch-17` → `patch-18` → `patch-20` 순서입니다.
 
 ---
 
