@@ -64,7 +64,7 @@ export function personalRemedy(chart: SajuChart, lang: Lang): Remedy {
   const n = EL_NAME[lang][el];
   const body =
     lang === "ko"
-      ? `당신에게 채워주면 좋은 오행은 ${n}이에요. 평소 ${COLOR[el].ko} 톤을 가까이하면 기운의 균형이 잡혀요.\n` +
+      ? `당신에게 채워주면 좋은 오행은 ${n} 기운이에요. 평소 ${COLOR[el].ko} 톤을 가까이하면 기운의 균형이 잡혀요.\n` +
         `▸ 오행 팔찌: ${STONE[el].ko} — 매일 손목에 두는 가장 쉬운 개운법\n` +
         `▸ ${TEA.ko(n)} — 하루 한 잔, 나를 위한 오행 루틴`
       : lang === "th"
