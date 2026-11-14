@@ -16,6 +16,7 @@
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Solar } = require("lunar-javascript");
 import { findPlace } from "./places";
+import { validSijin } from "./sijin";
 
 export type Element = "wood" | "fire" | "earth" | "metal" | "water";
 
@@ -62,6 +63,8 @@ export interface SajuInput {
    * 만세력 method for foreign births.
    */
   place?: string;
+  /** 시진(0=자 … 11=해)만 아는 경우. hour/minute 대신 사용. */
+  sijin?: number;
 }
 
 const GAN_ELEMENT: Record<string, Element> = {
@@ -124,7 +127,8 @@ export function computeSaju(input: SajuInput): SajuChart {
     trueSolarTime = true,
   } = input;
 
-  const hasTime = typeof hour === "number";
+  const sijin = validSijin(input.sijin) ? input.sijin : undefined;
+  const hasTime = typeof hour === "number" || sijin !== undefined;
 
   // lunar-javascript reads a wall-clock moment as China time (UTC+8) for 절기.
   // 한국 만세력 기준: 子시(23시~)가 시작되면 일주도 다음 날로 넘어간다
@@ -145,7 +149,18 @@ export function computeSaju(input: SajuInput): SajuChart {
   let ecTerm; // year / month pillars (절기)
   const placeDef = input.place ? findPlace(input.place) : undefined;
 
-  if (hasTime && trueSolarTime && placeDef) {
+  if (sijin !== undefined) {
+    // 시진만 아는 경우: 진태양시로 그 시진의 가운데(자시는 그 날 00:30)를
+    // 바로 사용 — 시주가 선택한 시진으로 확정되고 일주는 입력한 날짜 기준.
+    const solarLocal = new Date(
+      Date.UTC(year, month - 1, day, sijin === 0 ? 0 : sijin * 2, sijin === 0 ? 30 : 0, 0)
+    );
+    const lon = placeDef ? longitude : tzMeridian;
+    const utcMs = solarLocal.getTime() - (lon / 15) * 3600_000;
+    local = solarLocal;
+    ecLocal = ecAt(solarLocal);
+    ecTerm = ecAt(new Date(utcMs + 8 * 3600_000));
+  } else if (hasTime && trueSolarTime && placeDef) {
     // Clock time → absolute instant via the birthplace's historical offset.
     const offsetH = placeDef.offsetAt(year, month, day, hour!);
     const utcMs = local.getTime() - offsetH * 3600_000;

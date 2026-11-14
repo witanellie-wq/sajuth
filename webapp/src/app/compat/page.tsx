@@ -1,6 +1,7 @@
 "use client";
 
 import { PLACES, PLACE_OTHER } from "@/lib/places";
+import { SIJIN } from "@/lib/sijin";
 
 import { useState } from "react";
 import CompatView, { type CompatData } from "@/components/CompatView";
@@ -18,6 +19,7 @@ interface Person {
   month: string;
   day: string;
   hour: string;
+  sijin: string;
   minute: string;
   unknownTime: boolean;
 }
@@ -29,6 +31,7 @@ const empty: Person = {
   month: "",
   day: "",
   hour: "",
+  sijin: "",
   minute: "",
   unknownTime: false,
 };
@@ -51,7 +54,9 @@ function toInput(p: Person) {
     gender: p.gender,
     place: p.place,
   };
-  if (!p.unknownTime && p.hour !== "") {
+  if (!p.unknownTime && p.sijin !== "") {
+    o.sijin = Number(p.sijin);
+  } else if (!p.unknownTime && p.hour !== "") {
     o.hour = Number(p.hour);
     if (p.minute !== "") o.minute = Number(p.minute);
   }
@@ -284,17 +289,33 @@ function PersonFields({
           label={lang === "th" ? "ชั่วโมง (0-23) · Hour" : lang === "en" ? "Hour (0-23)" : "시 (0-23)"}
           placeholder="14"
           value={p.hour}
-          disabled={p.unknownTime}
+          disabled={p.unknownTime || p.sijin !== ""}
           onChange={(v) => onChange({ ...p, hour: v })}
         />
         <Field
           label={lang === "th" ? "นาที (0-59) · Minute" : lang === "en" ? "Minute (0-59)" : "분 (0-59)"}
           placeholder="30"
           value={p.minute}
-          disabled={p.unknownTime}
+          disabled={p.unknownTime || p.sijin !== ""}
           onChange={(v) => onChange({ ...p, minute: v })}
         />
       </div>
+      <label className="mt-2 block text-xs">
+        <span className="mb-1 block text-ink/60">
+          {lang === "th" ? "รู้แค่ยามเกิด? เลือกยามแทนเวลา" : lang === "en" ? "Only know the 2-hour period? Pick it" : "시진만 아시나요? 시진으로 선택"}
+        </span>
+        <select
+          value={p.sijin}
+          disabled={p.unknownTime}
+          onChange={(e) => onChange({ ...p, sijin: e.target.value })}
+          className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 text-sm outline-none focus:border-rosewood disabled:opacity-40"
+        >
+          <option value="">{lang === "th" ? "— ใช้เวลาที่กรอกด้านบน —" : lang === "en" ? "— use the time above —" : "— 위에 입력한 시간 사용 —"}</option>
+          {SIJIN.map((sj, i) => (
+            <option key={sj.zhi} value={i}>{`${sj[lang]} (${sj.zhi}) ${sj.range}`}</option>
+          ))}
+        </select>
+      </label>
       <label className="mt-2 flex items-center gap-2 text-xs text-ink/60">
         <input
           type="checkbox"

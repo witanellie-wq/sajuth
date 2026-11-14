@@ -3,6 +3,7 @@ import { computeSaju, placeCoords, type SajuInput } from "@/lib/saju";
 import { computeCompatibility, unlockCompat, type Compatibility } from "@/lib/compat";
 import { compatStore } from "@/lib/store";
 import { redactLocked, dropDegenerate } from "@/lib/redact";
+import { validSijin } from "@/lib/sijin";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
 
 // Language-switch on a paid record may generate the long report on demand.
@@ -133,6 +134,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_date" }, { status: 400 });
   }
 
+  for (const p of [body.a, body.b]) if (!validSijin(p.sijin)) delete p.sijin;
   const lang = pickLang(body.lang);
   const relationship =
     typeof body.relationship === "string" && body.relationship ? body.relationship : "lovers";

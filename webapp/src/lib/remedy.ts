@@ -108,18 +108,27 @@ export function coupleRemedy(
     lang === "ko" ? (romantic ? "커플 팔찌" : "우정 팔찌")
     : lang === "th" ? (romantic ? "กำไลคู่รัก" : "กำไลคู่เพื่อน")
     : romantic ? "couple bracelets" : "friendship bracelets";
+  // 팔찌는 오행별 표준 5종만 생산 → 각자 자기 보완 오행 팔찌를 "제안"만 한다
+  // (서로의 비즈를 섞는 맞춤 제작 없음). 같은 오행이면 같은 팔찌 커플 세트.
+  const same = ea === eb;
   const body =
     lang === "ko"
-      ? `${names.a}님의 보완 오행은 ${N[ea]}, ${names.b}님은 ${N[eb]}, 두 사람을 함께 채워주는 오행은 ${N[es]}이에요.\n` +
-        `▸ ${pair}: ${names.a}님은 ${STONE[ea].ko}, ${names.b}님은 ${STONE[eb].ko} — 두 팔찌에 ${STONE[es].ko} 포인트 비즈를 하나씩 맞춰 끼우면 둘만의 세트가 완성돼요\n` +
-        `▸ 함께 마시는 ${TEA.ko(N[es])} — 같이 보내는 시간에 같은 기운을 채우는 루틴`
+      ? `보완 오행 — ${names.a}님: ${N[ea]} / ${names.b}님: ${N[eb]}\n` +
+        (same
+          ? `▸ ${pair}: 두 분 모두 ${N[ea]} 팔찌(${STONE[ea].ko}) — 같은 팔찌로 맞추면 그대로 커플 아이템이 돼요\n`
+          : `▸ ${pair}: ${names.a}님은 ${N[ea]} 팔찌(${STONE[ea].ko}), ${names.b}님은 ${N[eb]} 팔찌(${STONE[eb].ko}) — 각자 부족한 기운을 채우는 서로 다른 색의 커플 팔찌\n`) +
+        `▸ 함께 마시는 ${TEA.ko(N[es])} — 두 사람에게 함께 좋은 기운을 같이 채우는 루틴`
       : lang === "th"
-      ? `ธาตุเสริมของ ${names.a} คือ ${N[ea]} ของ ${names.b} คือ ${N[eb]} และธาตุที่เติมเต็มคุณทั้งคู่คือ ${N[es]} ค่ะ\n` +
-        `▸ ${pair}: ${names.a} ใส่ ${STONE[ea].th} ส่วน ${names.b} ใส่ ${STONE[eb].th} — เพิ่มเม็ด ${STONE[es].th} ไว้ในทั้งสองเส้นให้เป็นเซตของคุณสองคน\n` +
-        `▸ ${TEA.th(N[es])} ดื่มด้วยกัน — รูทีนเติมพลังธาตุเดียวกันในเวลาที่อยู่ด้วยกัน`
-      : `${names.a}'s element to add is ${N[ea]}, ${names.b}'s is ${N[eb]}, and the element that fills you both is ${N[es]}.\n` +
-        `▸ ${pair}: ${names.a} wears ${STONE[ea].en}, ${names.b} wears ${STONE[eb].en} — add one matching ${STONE[es].en} bead to both to make them a set\n` +
-        `▸ ${TEA.en(N[es])} to share — a ritual that fills you with the same energy together`;
+      ? `ธาตุเสริมของ ${names.a} คือ ${N[ea]} ส่วนของ ${names.b} คือ ${N[eb]} ค่ะ\n` +
+        (same
+          ? `▸ ${pair}: ทั้งคู่ใส่กำไลธาตุ${N[ea]} (${STONE[ea].th}) — ใส่เส้นเดียวกันก็เป็นไอเท็มคู่ได้เลย\n`
+          : `▸ ${pair}: ${names.a} ใส่กำไลธาตุ${N[ea]} (${STONE[ea].th}) ส่วน ${names.b} ใส่กำไลธาตุ${N[eb]} (${STONE[eb].th}) — คนละสี เติมธาตุที่แต่ละคนขาด\n`) +
+        `▸ ${TEA.th(N[es])} ดื่มด้วยกัน — รูทีนเติมธาตุที่ดีต่อคุณทั้งคู่`
+      : `${names.a}'s element to add is ${N[ea]}; ${names.b}'s is ${N[eb]}.\n` +
+        (same
+          ? `▸ ${pair}: both wear the ${N[ea]} bracelet (${STONE[ea].en}) — matching as is\n`
+          : `▸ ${pair}: ${names.a} wears the ${N[ea]} bracelet (${STONE[ea].en}), ${names.b} the ${N[eb]} bracelet (${STONE[eb].en}) — two colors, each filling what you lack\n`) +
+        `▸ ${TEA.en(N[es])} to share — a ritual for the element that suits you both`;
   return { element: es, title: COUPLE_REMEDY_TITLE[lang], body };
 }
 
@@ -134,7 +143,8 @@ export function remedyFactCouple(a: SajuChart, b: SajuChart, nameA: string, name
   const eb = supplementElement(b);
   const es = sharedElement(a, b);
   return (
-    `보완 오행: ${nameA}=${EL_NAME.ko[ea]}(팔찌 ${STONE[ea].ko}), ${nameB}=${EL_NAME.ko[eb]}(팔찌 ${STONE[eb].ko}), ` +
-    `두 사람 공통 보완 오행=${EL_NAME.ko[es]} → 커플 팔찌 포인트석 ${STONE[es].ko}, 함께 마실 ${TEA.ko(EL_NAME.ko[es])}`
+    `보완 오행: ${nameA}=${EL_NAME.ko[ea]}(추천 ${EL_NAME.ko[ea]} 팔찌: ${STONE[ea].ko}), ` +
+    `${nameB}=${EL_NAME.ko[eb]}(추천 ${EL_NAME.ko[eb]} 팔찌: ${STONE[eb].ko}) — 팔찌는 오행별 기성 5종이므로 각자 자기 오행 팔찌만 제안하고 비즈를 섞는 맞춤 제작은 언급 금지. ` +
+    `함께 마실 티: ${TEA.ko(EL_NAME.ko[es])}`
   );
 }

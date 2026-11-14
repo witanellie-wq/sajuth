@@ -24,6 +24,7 @@ export interface StoredReading {
     month: number;
     day: number;
     hour: number | null;
+    sijin?: number; // 시진만 아는 경우 (0=자 … 11=해)
     lang?: string;
     name?: string;
     gender?: string;
