@@ -149,25 +149,37 @@ export function interpret(chart: SajuChart, lang: Lang = "th"): ReportSection[] 
   });
 
   // 2. Five-element balance — FREE
+  // "부족한 오행 = 무조건 보충"이라고 하면 신강약·용신 섹션과 모순될 수 있다.
+  // 보충 권유는 용신과 겹치는 부족 오행에만 하고, 나머지는 사실만 알린다.
   const dom = dominantElement(chart.elementCounts);
-  const missing = missingElements(chart.elementCounts);
+  const favorableEls = analyzeStrength(chart, lang).favorable;
+  const missingAll = missingElements(chart.elementCounts);
+  const missing = missingAll.filter((e) => favorableEls.includes(e));
+  const missingOnly = missingAll.filter((e) => !favorableEls.includes(e));
   const missingList = missing.map((e) => elName[e]).join(", ");
+  const missingOnlyList = missingOnly.map((e) => elName[e]).join(", ");
   const balanceBody =
     lang === "th"
       ? `ธาตุที่โดดเด่นในดวงของคุณคือ ${elName[dom]} ` +
         `ซึ่งเป็นพลังงานหลักที่ขับเคลื่อนชีวิตคุณ` +
         (missing.length
-          ? ` ส่วนธาตุที่ขาดคือ ${missingList} — เป็นจุดที่ควรเสริมเพื่อสมดุลชีวิต`
+          ? ` ส่วนธาตุที่ขาดคือ ${missingList} — เป็นธาตุนำโชคของคุณด้วย จึงควรเสริมเพื่อสมดุลชีวิต`
+          : missingOnly.length
+          ? ` ในดวงไม่มีธาตุ ${missingOnlyList} แต่ไม่ใช่ธาตุที่ต้องรีบเสริม ให้โฟกัสธาตุนำโชคของคุณแทน`
           : ` ธาตุทั้งห้าของคุณค่อนข้างสมดุล ถือว่าเป็นดวงที่กลมกล่อม`)
       : lang === "ko"
       ? `사주에서 가장 강한 오행은 ${elName[dom]}으로, 삶을 이끄는 중심 에너지예요.` +
         (missing.length
-          ? ` 부족한 오행은 ${missingList} — 이 기운을 보완하면 균형이 잡힙니다.`
+          ? ` 부족한 오행은 ${missingList} — 용신과도 겹치니 이 기운을 보완하면 균형이 잡힙니다.`
+          : missingOnly.length
+          ? ` ${missingOnlyList} 기운이 없지만 급히 채울 오행은 아니에요. 용신 쪽에 집중하세요.`
           : ` 다섯 오행이 고르게 갖춰진, 균형 좋은 사주예요.`)
       : `The dominant element in your chart is ${elName[dom]} — the main energy ` +
         `driving your life.` +
         (missing.length
-          ? ` Missing: ${missingList} — worth strengthening to bring your life into balance.`
+          ? ` Missing: ${missingList} — also your lucky element, so strengthening it brings balance.`
+          : missingOnly.length
+          ? ` ${missingOnlyList} is absent, but it isn't one you need to add — focus on your lucky element instead.`
           : ` Your five elements are well balanced — a smooth, rounded chart.`);
   sections.push({ key: "elements", title: t.elements, body: balanceBody, locked: false });
 

@@ -99,10 +99,35 @@ const RELATION_TEXT: Record<Lang, Record<Relation, { title: string; body: string
   },
 };
 
-const CLASH_NOTE: Record<Lang, string> = {
-  th: " วันนี้ยังเป็นวันชง (沖) กับดวงคุณ อารมณ์อาจแกว่งง่าย ใจเย็น ๆ แล้วทุกอย่างจะผ่านไปด้วยดี",
-  en: " It's also a clash (沖) day against your chart — emotions may swing; stay calm and it will pass.",
-  ko: " 오늘은 당신 사주와 충(沖)이 드는 날이기도 해요 — 감정이 흔들릴 수 있으니 한 템포 쉬어가면 무사히 지나갑니다.",
+const CLASH_TITLE: Record<Lang, string> = {
+  th: "วันชง — ค่อย ๆ ไปทีละก้าว",
+  en: "Clash Day — Slow and Steady",
+  ko: "충(沖)의 날 — 한 템포 천천히",
+};
+
+// 충일 본문: 그날의 오행 관계(rel)를 살리되 결론은 "속도 조절" 하나로.
+const CLASH_BODY: Record<Lang, Record<Relation, string>> = {
+  th: {
+    same: "วันนี้พลังของวันชง (沖) กับดวงคุณ ถึงจะมีแรงฮึดสูง แต่อารมณ์แกว่งง่าย ทำงานที่ถนัดให้เสร็จทีละอย่าง แล้วเก็บเรื่องใหม่ไว้เริ่มพรุ่งนี้",
+    resource: "วันนี้เป็นวันชง (沖) กับดวงคุณ เหมาะพักและฟังคำแนะนำมากกว่าตัดสินใจเอง ผู้ใหญ่ช่วยได้ แต่อย่าเพิ่งเปลี่ยนแผนใหญ่",
+    output: "วันนี้เป็นวันชง (沖) กับดวงคุณ ไอเดียเยอะแต่คำพูดอาจแรงเกินตั้งใจ จดไอเดียไว้ก่อน แล้วค่อยนำเสนอวันอื่น",
+    wealth: "วันนี้เป็นวันชง (沖) กับดวงคุณ มีเรื่องเงินเข้ามาแต่ยังไม่ใช่จังหวะปิดดีล ตรวจตัวเลขให้ละเอียด เลี่ยงการใช้เงินตามอารมณ์",
+    officer: "วันนี้เป็นวันชง (沖) กับดวงคุณ แรงกดดันจะสูงกว่าปกติ ทำตามกติกา เลี่ยงการปะทะ และเลื่อนการตัดสินใจใหญ่ออกไปก่อน",
+  },
+  ko: {
+    same: "오늘은 당신 사주와 충(沖)이 드는 날이에요. 의욕은 높지만 감정이 쉽게 흔들려요. 익숙한 일을 하나씩 마무리하고, 새 시작은 내일로 미루세요.",
+    resource: "오늘은 충(沖)이 드는 날이에요. 혼자 결정하기보다 쉬면서 조언을 듣기 좋아요. 윗사람이 도와주지만 큰 계획 변경은 아직 이릅니다.",
+    output: "오늘은 충(沖)이 드는 날이에요. 아이디어는 많지만 말이 의도보다 세게 나갈 수 있어요. 메모해두고 발표는 다른 날에.",
+    wealth: "오늘은 충(沖)이 드는 날이에요. 돈 이야기가 들어오지만 계약하기엔 타이밍이 아니에요. 숫자를 꼼꼼히 확인하고 충동 지출은 금물.",
+    officer: "오늘은 충(沖)이 드는 날이에요. 평소보다 압박이 커요. 규칙대로 움직이고 부딪힘은 피하고, 큰 결정은 미루세요.",
+  },
+  en: {
+    same: "Today clashes (沖) with your chart. Drive is high but moods swing easily — finish familiar tasks one by one and save new starts for tomorrow.",
+    resource: "Today clashes (沖) with your chart. Rest and listen to advice rather than deciding alone; mentors help, but hold off on big plan changes.",
+    output: "Today clashes (沖) with your chart. Ideas flow but words may land harder than meant — jot them down and present another day.",
+    wealth: "Today clashes (沖) with your chart. Money talk comes up, but it isn't the moment to close — double-check numbers, no impulse spending.",
+    officer: "Today clashes (沖) with your chart. Pressure runs high — follow the rules, avoid confrontations, postpone big decisions.",
+  },
 };
 
 // Day-branch clash (六沖) with the user's day branch adds a caution note.
@@ -140,8 +165,15 @@ export function todayFortune(
   const rel = relationTo(chart.dayMasterElement, todayElement);
   const base = RELATION_TEXT[lang][rel];
 
+  // 충(沖)일은 결론을 하나로: 좋은 기운이 와도 "속도 조절"이 오늘의 결론.
+  // (예전: "술술 풀린다" + "감정이 흔들린다"를 한 문단에 같이 말하는 모순)
+  const isClash = CLASH[chart.day.zhi] === zhi;
+  let title = base.title;
   let body = base.body;
-  if (CLASH[chart.day.zhi] === zhi) body += CLASH_NOTE[lang];
+  if (isClash) {
+    title = CLASH_TITLE[lang];
+    body = CLASH_BODY[lang][rel];
+  }
 
   // Lucky color + number from the chart's favorable element (용신).
   const fav = analyzeStrength(chart, lang).favorable[0];
@@ -152,7 +184,7 @@ export function todayFortune(
   return {
     dateISO: `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`,
     todayPillar: pillar,
-    title: base.title,
+    title,
     body,
   };
 }

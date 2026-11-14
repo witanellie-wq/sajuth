@@ -299,11 +299,19 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
     // controller instead so the remedy suppresses the 병.
     const filtered: Element[] = [];
     for (const el of favorable) {
+      // 신약인데 비겁(일간 오행)이 개수로 많아 보이는 경우: 일간 자신은
+      // 병(病)으로 몰지 않는다. "약하다"와 "넘친다"를 동시에 말하는 모순을
+      // 피하고, 인성만 용신으로 남긴다.
+      if (!strongSide && el === dm && isExcess(el)) continue;
       if (isExcess(el)) {
         notes.push(
           NOTE_TEXT.excess[lang](elName[el], rawCounts[el], elName[CONTROLLER[el]])
         );
-        if (!filtered.includes(CONTROLLER[el]) && !isExcess(CONTROLLER[el])) {
+        if (
+          !filtered.includes(CONTROLLER[el]) &&
+          !isExcess(CONTROLLER[el]) &&
+          !(!strongSide && CONTROLLER[el] === CONTROLLER[dm]) // 신약에 관성 처방 금지
+        ) {
           filtered.push(CONTROLLER[el]);
         }
       } else {
@@ -367,6 +375,19 @@ export function analyzeStrength(chart: SajuChart, lang: Lang = "th"): Strength {
         `situations. A well-rounded chart; a touch more ${favList} makes it click.`
       : `Your day-master energy is on the gentle side — sensitive to your surroundings and ` +
         `great at collaborating. Strengthen ${favList} and keep trusted allies close.`;
+  }
+
+  // 신약인데 일간 오행이 개수로는 가장 많은 경우 — "가장 강한 오행 = 내 오행"과
+  // "일간이 약하다"가 모순처럼 읽히지 않게 이유를 한 문장으로 설명한다.
+  const maxCount = Math.max(...Object.values(rawCounts));
+  if (!isStrong && !isJunghwa && rawCounts[dm] === maxCount) {
+    const why =
+      lang === "ko"
+        ? `${elName[dm]} 글자 수는 많아 보여도, 태어난 계절(월지)과 자리의 힘으로 보면 일간을 받쳐주는 힘은 약한 편이에요.`
+        : lang === "th"
+        ? `แม้ธาตุ ${elName[dm]} จะมีจำนวนมากในดวง แต่เมื่อดูฤดูที่เกิดและตำแหน่งในดวงแล้ว แรงหนุนธาตุประจำตัวยังค่อนข้างน้อย`
+        : `${elName[dm]} looks plentiful by count, but by birth season and position its real support for your day master is light.`;
+    body += " " + why;
   }
 
   // Weave 조후/합/삼합 observations into the reading body.

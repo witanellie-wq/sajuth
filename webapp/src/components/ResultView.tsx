@@ -1,5 +1,7 @@
 "use client";
 
+import ReportBody from "./ReportBody";
+
 import { useEffect, useRef, useState } from "react";
 
 interface Pillar {
@@ -649,15 +651,15 @@ export default function ResultView({ initial }: { initial: Reading }) {
                 <h3 className="font-semibold text-rosewood">
                   {SECTION_EMOJI[s.key] ?? "🌸"} {s.title}
                 </h3>
-                <p
+                <div
                   className={
                     "mt-1 whitespace-pre-line text-sm leading-relaxed text-ink/80 " + (s.locked ? "locked-body" : "")
                   }
                 >
                   {/* Locked preview: repeat the teaser so the blur reflects the
                       real (long-form) length of the paid report. */}
-                  {s.locked ? (s.body.length < 400 ? (s.body + " ").repeat(5) : s.body) : s.body}
-                </p>
+                  {s.locked ? (s.body.length < 400 ? (s.body + " ").repeat(5) : s.body) : <ReportBody text={s.body} />}
+                </div>
               </div>
             </div>
           );
