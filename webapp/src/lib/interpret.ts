@@ -159,6 +159,7 @@ export function interpret(chart: SajuChart, lang: Lang = "th"): ReportSection[] 
   const missingOnly = missingAll.filter((e) => !favorableEls.includes(e));
   const missingList = missing.map((e) => elName[e]).join(", ");
   const missingOnlyList = missingOnly.map((e) => elName[e]).join(", ");
+  const hasExcess = chart.elementCounts[dom] >= 3;
   const balanceBody =
     lang === "th"
       ? `ธาตุที่โดดเด่นในดวงของคุณคือ ${elName[dom]} ` +
@@ -167,13 +168,17 @@ export function interpret(chart: SajuChart, lang: Lang = "th"): ReportSection[] 
           ? ` ส่วนธาตุที่ขาดคือ ${missingList} — เป็นธาตุนำโชคของคุณด้วย จึงควรเสริมเพื่อสมดุลชีวิต`
           : missingOnly.length
           ? ` ในดวงไม่มีธาตุ ${missingOnlyList} แต่ไม่ใช่ธาตุที่ต้องรีบเสริม ให้โฟกัสธาตุนำโชคของคุณแทน`
+          : hasExcess
+          ? ` มีธาตุครบทั้งห้า แต่ธาตุ ${elName[dom]} ค่อนข้างเด่นกว่าธาตุอื่น จึงควรถ่วงสมดุลด้วยธาตุนำโชคของคุณ`
           : ` ธาตุทั้งห้าของคุณค่อนข้างสมดุล ถือว่าเป็นดวงที่กลมกล่อม`)
       : lang === "ko"
-      ? `사주에서 가장 강한 오행은 ${elName[dom]}으로, 삶을 이끄는 중심 에너지예요.` +
+      ? `사주에서 가장 강한 오행은 ${elName[dom]} 기운으로, 삶을 이끄는 중심 에너지예요.` +
         (missing.length
           ? ` 부족한 오행은 ${missingList} — 용신과도 겹치니 이 기운을 보완하면 균형이 잡힙니다.`
           : missingOnly.length
           ? ` ${missingOnlyList} 기운이 없지만 급히 채울 오행은 아니에요. 용신 쪽에 집중하세요.`
+          : hasExcess
+          ? ` 다섯 오행이 모두 있지만 ${elName[dom]} 기운이 유독 강해서, 용신 기운으로 균형을 잡아주는 게 좋아요.`
           : ` 다섯 오행이 고르게 갖춰진, 균형 좋은 사주예요.`)
       : `The dominant element in your chart is ${elName[dom]} — the main energy ` +
         `driving your life.` +
@@ -181,6 +186,8 @@ export function interpret(chart: SajuChart, lang: Lang = "th"): ReportSection[] 
           ? ` Missing: ${missingList} — also your lucky element, so strengthening it brings balance.`
           : missingOnly.length
           ? ` ${missingOnlyList} is absent, but it isn't one you need to add — focus on your lucky element instead.`
+          : hasExcess
+          ? ` All five elements are present, but ${elName[dom]} clearly dominates — balance it with your lucky element.`
           : ` Your five elements are well balanced — a smooth, rounded chart.`);
   sections.push({ key: "elements", title: t.elements, body: balanceBody, locked: false });
 
