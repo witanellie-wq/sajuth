@@ -3,6 +3,7 @@ import { computeSaju, placeCoords, type SajuInput } from "@/lib/saju";
 import { interpret } from "@/lib/interpret";
 import { rewriteSections } from "@/lib/rewrite";
 import { store } from "@/lib/store";
+import { validSijin } from "@/lib/sijin";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
 
 // POST /api/saju — body: { year, month, day, hour?, minute?, longitude?, lang?, rewrite? }
@@ -42,6 +43,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_date" }, { status: 400 });
   }
 
+  if (!validSijin(input.sijin)) delete input.sijin;
   const lang = pickLang(input.lang);
   const chart = computeSaju({ ...input, ...placeCoords(input.place) });
   let sections = interpret(chart, lang);
@@ -58,6 +60,7 @@ export async function POST(req: NextRequest) {
         month: input.month,
         day: input.day,
         hour: typeof input.hour === "number" ? input.hour : null,
+        ...(input.sijin !== undefined ? { sijin: input.sijin } : {}),
         lang,
         ...(name ? { name } : {}),
         ...(gender ? { gender } : {}),

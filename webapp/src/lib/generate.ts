@@ -11,9 +11,12 @@ import type { CompatSection, Compatibility } from "./compat";
 import type { ReportSection } from "./interpret";
 import { analyzeStrength } from "./strength";
 import { findSinsal } from "./sinsal";
+import { factSheet, ageOn } from "./myeongri";
+import { remedyFactPersonal, remedyFactCouple } from "./remedy";
 import type { Lang } from "./i18n";
 
-const MODEL = "claude-sonnet-5";
+// 모델은 환경변수로 교체 가능 (Vercel: REPORT_MODEL).
+const MODEL = process.env.REPORT_MODEL || "claude-sonnet-5";
 
 const LANG_NAME: Record<Lang, string> = {
   th: "Thai", en: "English", ko: "Korean",
@@ -65,6 +68,10 @@ function pillarsOf(c: SajuChart): string {
   return `시주 ${p(c.hour)} / 일주 ${p(c.day)} / 월주 ${p(c.month)} / 연주 ${p(c.year)}`;
 }
 
+function birthOf(c: SajuChart): { year: number; month: number; day: number } {
+  return { year: c.solarUsed.y, month: c.solarUsed.m, day: c.solarUsed.d };
+}
+
 const ROMANTIC = new Set(["lovers", "married", "talking"]);
 
 // Each category owns ONE distinct topic so the report never repeats itself.
@@ -89,7 +96,7 @@ const ROMANTIC_CATEGORIES: ReportCategory[] = [
   { label: "자녀운", spec: "아이를 낳는다면 어떤 기운의 아이인지, 양육 궁합만." },
   { label: "가족 인연", spec: "시댁·처가 등 양가와 주변 관계만." },
   { label: "장기 전망", spec: "권태기·위기 시점과 오래 가는 힘만." },
-  { label: "관계 지침", spec: "관계를 지키는 구체적 액션 플랜만." },
+  { label: "관계 지침", spec: "관계를 지키는 구체적 액션 플랜 + [검증된 사실]의 커플 개운 아이템(각자 자기 보완 오행 팔찌를 커플 팔찌로, 함께 마시는 공통 오행 블렌드 티)을 둘만의 루틴으로 자연스럽게 제안. 효능 표현 금지." },
   { label: "마무리", spec: "짧은 마무리 총평. 두 사람만의 개운 문구 한 줄 포함." },
 ];
 
@@ -103,19 +110,20 @@ const PLATONIC_CATEGORIES: ReportCategory[] = [
   { label: "금전 주의점", spec: "돈이 얽힐 때의 주의점만." },
   { label: "배울 점", spec: "서로에게 배울 점과 성장 포인트만." },
   { label: "장기 전망", spec: "장기적인 인연의 전망만." },
-  { label: "관계 지침", spec: "관계를 지키는 구체적 액션 플랜만." },
+  { label: "관계 지침", spec: "관계를 지키는 구체적 액션 플랜 + [검증된 사실]의 우정 팔찌(각자 보완석)·공통 오행 블렌드 티를 가볍게 제안. 효능 표현 금지." },
   { label: "마무리", spec: "짧은 마무리 총평. 두 사람만의 개운 문구 한 줄 포함." },
 ];
 
 // saju-kid-grade length: every category must read like a full consultation.
 const LENGTH_RULE =
-  `각 카테고리는 9~11문장, 공백 포함 400~500자(한국어 기준 — 태국어·영어도 같은 정보량). ` +
-  `짧아도 되니 지루하지 않게: 뻔한 덕담과 하나마나한 문장은 빼고, 이 두 사람 사주에서만 나올 수 있는 ` +
+  `각 카테고리 본문은 소제목 2개로 나눈 구조로 써라(공백 포함 총 700~900자, 한국어 기준 — 태국어·영어도 같은 정보량). ` +
+  `형식: 소제목 줄은 반드시 "▸ "로 시작하고 끝에 분위기에 맞는 이모티콘 하나(태국어면 태국식 이모티콘·이모지)를 붙인다. ` +
+  `소제목 줄 다음 줄부터 4~6문장 문단. 두 소제목 블록 사이는 빈 줄(\\n\\n). ` +
+  `소제목 나누는 법: 궁합이면 두 사람 각자(또는 장점/주의점), 개인 사주면 빛/그림자 또는 지금/앞으로. ` +
+  `말투는 친구처럼 다정하고 친근하게(태국어는 ค่ะ 체). 뻔한 덕담과 하나마나한 문장은 빼고, 이 사주에서만 나올 수 있는 ` +
   `구체적인 이야기만 써라. 실제 간지 글자와 일주 이름(예: 을해일주)을 인용하고 명리 근거(합·충·조후·용신·십신)를 짚되, ` +
-  `용어 나열보다 생활 속 장면 하나를 생생하게 그려주는 쪽을 택하라. ` +
-  `문장 리듬에 변화를 주고, 매 카테고리를 같은 패턴(예: "두 분은...")으로 시작하지 마라. ` +
-  `문단 구성: 빈 줄(\\n\\n)로 구분된 2~3개 문단. ` +
-  `분위기에 맞는 이모지(🌊 🔥 🌸 💞 🍀 ✨ 등)를 문단당 0~2개, 과하지 않게 자연스레 섞어라.`;
+  `용어 나열보다 생활 속 장면 하나를 생생하게 그려줘라. 매 카테고리를 같은 패턴(예: "두 분은...")으로 시작하지 마라. ` +
+  `각 카테고리에 바로 해볼 수 있는 생활 개운 행동 1개(색·소품·습관·차 등)를 자연스럽게 넣어라.`;
 
 // Accuracy guardrails shared by the reading and compat prompts. The model
 // tends to invent specific pillar-to-pillar 합/암합 (e.g. "월주와 시주 사이
@@ -128,7 +136,16 @@ const ACCURACY_RULES =
   `어느 두 기둥인지 확신이 없으면 위치를 지목하지 말고 기운의 작용으로만 설명하라.\n` +
   `2) 흩어져 떨어진 암합은 언급하지 마라. 같은 자리 혹은 바로 옆자리 지지끼리의 암합만 다뤄라.\n` +
   `3) 도화살·화개살은 일지(또는 시지)에 자리한 '진도화·진화개'만 언급하라. 그 외 자리의 도화/화개는 없는 것으로 취급하고, 억지로 세게 가졌다고 하지 마라.\n` +
-  `4) 사주에 '미상'(시주 등)으로 표시된 기둥은 그 기둥·지지에 관한 어떤 해석도 하지 마라.`;
+  `4) 사주에 '미상'(시주 등)으로 표시된 기둥은 그 기둥·지지에 관한 어떤 해석도 하지 마라.\n` +
+  `5) 십신·12운성·신살·대운·세운은 [검증된 사실] 블록에 적힌 것만 인용하라. 블록에 없는 신살(예: 백호·괴강·원진)이나 대운 간지를 지어내면 안 된다.\n` +
+  `6) 점수·신강약·용신 판정과 본문이 절대 모순되면 안 된다. 예: 끌림 점수가 낮은데 "첫눈에 강렬한 끌림"이라고 쓰지 마라. 낮은 점수는 단점으로 몰지 말고 그 사람(커플)만의 다른 강점(안정감·오래 가는 힘 등)으로 풀어라. 신약 판정인데 "기운이 넘친다"고 쓰지 마라.\n` +
+  `7) 이름은 입력된 철자 그대로만 쓴다. 한 글자도 바꾸거나 비슷한 이름으로 부르지 마라.\n` +
+  `8) 단점도 솔직하게 쓰되(예: "냉정하게 말하면…"), 겁주는 단정은 금지하고 반드시 실천 가능한 해결책을 붙여라.`;
+
+// 점수 → 표현 구간. AI는 이 구간 표현과 같은 방향으로만 서술한다.
+function band(score: number, low: string, mid: string, high: string): string {
+  return score >= 70 ? high : score >= 40 ? mid : low;
+}
 
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -162,7 +179,7 @@ async function callChunk(
   try {
     const res = await c.messages.create({
       model: MODEL,
-      max_tokens: 3000,
+      max_tokens: 4096,
       system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: prompt }],
     });
@@ -233,9 +250,9 @@ const READING_CATEGORIES: ReportCategory[] = [
   { label: "재물운", spec: "돈이 들어오는 길과 새는 구멍만." },
   { label: "건강운", spec: "약한 오행과 몸 관리 포인트만." },
   { label: "인간관계", spec: "나를 돕는 귀인의 기운과 관계 패턴만." },
-  { label: "대운 흐름", spec: "10년 단위 인생 리듬만." },
-  { label: "올해·내년", spec: "올해와 내년의 운만." },
-  { label: "개운법", spec: "용신 기반 행운 컬러·숫자·방향·습관 제안만." },
+  { label: "대운 흐름", spec: "[검증된 사실]의 대운 목록과 현재 대운만 근거로 10년 단위 인생 리듬. 대운 간지를 실제로 인용하고, 계산 불가면 간지 언급 없이 일반적 흐름만." },
+  { label: "올해·내년", spec: "[검증된 사실]의 세운 간지(올해·내년)를 일간과의 관계로 풀어 올해와 내년 운만." },
+  { label: "개운법", spec: "[검증된 사실]의 보완 오행 기준 행운 컬러·숫자·방향·습관 + 추천 아이템(오행 팔찌 원석, 오행 블렌드 티)을 생활 루틴으로 자연스럽게 제안. 효능·치료 표현 금지(라이프스타일 표현만)." },
   { label: "마무리", spec: "짧은 마무리 총평. 이 사람만의 개운 문구 한 줄 포함." },
 ];
 
@@ -261,8 +278,15 @@ function readingPrompt(
     `일간: ${chart.dayMaster} / 오행 분포: ${JSON.stringify(chart.elementCounts)}\n` +
     `신강약: ${s.bandLabel} (지지율 ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
     `신살: ${sinsal.length ? sinsal.join(", ") : "없음"} (도화=매력, 홍염=달콤한 유혹, 화개=예술·고독, 역마=이동·변화 — 있으면 해석에 반드시 반영)\n` +
-    `분석 노트: ${s.notes.join(" | ") || "없음"}\n` +
-    `호칭 규칙: 의뢰인은 반드시 "${name}"(으)로 지칭하고, A나 '고객' 같은 임의 약칭을 만들지 마라.` +
+    `분석 노트: ${s.notes.join(" | ") || "없음"}\n\n` +
+    `[검증된 사실 — 엔진 계산값. 십신·12운성·신살·대운·세운은 여기 있는 것만 인용]\n` +
+    factSheet(chart, {
+      gender: profile.gender,
+      birth: { year: chart.solarUsed.y, month: chart.solarUsed.m, day: chart.solarUsed.d },
+    }) +
+    `\n${remedyFactPersonal(chart)}` +
+    `\n\n호칭 규칙: 의뢰인은 반드시 "${name}"(으)로 지칭하고, A나 '고객' 같은 임의 약칭을 만들지 마라. ` +
+    `나이를 자연스럽게 활용하라(예: "${name}님은 지금 서른 즈음의…").` +
     ACCURACY_RULES;
   return { system, context };
 }
@@ -382,10 +406,19 @@ function compatPrompt(
     `사주: ${pillarsOf(chartA)}\n오행 분포: ${JSON.stringify(chartA.elementCounts)}\n신살: ${sinsalLine(chartA)}\n\n` +
     `[${nameB}] (${profiles.b?.gender === "F" ? "여" : profiles.b?.gender === "M" ? "남" : "성별 미상"})\n` +
     `사주: ${pillarsOf(chartB)}\n오행 분포: ${JSON.stringify(chartB.elementCounts)}\n신살: ${sinsalLine(chartB)}\n\n` +
-    `관계: ${relationship} / 궁합 점수: ${result.score}%` +
+    `[검증된 사실 — ${nameA}]\n` +
+    factSheet(chartA, { gender: profiles.a?.gender, birth: birthOf(chartA) }) +
+    `\n\n[검증된 사실 — ${nameB}]\n` +
+    factSheet(chartB, { gender: profiles.b?.gender, birth: birthOf(chartB) }) +
+    `\n${remedyFactCouple(chartA, chartB, nameA, nameB)}` +
+    `\n나이 차이: ${Math.abs(ageOn(birthOf(chartA)) - ageOn(birthOf(chartB)))}살 — 관계 해석에 자연스럽게 활용하라.\n\n` +
+    `관계: ${relationship} / 궁합 점수: ${result.score}% → 표현 방향: ` +
+    band(result.score, "노력으로 완성해가는 인연", "편안하게 맞춰가는 인연", "서로 강하게 끌리는 인연") +
     (romantic && typeof result.intimate === "number"
-      ? ` / 속궁합: ${result.intimate}%`
+      ? ` / 속궁합: ${result.intimate}% → 표현 방향: ` +
+        band(result.intimate, "천천히 데워지는 온도", "따뜻하고 안정적인 온도", "뜨겁게 통하는 온도")
       : "") +
+    `\n(위 '표현 방향'과 반대되는 서술 금지)` +
     (points
       ? `\n\n[엔진 분석 포인트 — 배우자성(관성·재성)·천을귀인·신살·암합 등. 반드시 이 근거들을 해석에 녹여라]\n${points}`
       : "") +

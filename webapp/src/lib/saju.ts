@@ -15,6 +15,8 @@
 // lunar-javascript ships no types; load it untyped.
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const { Solar } = require("lunar-javascript");
+import { findPlace } from "./places";
+import { validSijin } from "./sijin";
 
 export type Element = "wood" | "fire" | "earth" | "metal" | "water";
 
@@ -53,6 +55,16 @@ export interface SajuInput {
   tzMeridian?: number;
   /** Apply true solar time correction. Default true. */
   trueSolarTime?: boolean;
+  /**
+   * Birth country code (places.ts). When set, the clock time is converted to
+   * an absolute instant with that country's historical UTC offset (incl. DST),
+   * 절기 (year/month pillars) are judged on the absolute instant, and the
+   * day/hour pillars on the birthplace's true (mean) solar time — the Korean
+   * 만세력 method for foreign births.
+   */
+  place?: string;
+  /** 시진(0=자 … 11=해)만 아는 경우. hour/minute 대신 사용. */
+  sijin?: number;
 }
 
 const GAN_ELEMENT: Record<string, Element> = {
@@ -101,9 +113,9 @@ export function trueSolarCorrectionMinutes(longitude: number, tzMeridian: number
  * Korea lands in 자시, giving 丙子時 instead of 丁丑時.
  */
 export function placeCoords(place?: string): Partial<SajuInput> {
-  if (place === "kr") return { longitude: 127.0, tzMeridian: 135 };
   if (place === "none") return { trueSolarTime: false };
-  return { longitude: 100.5, tzMeridian: 105 }; // default: Thailand
+  const p = findPlace(place) ?? findPlace("th")!;
+  return { place: p.code, longitude: p.longitude };
 }
 
 export function computeSaju(input: SajuInput): SajuChart {
@@ -115,30 +127,69 @@ export function computeSaju(input: SajuInput): SajuChart {
     trueSolarTime = true,
   } = input;
 
-  const hasTime = typeof hour === "number";
+  const sijin = validSijin(input.sijin) ? input.sijin : undefined;
+  const hasTime = typeof hour === "number" || sijin !== undefined;
 
-  // Apply true solar time correction to the clock time before handing it to
-  // the almanac, so 절기/子시 boundaries are evaluated on true local time.
+  // lunar-javascript reads a wall-clock moment as China time (UTC+8) for 절기.
+  // 한국 만세력 기준: 子시(23시~)가 시작되면 일주도 다음 날로 넘어간다
+  // (lunar-javascript sect 1). 기본값(sect 2)은 23시대를 전날 일주로 두는
+  // 중국식 야자시 처리라 사주아이·마법당 등 한국 앱과 일주가 달라진다.
+  const ecAt = (dt: Date) => {
+    const ec = Solar.fromYmdHms(
+      dt.getUTCFullYear(), dt.getUTCMonth() + 1, dt.getUTCDate(),
+      dt.getUTCHours(), dt.getUTCMinutes(), 0
+    ).getLunar().getEightChar();
+    ec.setSect(1);
+    return ec;
+  };
+
   let corr = 0;
-  let base = new Date(Date.UTC(year, month - 1, day, hasTime ? hour! : 12, minute, 0));
-  if (hasTime && trueSolarTime) {
-    corr = trueSolarCorrectionMinutes(longitude, tzMeridian);
-    base = new Date(base.getTime() + corr * 60_000);
+  let local = new Date(Date.UTC(year, month - 1, day, hasTime ? hour! : 12, minute, 0));
+  let ecLocal; // day / hour pillars
+  let ecTerm; // year / month pillars (절기)
+  const placeDef = input.place ? findPlace(input.place) : undefined;
+
+  if (sijin !== undefined) {
+    // 시진만 아는 경우: 진태양시로 그 시진의 가운데(자시는 그 날 00:30)를
+    // 바로 사용 — 시주가 선택한 시진으로 확정되고 일주는 입력한 날짜 기준.
+    const solarLocal = new Date(
+      Date.UTC(year, month - 1, day, sijin === 0 ? 0 : sijin * 2, sijin === 0 ? 30 : 0, 0)
+    );
+    const lon = placeDef ? longitude : tzMeridian;
+    const utcMs = solarLocal.getTime() - (lon / 15) * 3600_000;
+    local = solarLocal;
+    ecLocal = ecAt(solarLocal);
+    ecTerm = ecAt(new Date(utcMs + 8 * 3600_000));
+  } else if (hasTime && trueSolarTime && placeDef) {
+    // Clock time → absolute instant via the birthplace's historical offset.
+    const offsetH = placeDef.offsetAt(year, month, day, hour!);
+    const utcMs = local.getTime() - offsetH * 3600_000;
+    const solarLocal = new Date(utcMs + (longitude / 15) * 3600_000); // 진태양시(평균)
+    const chinaClock = new Date(utcMs + 8 * 3600_000);
+    corr = Math.round((solarLocal.getTime() - local.getTime()) / 60_000);
+    local = solarLocal;
+    ecLocal = ecAt(solarLocal);
+    ecTerm = ecAt(chinaClock);
+  } else {
+    // Legacy path (tests, "none", or unknown time): single moment.
+    if (hasTime && trueSolarTime) {
+      corr = trueSolarCorrectionMinutes(longitude, tzMeridian);
+      local = new Date(local.getTime() + corr * 60_000);
+    }
+    ecLocal = ecAt(local);
+    ecTerm = ecLocal;
   }
 
-  const y = base.getUTCFullYear();
-  const mo = base.getUTCMonth() + 1;
-  const d = base.getUTCDate();
-  const h = base.getUTCHours();
-  const mi = base.getUTCMinutes();
+  const y = local.getUTCFullYear();
+  const mo = local.getUTCMonth() + 1;
+  const d = local.getUTCDate();
+  const h = local.getUTCHours();
+  const mi = local.getUTCMinutes();
 
-  const solar = Solar.fromYmdHms(y, mo, d, hasTime ? h : 12, hasTime ? mi : 0, 0);
-  const ec = solar.getLunar().getEightChar();
-
-  const yearP = toPillar(ec.getYear());
-  const monthP = toPillar(ec.getMonth());
-  const dayP = toPillar(ec.getDay());
-  const hourP = hasTime ? toPillar(ec.getTime()) : null;
+  const yearP = toPillar(ecTerm.getYear());
+  const monthP = toPillar(ecTerm.getMonth());
+  const dayP = toPillar(ecLocal.getDay());
+  const hourP = hasTime ? toPillar(ecLocal.getTime()) : null;
 
   const elementCounts: Record<Element, number> = {
     wood: 0, fire: 0, earth: 0, metal: 0, water: 0,

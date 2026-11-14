@@ -1,5 +1,8 @@
 "use client";
 
+import { PLACES, PLACE_OTHER } from "@/lib/places";
+import { SIJIN } from "@/lib/sijin";
+
 import { useState } from "react";
 import ResultView, { type Reading } from "@/components/ResultView";
 import { saveHistory } from "@/components/history";
@@ -26,7 +29,9 @@ const L: Record<UiLang, Record<string, string>> = {
     hour: "ชั่วโมงเกิด (0-23)",
     minute: "นาที (0-59)",
     unknown: "ไม่ทราบเวลาเกิด",
-    solar: "* กรอกวันเกิดแบบสุริยคติ (ค.ศ.) · Solar calendar (양력)",
+    sijin: "รู้แค่ยามเกิด? เลือกยามแทนเวลา",
+    sijinNone: "— ใช้เวลาที่กรอกด้านบน —",
+    solar: "* กรอกวันเกิดแบบสุริยคติ (ค.ศ.) และเวลาท้องถิ่นของประเทศที่เกิด — ระบบปรับเวลาตามตำแหน่งดวงอาทิตย์ให้อัตโนมัติ (มาตรฐานซาจูเกาหลี)",
     submit: "ดูดวงของฉัน",
     loading: "กำลังคำนวณ…",
     error: "คำนวณไม่สำเร็จ กรุณาตรวจสอบวันเกิด",
@@ -49,7 +54,9 @@ const L: Record<UiLang, Record<string, string>> = {
     hour: "Birth hour (0-23)",
     minute: "Minute (0-59)",
     unknown: "I don't know my birth time",
-    solar: "* Enter your SOLAR calendar birth date (양력).",
+    sijin: "Only know the 2-hour period? Pick it instead",
+    sijinNone: "— use the time entered above —",
+    solar: "* Enter your SOLAR calendar date and the local clock time of your birth country — we auto-correct to true solar time (Korean saju standard).",
     submit: "Read my saju",
     loading: "Calculating…",
     error: "Calculation failed — please check the birth date",
@@ -72,7 +79,9 @@ const L: Record<UiLang, Record<string, string>> = {
     hour: "태어난 시 (0-23)",
     minute: "분 (0-59)",
     unknown: "태어난 시간 모름",
-    solar: "* 양력 생일로 입력하세요.",
+    sijin: "시진만 아시나요? 시진으로 선택",
+    sijinNone: "— 위에 입력한 시간 사용 —",
+    solar: "* 양력 생일과 출생 국가의 현지 시각으로 입력하세요 — 진태양시로 자동 보정됩니다(한국 만세력 기준).",
     submit: "내 사주 보기",
     loading: "계산 중…",
     error: "계산 실패 — 생년월일을 확인해주세요",
@@ -91,6 +100,7 @@ export default function Home() {
     day: "",
     hour: "",
     minute: "",
+    sijin: "",
     unknownTime: false,
   });
   const [result, setResult] = useState<Reading | null>(null);
@@ -112,7 +122,9 @@ export default function Home() {
         gender: form.gender,
         place: form.place,
       };
-      if (!form.unknownTime && form.hour !== "") {
+      if (!form.unknownTime && form.sijin !== "") {
+        body.sijin = Number(form.sijin);
+      } else if (!form.unknownTime && form.hour !== "") {
         body.hour = Number(form.hour);
         if (form.minute !== "") body.minute = Number(form.minute);
       }
@@ -215,9 +227,10 @@ export default function Home() {
             onChange={(e) => setForm({ ...form, place: e.target.value })}
             className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood"
           >
-            <option value="th">{t.placeTh}</option>
-            <option value="kr">{t.placeKr}</option>
-            <option value="none">{t.placeNone}</option>
+            {PLACES.map((pl) => (
+              <option key={pl.code} value={pl.code}>{pl.name[lang]}</option>
+            ))}
+            <option value={PLACE_OTHER.code}>{PLACE_OTHER.name[lang]}</option>
           </select>
         </label>
         <div className="mt-4 grid grid-cols-3 gap-3">
@@ -231,17 +244,31 @@ export default function Home() {
             label={t.hour}
             placeholder="14"
             value={form.hour}
-            disabled={form.unknownTime}
+            disabled={form.unknownTime || form.sijin !== ""}
             onChange={(v) => setForm({ ...form, hour: v })}
           />
           <Field
             label={t.minute}
             placeholder="30"
             value={form.minute}
-            disabled={form.unknownTime}
+            disabled={form.unknownTime || form.sijin !== ""}
             onChange={(v) => setForm({ ...form, minute: v })}
           />
         </div>
+        <label className="mt-3 block text-sm">
+          <span className="mb-1 block text-ink/70">{t.sijin}</span>
+          <select
+            value={form.sijin}
+            disabled={form.unknownTime}
+            onChange={(e) => setForm({ ...form, sijin: e.target.value })}
+            className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood disabled:opacity-40"
+          >
+            <option value="">{t.sijinNone}</option>
+            {SIJIN.map((sj, i) => (
+              <option key={sj.zhi} value={i}>{`${sj[lang]} (${sj.zhi}) ${sj.range}`}</option>
+            ))}
+          </select>
+        </label>
         <label className="mt-2 flex items-center gap-2 text-sm text-ink/70">
           <input
             type="checkbox"
