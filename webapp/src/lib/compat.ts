@@ -10,6 +10,7 @@ import { relationTo } from "./elements";
 import { analyzeStrength } from "./strength";
 import { findSinsal } from "./sinsal";
 import type { Lang } from "./i18n";
+import { coupleRemedy } from "./remedy";
 
 export interface CompatSection {
   key: string;
@@ -544,7 +545,8 @@ export function computeCompatibility(
   b: SajuChart,
   lang: Lang = "th",
   relationship: string = "lovers",
-  genders?: { a?: string; b?: string } // "F" | "M" — drives 배우자성 signals
+  genders?: { a?: string; b?: string }, // "F" | "M" — drives 배우자성 signals
+  names?: { a?: string; b?: string } // 커플 개운 아이템 문구용
 ): Compatibility {
   const romantic = ROMANTIC.has(relationship);
   // Base for an "unremarkable" couple. The signal weights below are sized so
@@ -951,6 +953,19 @@ export function computeCompatibility(
 
   const sections: CompatSection[] = [
     { key: "overview", title: "", body: bandDef.headline[lang], locked: false },
+    // 커플 보완 오행 & 개운 아이템(커플 팔찌·오행티) — 무료 노출(판매 연결).
+    (() => {
+      const fb = (ord: 1 | 2) =>
+        lang === "ko" ? (ord === 1 ? "첫 번째 분" : "두 번째 분")
+        : lang === "th" ? (ord === 1 ? "คนที่ 1" : "คนที่ 2")
+        : ord === 1 ? "Person 1" : "Person 2";
+      const r = coupleRemedy(
+        a, b,
+        { a: names?.a?.trim() || fb(1), b: names?.b?.trim() || fb(2) },
+        lang, romantic
+      );
+      return { key: "remedy", title: r.title, body: r.body, locked: false };
+    })(),
     ...notes.map((n, i) => ({
       key: `note${i + 1}`,
       title: NOTE_CAT[n.k]?.[lang] ?? NOTE_TITLE[lang](i + 1),

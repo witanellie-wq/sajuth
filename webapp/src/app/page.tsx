@@ -1,5 +1,7 @@
 "use client";
 
+import { PLACES, PLACE_OTHER } from "@/lib/places";
+
 import { useState } from "react";
 import ResultView, { type Reading } from "@/components/ResultView";
 import { saveHistory } from "@/components/history";
@@ -26,7 +28,7 @@ const L: Record<UiLang, Record<string, string>> = {
     hour: "ชั่วโมงเกิด (0-23)",
     minute: "นาที (0-59)",
     unknown: "ไม่ทราบเวลาเกิด",
-    solar: "* กรอกวันเกิดแบบสุริยคติ (ค.ศ.) · Solar calendar (양력)",
+    solar: "* กรอกวันเกิดแบบสุริยคติ (ค.ศ.) และเวลาท้องถิ่นของประเทศที่เกิด — ระบบปรับเวลาตามตำแหน่งดวงอาทิตย์ให้อัตโนมัติ (มาตรฐานซาจูเกาหลี)",
     submit: "ดูดวงของฉัน",
     loading: "กำลังคำนวณ…",
     error: "คำนวณไม่สำเร็จ กรุณาตรวจสอบวันเกิด",
@@ -49,7 +51,7 @@ const L: Record<UiLang, Record<string, string>> = {
     hour: "Birth hour (0-23)",
     minute: "Minute (0-59)",
     unknown: "I don't know my birth time",
-    solar: "* Enter your SOLAR calendar birth date (양력).",
+    solar: "* Enter your SOLAR calendar date and the local clock time of your birth country — we auto-correct to true solar time (Korean saju standard).",
     submit: "Read my saju",
     loading: "Calculating…",
     error: "Calculation failed — please check the birth date",
@@ -72,7 +74,7 @@ const L: Record<UiLang, Record<string, string>> = {
     hour: "태어난 시 (0-23)",
     minute: "분 (0-59)",
     unknown: "태어난 시간 모름",
-    solar: "* 양력 생일로 입력하세요.",
+    solar: "* 양력 생일과 출생 국가의 현지 시각으로 입력하세요 — 진태양시로 자동 보정됩니다(한국 만세력 기준).",
     submit: "내 사주 보기",
     loading: "계산 중…",
     error: "계산 실패 — 생년월일을 확인해주세요",
@@ -215,9 +217,10 @@ export default function Home() {
             onChange={(e) => setForm({ ...form, place: e.target.value })}
             className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood"
           >
-            <option value="th">{t.placeTh}</option>
-            <option value="kr">{t.placeKr}</option>
-            <option value="none">{t.placeNone}</option>
+            {PLACES.map((pl) => (
+              <option key={pl.code} value={pl.code}>{pl.name[lang]}</option>
+            ))}
+            <option value={PLACE_OTHER.code}>{PLACE_OTHER.name[lang]}</option>
           </select>
         </label>
         <div className="mt-4 grid grid-cols-3 gap-3">

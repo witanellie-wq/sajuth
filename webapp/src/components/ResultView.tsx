@@ -64,6 +64,7 @@ const DOMINANT_LABEL: Record<L3, string> = {
 };
 
 const SECTION_EMOJI: Record<string, string> = {
+  remedy: "",
   personality: "✨",
   elements: "🎨",
   strength: "⚡",

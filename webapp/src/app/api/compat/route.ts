@@ -35,6 +35,9 @@ export async function GET(req: NextRequest) {
     result = computeCompatibility(payload.charts.a, payload.charts.b, lang, relationship, {
       a: payload?.profiles?.a?.gender,
       b: payload?.profiles?.b?.gender,
+    }, {
+      a: payload?.profiles?.a?.name,
+      b: payload?.profiles?.b?.name,
     });
   }
 
@@ -50,9 +53,9 @@ export async function GET(req: NextRequest) {
     const cached = stored.genByLang?.[lang];
     const storedGen = (stored.sections ?? []).filter((s) => s.key.startsWith("gen"));
     if (cached && cached.length > 0) {
-      sections = [result.sections[0], ...cached];
+      sections = [...freeHead(result.sections), ...cached];
     } else if (storedGen.length > 0) {
-      sections = [result.sections[0], ...storedGen.map((s) => ({ ...s, locked: false }))];
+      sections = [...freeHead(result.sections), ...storedGen.map((s) => ({ ...s, locked: false }))];
       needsTranslate = true;
     }
   }
@@ -114,6 +117,11 @@ function profileOf(i: PersonInput) {
 
 // POST /api/compat — body: { a, b, relationship?, lang? } → full charts +
 // compatibility result. Save failure is non-fatal (id: null).
+// 생성 리포트 앞에 항상 붙는 무료 머리 섹션 (총평 + 커플 개운 아이템).
+function freeHead(sections: Compatibility["sections"]) {
+  return (sections ?? []).filter((s) => s.key === "overview" || s.key === "remedy");
+}
+
 export async function POST(req: NextRequest) {
   let body: Body;
   try {
@@ -133,6 +141,9 @@ export async function POST(req: NextRequest) {
   const result = computeCompatibility(chartA, chartB, lang, relationship, {
     a: body.a.gender,
     b: body.b.gender,
+  }, {
+    a: body.a.name,
+    b: body.b.name,
   });
 
   const payload = {

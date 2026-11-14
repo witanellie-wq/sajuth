@@ -10,6 +10,7 @@ import { analyzeStrength } from "./strength";
 import { todayFortune, TODAY_PREFIX } from "./today";
 import { findSinsal, SINSAL_NAME, SINSAL_BODY, SINSAL_TITLE } from "./sinsal";
 import type { Lang } from "./i18n";
+import { personalRemedy } from "./remedy";
 
 export interface ReportSection {
   key: string;
@@ -218,6 +219,10 @@ export function interpret(chart: SajuChart, lang: Lang = "th"): ReportSection[] 
     body: today.body,
     locked: false,
   });
+
+  // 4.5 나의 보완 오행 & 개운 아이템(오행 팔찌·오행 티) — FREE (판매 연결)
+  const remedy = personalRemedy(chart, lang);
+  sections.push({ key: "remedy", title: remedy.title, body: remedy.body, locked: false });
 
   // 5-8. Locked premium sections. Real bodies live in PREMIUM_BY_DAY_MASTER
   // and are revealed by unlock(); here they stay hidden behind the blur.

@@ -72,6 +72,7 @@ export interface CompatData {
 }
 
 const COMPAT_EMOJI: Record<string, string> = {
+  remedy: "",
   marriage: "💍",
   conflict: "⚠️",
   longterm: "🌈",

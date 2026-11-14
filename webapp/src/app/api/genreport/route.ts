@@ -185,11 +185,13 @@ export async function POST(req: NextRequest) {
       if (result.generated) return NextResponse.json({ ok: true, already: true });
       const gen = sane(body.save);
       if (!gen) return NextResponse.json({ error: "bad_sections" }, { status: 400 });
-      const overview = result.sections?.find((s) => s.key === "overview");
+      const head = (result.sections ?? []).filter(
+        (s) => s.key === "overview" || s.key === "remedy"
+      );
       // Unpaid (pre-generated) reports stay locked/blurred until approval.
       const locked = !rec.paid;
       const sections = [
-        ...(overview ? [overview] : []),
+        ...head,
         ...gen.map((s, i) => ({ key: `gen${i + 1}`, title: s.title, body: s.body, locked })),
       ];
       await compatStore.updateResult(id, { ...result, sections, generated: true });

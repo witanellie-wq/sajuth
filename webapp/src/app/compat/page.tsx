@@ -1,5 +1,7 @@
 "use client";
 
+import { PLACES, PLACE_OTHER } from "@/lib/places";
+
 import { useState } from "react";
 import CompatView, { type CompatData } from "@/components/CompatView";
 import { saveHistory } from "@/components/history";
@@ -251,9 +253,10 @@ function PersonFields({
           onChange={(e) => onChange({ ...p, place: e.target.value })}
           className="w-full rounded-lg border border-peach/60 bg-cream px-3 py-2 outline-none focus:border-rosewood"
         >
-          <option value="th">{lang === "th" ? "🇹🇭 ประเทศไทย" : lang === "en" ? "🇹🇭 Thailand" : "🇹🇭 태국"}</option>
-          <option value="kr">{lang === "th" ? "🇰🇷 เกาหลี" : lang === "en" ? "🇰🇷 Korea" : "🇰🇷 한국"}</option>
-          <option value="none">{lang === "th" ? "🌍 อื่น ๆ" : lang === "en" ? "🌍 Other" : "🌍 기타"}</option>
+          {PLACES.map((pl) => (
+            <option key={pl.code} value={pl.code}>{pl.name[lang]}</option>
+          ))}
+          <option value={PLACE_OTHER.code}>{PLACE_OTHER.name[lang]}</option>
         </select>
       </label>
       <div className="mt-3 grid grid-cols-3 gap-3">

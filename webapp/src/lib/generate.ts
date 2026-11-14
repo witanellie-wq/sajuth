@@ -12,6 +12,7 @@ import type { ReportSection } from "./interpret";
 import { analyzeStrength } from "./strength";
 import { findSinsal } from "./sinsal";
 import { factSheet, ageOn } from "./myeongri";
+import { remedyFactPersonal, remedyFactCouple } from "./remedy";
 import type { Lang } from "./i18n";
 
 // 모델은 환경변수로 교체 가능 (Vercel: REPORT_MODEL).
@@ -95,7 +96,7 @@ const ROMANTIC_CATEGORIES: ReportCategory[] = [
   { label: "자녀운", spec: "아이를 낳는다면 어떤 기운의 아이인지, 양육 궁합만." },
   { label: "가족 인연", spec: "시댁·처가 등 양가와 주변 관계만." },
   { label: "장기 전망", spec: "권태기·위기 시점과 오래 가는 힘만." },
-  { label: "관계 지침", spec: "관계를 지키는 구체적 액션 플랜만." },
+  { label: "관계 지침", spec: "관계를 지키는 구체적 액션 플랜 + [검증된 사실]의 커플 개운 아이템(각자 보완석 커플 팔찌, 함께 마시는 공통 오행 블렌드 티)을 둘만의 루틴으로 자연스럽게 제안. 효능 표현 금지." },
   { label: "마무리", spec: "짧은 마무리 총평. 두 사람만의 개운 문구 한 줄 포함." },
 ];
 
@@ -109,7 +110,7 @@ const PLATONIC_CATEGORIES: ReportCategory[] = [
   { label: "금전 주의점", spec: "돈이 얽힐 때의 주의점만." },
   { label: "배울 점", spec: "서로에게 배울 점과 성장 포인트만." },
   { label: "장기 전망", spec: "장기적인 인연의 전망만." },
-  { label: "관계 지침", spec: "관계를 지키는 구체적 액션 플랜만." },
+  { label: "관계 지침", spec: "관계를 지키는 구체적 액션 플랜 + [검증된 사실]의 우정 팔찌(각자 보완석)·공통 오행 블렌드 티를 가볍게 제안. 효능 표현 금지." },
   { label: "마무리", spec: "짧은 마무리 총평. 두 사람만의 개운 문구 한 줄 포함." },
 ];
 
@@ -251,7 +252,7 @@ const READING_CATEGORIES: ReportCategory[] = [
   { label: "인간관계", spec: "나를 돕는 귀인의 기운과 관계 패턴만." },
   { label: "대운 흐름", spec: "[검증된 사실]의 대운 목록과 현재 대운만 근거로 10년 단위 인생 리듬. 대운 간지를 실제로 인용하고, 계산 불가면 간지 언급 없이 일반적 흐름만." },
   { label: "올해·내년", spec: "[검증된 사실]의 세운 간지(올해·내년)를 일간과의 관계로 풀어 올해와 내년 운만." },
-  { label: "개운법", spec: "용신 기반 행운 컬러·숫자·방향·습관 제안만." },
+  { label: "개운법", spec: "[검증된 사실]의 보완 오행 기준 행운 컬러·숫자·방향·습관 + 추천 아이템(오행 팔찌 원석, 오행 블렌드 티)을 생활 루틴으로 자연스럽게 제안. 효능·치료 표현 금지(라이프스타일 표현만)." },
   { label: "마무리", spec: "짧은 마무리 총평. 이 사람만의 개운 문구 한 줄 포함." },
 ];
 
@@ -283,6 +284,7 @@ function readingPrompt(
       gender: profile.gender,
       birth: { year: chart.solarUsed.y, month: chart.solarUsed.m, day: chart.solarUsed.d },
     }) +
+    `\n${remedyFactPersonal(chart)}` +
     `\n\n호칭 규칙: 의뢰인은 반드시 "${name}"(으)로 지칭하고, A나 '고객' 같은 임의 약칭을 만들지 마라. ` +
     `나이를 자연스럽게 활용하라(예: "${name}님은 지금 서른 즈음의…").` +
     ACCURACY_RULES;
@@ -408,6 +410,7 @@ function compatPrompt(
     factSheet(chartA, { gender: profiles.a?.gender, birth: birthOf(chartA) }) +
     `\n\n[검증된 사실 — ${nameB}]\n` +
     factSheet(chartB, { gender: profiles.b?.gender, birth: birthOf(chartB) }) +
+    `\n${remedyFactCouple(chartA, chartB, nameA, nameB)}` +
     `\n나이 차이: ${Math.abs(ageOn(birthOf(chartA)) - ageOn(birthOf(chartB)))}살 — 관계 해석에 자연스럽게 활용하라.\n\n` +
     `관계: ${relationship} / 궁합 점수: ${result.score}% → 표현 방향: ` +
     band(result.score, "노력으로 완성해가는 인연", "편안하게 맞춰가는 인연", "서로 강하게 끌리는 인연") +
