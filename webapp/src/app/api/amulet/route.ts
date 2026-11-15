@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { amuletStore, store, compatStore } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 // Amulet (ยันต์/부적) pack: 3 credits for AMULET_PACK_PRICE_THB.
 // Reading unlock costs 1 amulet, compat costs 2.
 

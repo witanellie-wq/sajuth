@@ -276,7 +276,7 @@ function readingPrompt(
     `[의뢰인] ${name} (${profile.gender === "F" ? "여" : profile.gender === "M" ? "남" : "성별 미상"})\n` +
     `사주: ${pillarsOf(chart)}\n` +
     `일간: ${chart.dayMaster} / 오행 분포: ${JSON.stringify(chart.elementCounts)}\n` +
-    `신강약: ${s.bandLabel} (지지율 ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
+    `신강약: ${s.bandLabel} (내부 지표, 숫자는 본문에 쓰지 말 것: ${s.supportRatio.toFixed(2)}) / 용신: ${s.favorable.join(", ")}\n` +
     `신살: ${sinsal.length ? sinsal.join(", ") : "없음"} (도화=매력, 홍염=달콤한 유혹, 화개=예술·고독, 역마=이동·변화 — 있으면 해석에 반드시 반영)\n` +
     `분석 노트: ${s.notes.join(" | ") || "없음"}\n\n` +
     `[검증된 사실 — 엔진 계산값. 십신·12운성·신살·대운·세운은 여기 있는 것만 인용]\n` +

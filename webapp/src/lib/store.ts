@@ -261,7 +261,12 @@ function getSupabase(): any {
   // Lazy require so the dep isn't pulled when unconfigured.
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { createClient } = require("@supabase/supabase-js");
-  sbClient = createClient(url, key, { auth: { persistSession: false } });
+  // Next.js caches server-side fetch() by default — DB reads must never be
+  // served from that cache (a paid/generated reading looked locked).
+  sbClient = createClient(url, key, {
+    auth: { persistSession: false },
+    global: { fetch: (input: RequestInfo | URL, init?: RequestInit) => fetch(input, { ...init, cache: "no-store" }) },
+  });
   return sbClient;
 }
 
