@@ -22,6 +22,7 @@ export async function GET() {
     ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ? "set" : "NOT SET",
     PROMPTPAY_TARGET: process.env.PROMPTPAY_TARGET ? "set" : "NOT SET (QR uses dummy)",
     ADMIN_SECRET: process.env.ADMIN_SECRET ? "set" : "NOT SET (admin disabled)",
+    EASYSLIP_API_KEY: process.env.EASYSLIP_API_KEY ? "set (slip auto-verify ON)" : "NOT SET (manual confirm only)",
   };
 
   const tables: Record<string, string> = {};
