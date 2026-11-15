@@ -5,6 +5,8 @@ import { unlock, interpret } from "@/lib/interpret";
 import { todayFortune, TODAY_PREFIX } from "@/lib/today";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
 
+export const dynamic = "force-dynamic";
+
 // Language-switch on a paid record may generate the long report on demand.
 export const maxDuration = 60;
 

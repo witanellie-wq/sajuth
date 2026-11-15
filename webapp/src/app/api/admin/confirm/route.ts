@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { store, compatStore, amuletStore } from "@/lib/store";
 
+export const dynamic = "force-dynamic";
+
 // GET /api/admin/confirm?kind=reading|compat&id=<uuid>&key=<ADMIN_SECRET>
 //
 // Owner-only: after checking the bank app for the incoming PromptPay credit

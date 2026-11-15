@@ -6,6 +6,8 @@ import { store } from "@/lib/store";
 import { validSijin } from "@/lib/sijin";
 import { DISCLAIMER, pickLang } from "@/lib/i18n";
 
+export const dynamic = "force-dynamic";
+
 // POST /api/saju — body: { year, month, day, hour?, minute?, longitude?, lang?, rewrite? }
 // Computes the chart, interprets it in the requested language, persists the
 // reading, and returns it with a shareable id. Persistence failure is NON-fatal:

@@ -9,6 +9,8 @@ import {
 import type { Compatibility } from "@/lib/compat";
 import { pickLang } from "@/lib/i18n";
 
+export const dynamic = "force-dynamic";
+
 // Client-orchestrated long-report generation. One serverless call per PART
 // (one category, ~20s) so the report can never hit the 60s function cap.
 //
