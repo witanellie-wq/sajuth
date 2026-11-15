@@ -35,8 +35,13 @@ export default function QrSave({ qr, amount, lang }: { qr: string; amount: numbe
     try {
       const blob = await (await fetch(qr)).blob();
       const file = new File([blob], name, { type: "image/png" });
+      // Android/PC: 바로 파일 다운로드(갤러리·다운로드 폴더에 저장).
+      // iOS Safari는 다운로드가 '파일' 앱으로 가서 사진 앨범에 안 남으므로
+      // iOS에서만 공유창('이미지 저장')을 쓴다.
+      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
       const nav = navigator as Navigator & { canShare?: (d: unknown) => boolean };
-      if (nav.canShare && nav.canShare({ files: [file] })) {
+      if (isIOS && nav.canShare && nav.canShare({ files: [file] })) {
         await nav.share({ files: [file], title: "PromptPay QR" });
         setDone(true);
         return;

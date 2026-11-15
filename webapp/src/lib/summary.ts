@@ -127,7 +127,7 @@ export interface SajuSummary {
   strongest: { element: Element; pct: number };
   afterRel: { element: Element; pct: number; changed: boolean };
   relations: Relation[];
-  gyeok: { key: GyeokKey; name: string; basis: string };
+  gyeok: { key: GyeokKey; name: string; basis: string; sub?: { key: GyeokKey; name: string } };
   yong: Element;
   hee: Element[];
   gi: Element;
@@ -224,6 +224,7 @@ export function summarize(chart: SajuChart, lang: Lang = "th"): SajuSummary {
   const visibleStems = [chart.year.gan, chart.month.gan, ...(chart.hour ? [chart.hour.gan] : [])];
   let gyeok: GyeokKey;
   let basis: string;
+  let sub: GyeokKey | undefined;
   if (ROK[dm] === mz) {
     gyeok = "geonrok";
     basis = `${mz}`;
@@ -231,16 +232,31 @@ export function summarize(chart: SajuChart, lang: Lang = "th"): SajuSummary {
     gyeok = "yangin";
     basis = `${mz}`;
   } else {
-    const hs = [...HIDDEN[mz]].reverse(); // 정기 우선
-    let pick: string | null = null;
-    for (const h of hs) {
-      const tg = tenGodOfStem(dm, h);
-      if (visibleStems.includes(h) && TG_TO_GYEOK[tg]) { pick = h; break; }
-    }
-    if (!pick) pick = hs[0];
-    const tg = tenGodOfStem(dm, pick);
-    gyeok = TG_TO_GYEOK[tg] ?? "wolgeop";
+    // 월지 지장간 중 천간에 투출한 것을 격으로 잡는다.
+    //  1) 정기가 투출했으면 정기
+    //  2) 아니면 투출 위치가 월령에 가까운 순서: 월간 > 연간 > 시간
+    //     (같은 자리면 중기 > 여기)
+    //  3) 투출이 없으면 정기
+    // 정기의 십신이 주격과 다르면 '보조격'으로 함께 표시한다.
+    const hs = [...HIDDEN[mz]].reverse(); // [정기, 중기, 여기]
+    const main = hs[0];
+    const posOrder: Array<[string, number]> = [
+      [chart.month.gan, 0], [chart.year.gan, 1], ...(chart.hour ? [[chart.hour.gan, 2] as [string, number]] : []),
+    ];
+    const cands: Array<{ h: string; pos: number; rank: number }> = [];
+    hs.forEach((h, rank) => {
+      if (!TG_TO_GYEOK[tenGodOfStem(dm, h)]) return; // 비겁 투출은 격 아님
+      const hit = posOrder.find(([g]) => g === h);
+      if (hit) cands.push({ h, pos: hit[1], rank });
+    });
+    let pick: string;
+    if (cands.some((c) => c.rank === 0)) pick = main;
+    else if (cands.length) pick = cands.sort((x, y) => x.pos - y.pos || x.rank - y.rank)[0].h;
+    else pick = main;
+    gyeok = TG_TO_GYEOK[tenGodOfStem(dm, pick)] ?? "wolgeop";
     basis = `${mz}→${pick}`;
+    const mainG = TG_TO_GYEOK[tenGodOfStem(dm, main)];
+    if (mainG && mainG !== gyeok) sub = mainG;
   }
 
   // ── 용신·희신·기신 (strength.ts와 동일 기준) ──
@@ -261,7 +277,7 @@ export function summarize(chart: SajuChart, lang: Lang = "th"): SajuSummary {
     strongest,
     afterRel: { ...after, changed: after.element !== strongest.element },
     relations,
-    gyeok: { key: gyeok, name: GYEOK_NAME[gyeok][lang], basis },
+    gyeok: { key: gyeok, name: GYEOK_NAME[gyeok][lang], basis, sub: sub ? { key: sub, name: GYEOK_NAME[sub][lang] } : undefined },
     yong,
     hee,
     gi,
@@ -279,7 +295,7 @@ export function summaryFact(chart: SajuChart): string {
     })
     .join(", ");
   return [
-    `- 격국: ${s.gyeok.name} (근거 ${s.gyeok.basis})`,
+    `- 격국: ${s.gyeok.name}${s.gyeok.sub ? ` (보조격 ${s.gyeok.sub.name})` : ""} (근거 월지 ${s.gyeok.basis})`,
     `- 용신: ${s.elName[s.yong]} / 희신: ${s.hee.map((e) => s.elName[e]).join("·")} / 기신: ${s.elName[s.gi]}`,
     `- 가장 강한 오행(지장간·월령 가중): ${s.elName[s.strongest.element]} ${s.strongest.pct}%` +
       (s.afterRel.changed ? ` → 합·충 반영 후 ${s.elName[s.afterRel.element]} ${s.afterRel.pct}%` : ""),
