@@ -197,11 +197,32 @@ async function callChunk(
     if (out.some((s) => s.body.trim().length < 120 || s.body.trim() === s.title.trim())) {
       return null;
     }
+    if (out.some((s) => wrongLanguage(s.title + " " + s.body, lang))) {
+      console.warn("report chunk in wrong language — retrying");
+      return null;
+    }
     return out;
   } catch (err) {
     console.error("report chunk generation failed:", err);
     return null;
   }
+}
+
+const THAI_NAMING =
+  ` 태국어 표기 규칙: 지지는 한자 음역(เจี๊ยะ·ฮว่าย·แก้ 등)을 쓰지 말고 태국 12지 이름으로 ` +
+  `(子ชวด 丑ฉลู 寅ขาล 卯เถาะ 辰มะโรง 巳มะเส็ง 午มะเมีย 未มะแม 申วอก 酉ระกา 戌จอ 亥กุน), ` +
+  `천간은 오행으로 풀어 써라(예: 丙 = ไฟหยาง/ดวงอาทิตย์). 간지 한자는 괄호 안에만 둔다. ` +
+  `한국어 문장·한국어 제목을 쓰지 마라(명리 용어는 괄호 안 한글 1~2단어만 허용).`;
+
+// 출력 언어 검사: 다른 언어(특히 한국어)로 써버린 섹션은 버리고 재시도시킨다.
+function wrongLanguage(text: string, lang: Lang): boolean {
+  const letters = text.replace(/[\s\d\p{P}\p{S}]/gu, "");
+  if (!letters) return true;
+  const hangul = (letters.match(/[\uAC00-\uD7A3]/g) ?? []).length;
+  const thai = (letters.match(/[\u0E00-\u0E7F]/g) ?? []).length;
+  if (lang === "th") return thai / letters.length < 0.5 || hangul / letters.length > 0.12;
+  if (lang === "en") return hangul / letters.length > 0.12 || thai / letters.length > 0.12;
+  return hangul / letters.length < 0.3; // ko
 }
 
 /**
@@ -269,7 +290,8 @@ function readingPrompt(
     `너는 20년 경력의 명리학(사주) 상담가이자 감성 카피라이터다. ` +
     `따뜻하고 다정하며, 명리 용어(상생·조후·용신·억부·합·충 등)를 자연스럽게 녹여 ` +
     `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
-    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
+    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.` +
+    (lang === "th" ? THAI_NAMING : "");
   const sinsal = findSinsal(chart);
   const context =
     `사주 풀이 리포트를 작성해줘.\n\n` +
@@ -388,7 +410,8 @@ function compatPrompt(
     `너는 20년 경력의 명리학(사주) 상담가이자 감성 카피라이터다. ` +
     `따뜻하고 다정하며, 명리 용어(상생·조후·용신·합·충 등)를 자연스럽게 녹여 ` +
     `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
-    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
+    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.` +
+    (lang === "th" ? THAI_NAMING : "");
 
   // Engine findings (배우자성·천을귀인·신살·암합·조후…) — the long report must
   // build on these, not contradict them.
