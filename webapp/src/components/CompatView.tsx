@@ -1,6 +1,7 @@
 "use client";
 
 import ReportBody from "./ReportBody";
+import SlipUpload from "./SlipUpload";
 
 import { useEffect, useRef, useState } from "react";
 import { STEM_STYLE, BRANCH_STYLE, HIDDEN_STEMS } from "./hanStyles";
@@ -698,6 +699,20 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
             <p className="mt-1 text-sm text-ink/70">PromptPay · {pay.amount} THB</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pay.qr} alt="PromptPay QR" className="mx-auto my-3 w-56" />
+            <SlipUpload
+              kind={payKind === "pack" ? "pack" : "compat"}
+              id={id ?? undefined}
+              lang={uiLang}
+              onPaid={async ({ code }) => {
+                if (payKind === "pack" && code) {
+                  setPay(null);
+                  setClaim({ ref: code, isPack: true, msg: tt.amuletReady });
+                  if (id) await redeemAmulet(code);
+                  return;
+                }
+                if (id) window.location.href = `/compat/result/${id}`;
+              }}
+            />
             <div className="mt-1 space-y-2 text-left">
               <label className="block text-xs text-ink/60">
                 {tt.payer}
