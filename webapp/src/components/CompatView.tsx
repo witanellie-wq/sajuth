@@ -675,6 +675,7 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
       <div className="mt-4 space-y-3">
         {sections
           .filter((s) => s.key !== "overview")
+          .sort((x, y) => Number(x.key === "remedy") - Number(y.key === "remedy"))
           .map((s) => (
             <div key={s.key} className="rounded-2xl bg-white p-5 shadow-sm ring-1 ring-peach/40">
               <h3 className="text-sm font-semibold text-rosewood">
