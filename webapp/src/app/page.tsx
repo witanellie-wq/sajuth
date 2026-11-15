@@ -1,6 +1,7 @@
 "use client";
 
 import { PLACES, PLACE_OTHER } from "@/lib/places";
+import ModeTabs from "@/components/ModeTabs";
 import { SIJIN } from "@/lib/sijin";
 
 import { useState } from "react";
@@ -177,12 +178,7 @@ export default function Home() {
           ดวงซาจู
         </h1>
         <p className="mt-2 text-sm text-ink/70">{t.tagline}</p>
-        <a
-          href="/compat"
-          className="mt-3 inline-block rounded-full border border-peach/60 px-4 py-1.5 text-sm text-rosewood"
-        >
-          {t.compat}
-        </a>
+        <ModeTabs active="saju" lang={lang} />
       </header>
 
       <form

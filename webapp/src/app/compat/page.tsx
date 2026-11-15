@@ -7,6 +7,7 @@ import { useState } from "react";
 import CompatView, { type CompatData } from "@/components/CompatView";
 import { saveHistory } from "@/components/history";
 import { useEffect } from "react";
+import ModeTabs from "@/components/ModeTabs";
 
 type Lang = "th" | "en" | "ko";
 
@@ -134,6 +135,7 @@ export default function Compat() {
         <p className="mt-2 text-sm text-ink/70">
           {tr("ดูดวงความเข้ากัน (궁합) ของคุณสองคน", "Couple compatibility (궁합) for the two of you", "두 사람의 궁합 보기")}
         </p>
+        <ModeTabs active="compat" lang={lang} />
       </header>
 
       <form
