@@ -804,7 +804,7 @@ export function computeCompatibility(
         );
         // 일지가 끼면 더 아프고, 년지는 가볍다. 숨은 합이 있으면 조금 덜 아프다.
         const base = i === 2 || j === 2 ? 5 : i === 0 && j === 0 ? 2 : 4;
-        chongPenalty += withAmhap ? base - 1 : base;
+        chongPenalty += withAmhap ? Math.max(1, base - 3) : base; // 숨은 합 있는 충 = 애증, 가볍게
       }
   score -= Math.min(9, chongPenalty);
 
@@ -857,8 +857,8 @@ export function computeCompatibility(
       }
     }
   }
-  // 조후·과다제어·배우자성 풍부는 대부분 같은 원인(한쪽의 물/불 과다) → 상한 13.
-  score += Math.min(13, climateGroup);
+  // 조후·과다제어·배우자성 풍부는 대부분 같은 원인(한쪽의 물/불 과다) → 상한 18.
+  score += Math.min(18, climateGroup);
 
   // 11. 천을귀인 — the partner's branches carry MY noble star → the partner
   // becomes my benefactor (and treats me with care).
