@@ -15,6 +15,16 @@ export default function RootLayout({
     <html lang="th">
       <head>
         {/* Thai + hanja display font. Self-host in production per CSP. */}
+        {process.env.NEXT_PUBLIC_ADSENSE_CLIENT && (
+          <>
+            <meta name="google-adsense-account" content={process.env.NEXT_PUBLIC_ADSENSE_CLIENT} />
+            <script
+              async
+              src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_CLIENT}`}
+              crossOrigin="anonymous"
+            />
+          </>
+        )}
         <link
           href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;600;700&display=swap"
           rel="stylesheet"
@@ -22,6 +32,9 @@ export default function RootLayout({
       </head>
       <body className="font-thai bg-gradient-to-b from-pink-50 via-cream to-purple-50 text-ink antialiased min-h-screen">
         {children}
+        <footer className="relative z-10 pb-8 text-center text-xs text-white/50">
+          <a href="/privacy" className="underline">นโยบายความเป็นส่วนตัว · Privacy</a>
+        </footer>
       </body>
     </html>
   );

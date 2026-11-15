@@ -73,10 +73,11 @@ export function findSinsal(chart: SajuChart): SinsalKey[] {
   // 진도화·진화개 positions: 일지 + 시지(시주를 아는 경우에 한함).
   const prominent = [chart.day.zhi, ...(chart.hour ? [chart.hour.zhi] : [])];
   const found = new Set<SinsalKey>();
+  // 도화살: 원국에 子·午·卯·酉(왕지)가 하나라도 있으면 도화. (일지·시지면 더 강함)
+  if (branches.some((b) => "子午卯酉".includes(b))) found.add("dohwa");
   for (const basis of [chart.year.zhi, chart.day.zhi]) {
     const stars = GROUP_STARS[basis];
     if (!stars) continue;
-    if (prominent.includes(stars.dohwa)) found.add("dohwa");
     if (prominent.includes(stars.hwagae)) found.add("hwagae");
     if (branches.includes(stars.yeokma)) found.add("yeokma");
   }
@@ -164,20 +165,6 @@ Object.assign(SINSAL_BODY, {
     ko: "원진살이 있어요 — 감수성이 섬세해서 사람 마음을 잘 읽고 공감을 잘해요. 작은 일을 오래 마음에 담아두지만 않으면 돼요.",
   },
 } as Partial<Record<SinsalKey, Record<Lang, string>>>);
-
-// 인기 신살(도화·홍염)은 없어도 "없음 + 나만의 매력"으로 항상 보여준다 — 콘텐츠(바람기·도화살 확인)와 이어지게.
-export const CHARM_ABSENT: Record<"dohwa" | "hongyeom", Record<Lang, string>> = {
-  dohwa: {
-    th: "🌸 ดาวเสน่ห์ (도화살) — ไม่มีในดวง\nเสน่ห์ของคุณไม่ใช่แบบดึงดูดสายตาตั้งแต่แรกเห็น แต่เป็นเสน่ห์แบบยิ่งรู้จักยิ่งหลง คนที่อยู่ใกล้คุณจะผูกพันนานและจริงใจ",
-    en: "🌸 Peach-blossom star (도화살) — not in your chart\nYour charm isn't the love-at-first-sight kind; it's the kind that grows the longer people know you, so the bonds you form run deep and loyal.",
-    ko: "🌸 도화살 — 없음\n첫눈에 시선을 끄는 매력보다, 알면 알수록 빠져드는 매력이에요. 곁에 있는 사람과 오래 깊게 가는 인연이 많아요.",
-  },
-  hongyeom: {
-    th: "🔥 ดาวเสน่หายั่วใจ (홍염살) — ไม่มีในดวง\nความรักของคุณไม่วูบวาบ แต่มั่นคงและน่าไว้ใจ คนที่ได้รักคุณจะรู้สึกปลอดภัย",
-    en: "🔥 Red-charm star (홍염살) — not in your chart\nYour love isn't fleeting flame but steady warmth; whoever you love feels safe with you.",
-    ko: "🔥 홍염살 — 없음\n금방 타오르는 연애보다 믿음직하고 안정적인 사랑을 하는 타입이에요. 연인이 가장 편안하게 느끼는 사람이에요.",
-  },
-};
 
 export const SINSAL_TITLE: Record<Lang, string> = {
   th: "⭐ ดาวพิเศษในดวง (신살)",

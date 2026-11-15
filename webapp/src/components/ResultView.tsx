@@ -4,6 +4,7 @@ import ReportBody from "./ReportBody";
 import SlipUpload from "./SlipUpload";
 import SajuSummaryCard from "./SajuSummaryCard";
 import QrSave from "./QrSave";
+import AdSlot from "./AdSlot";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -786,6 +787,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
         </div>
       )}
 
+      <AdSlot />
       <p className="mt-6 text-center text-xs text-ink/40">{disclaimer}</p>
     </section>
   );
