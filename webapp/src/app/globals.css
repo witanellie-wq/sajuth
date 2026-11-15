@@ -11,16 +11,16 @@
   user-select: none;
 }
 
-/* ── 신비로운 밤하늘 테마 (프레임·카드 구성은 그대로, 분위기만) ───────────── */
+/* ── 신비로운 파스텔 테마 (원래 핑크 유지, 밝게 · 프레임·카드 구성 그대로) ── */
 body {
   background:
-    radial-gradient(1200px 600px at 85% -10%, rgba(232, 93, 158, 0.35), transparent 60%),
-    radial-gradient(900px 500px at 0% 30%, rgba(124, 77, 255, 0.28), transparent 60%),
-    radial-gradient(800px 600px at 50% 110%, rgba(250, 190, 90, 0.18), transparent 60%),
-    linear-gradient(180deg, #160b26 0%, #24103a 45%, #311447 100%) !important;
+    radial-gradient(1100px 520px at 90% -10%, rgba(255, 160, 205, 0.55), transparent 60%),
+    radial-gradient(900px 520px at -5% 35%, rgba(190, 168, 255, 0.45), transparent 60%),
+    radial-gradient(800px 600px at 50% 110%, rgba(255, 214, 140, 0.35), transparent 60%),
+    linear-gradient(180deg, #fff2f8 0%, #f8eeff 55%, #fff6fb 100%) !important;
   background-attachment: fixed !important;
 }
-/* 별빛 */
+/* 반짝이 (금빛·핑크) */
 body::before {
   content: "";
   position: fixed;
@@ -28,33 +28,33 @@ body::before {
   pointer-events: none;
   z-index: 0;
   background-image:
-    radial-gradient(1.5px 1.5px at 20px 30px, #fff, transparent),
-    radial-gradient(1px 1px at 120px 80px, #ffe8a8, transparent),
-    radial-gradient(1.2px 1.2px at 200px 160px, #fff, transparent),
-    radial-gradient(1px 1px at 60px 200px, #f7c6e0, transparent),
-    radial-gradient(1.6px 1.6px at 260px 40px, #fff6d6, transparent),
-    radial-gradient(1px 1px at 170px 240px, #fff, transparent);
+    radial-gradient(2px 2px at 20px 30px, #f0b94a, transparent),
+    radial-gradient(1.5px 1.5px at 120px 80px, #ff7eb6, transparent),
+    radial-gradient(1.8px 1.8px at 200px 160px, #c9a0ff, transparent),
+    radial-gradient(1.5px 1.5px at 60px 200px, #f0b94a, transparent),
+    radial-gradient(2px 2px at 260px 40px, #ff9ccf, transparent),
+    radial-gradient(1.5px 1.5px at 170px 240px, #e8b04a, transparent);
   background-size: 300px 280px;
-  opacity: 0.75;
+  opacity: 0.7;
   animation: ds-twinkle 6s ease-in-out infinite alternate;
 }
 /* 달 */
 body::after {
   content: "";
   position: fixed;
-  top: -60px;
-  right: -60px;
-  width: 260px;
-  height: 260px;
+  top: -50px;
+  right: -50px;
+  width: 220px;
+  height: 220px;
   border-radius: 50%;
   pointer-events: none;
   z-index: 0;
-  background: radial-gradient(circle at 35% 35%, #fff7e0 0%, #ffd98a 30%, rgba(255, 200, 120, 0.25) 55%, transparent 70%);
-  opacity: 0.55;
+  background: radial-gradient(circle at 35% 35%, #fffaf0 0%, #ffe3a3 35%, rgba(255, 205, 130, 0.25) 58%, transparent 72%);
+  opacity: 0.8;
 }
 @keyframes ds-twinkle {
-  from { opacity: 0.45; }
-  to { opacity: 0.9; }
+  from { opacity: 0.4; }
+  to { opacity: 0.85; }
 }
 @media (prefers-reduced-motion: reduce) {
   body::before { animation: none; }
@@ -64,48 +64,26 @@ main { position: relative; z-index: 1; }
 /* 로고: 금빛→핑크 그라데이션 + ✦ */
 main > header a.text-3xl,
 main > header h1 {
-  background: linear-gradient(90deg, #ffd98a, #ff9ccf 50%, #e85d9e);
+  background: linear-gradient(90deg, #d99a22, #e85d9e 55%, #a55be0);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent !important;
-  text-shadow: 0 0 24px rgba(255, 156, 207, 0.45);
 }
 main > header a.text-3xl::before,
-main > header h1::before { content: "✦ "; -webkit-text-fill-color: #ffd98a; }
+main > header h1::before { content: "✦ "; -webkit-text-fill-color: #e0a52e; }
 main > header a.text-3xl::after,
-main > header h1::after { content: " ✦"; -webkit-text-fill-color: #ffd98a; }
-
-/* 카드 밖 글자는 밝게 */
-main > header p,
-main > p,
-main > section > p { color: rgba(237, 226, 255, 0.78) !important; }
-main > header a.rounded-full {
-  color: #ffd98a !important;
-  border-color: rgba(255, 217, 138, 0.5) !important;
-  background: rgba(255, 255, 255, 0.06);
-}
-
-/* 언어 토글 (카드 밖) */
-main > div .rounded-full.border,
-main > section > div:first-child .rounded-full.border {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 217, 138, 0.45) !important;
-}
-main > div .rounded-full.border button.text-ink\/60,
-main > section > div:first-child .rounded-full.border button.text-ink\/60 {
-  color: rgba(237, 226, 255, 0.85) !important;
-}
+main > header h1::after { content: " ✦"; -webkit-text-fill-color: #e0a52e; }
 
 /* 카드: 은은한 금빛 테두리 + 핑크 빛무리 */
 main .rounded-3xl.bg-white,
 main .rounded-2xl.bg-white,
 main .rounded-3xl.bg-violet-50,
 main .rounded-2xl.bg-violet-50 {
-  box-shadow: 0 0 0 1px rgba(255, 217, 138, 0.35), 0 8px 40px rgba(232, 93, 158, 0.28) !important;
+  box-shadow: 0 0 0 1px rgba(240, 185, 74, 0.35), 0 8px 30px rgba(232, 93, 158, 0.18) !important;
   background-image: linear-gradient(180deg, #fffafd, #fbf5ff);
 }
 /* 굵은 테두리 프레임 카드: 그림자를 핑크 + 금빛 광채로 */
 main [class*="shadow-[4px_4px_0"],
 main [class*="shadow-[5px_5px_0"] {
-  box-shadow: 4px 4px 0 #e85d9e, 0 0 40px rgba(255, 217, 138, 0.35) !important;
+  box-shadow: 4px 4px 0 #e85d9e, 0 0 30px rgba(255, 200, 120, 0.3) !important;
 }
