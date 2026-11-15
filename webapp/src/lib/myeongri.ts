@@ -176,9 +176,11 @@ export interface DaeunStep {
 }
 
 /**
- * 대운 목록. 성별이 없으면 순행·역행을 정할 수 없으므로 null.
- * lunar-javascript: EightChar.getYun(1=남, 0=여).getDaYun() — index 0은
- * 대운 시작 전 구간(간지 없음)이므로 건너뛴다.
+ * 대운 목록 (한국식). 성별이 없으면 순행·역행을 정할 수 없으므로 null.
+ * - 대운수: 생일~절입일 거리(3일=1년)를 반올림 (예: 6년 9개월 → 7대운). 0이면 1.
+ * - 나이는 한국 만세력 관례대로 '한국나이(세는 나이)' 기준: 대운수, +10, +20 …
+ * - startYear: 그 한국나이가 되는 해 (출생연도 + 나이 − 1).
+ * lunar-javascript: EightChar.getYun(1=남, 0=여) — getDaYun() index 0은 대운 전 구간.
  */
 export function computeDaeun(
   solarUsed: SajuChart["solarUsed"],
@@ -193,28 +195,27 @@ export function computeDaeun(
       solarUsed.y, solarUsed.m, solarUsed.d, solarUsed.h, solarUsed.min, 0
     ).getLunar().getEightChar();
     const yun = ec.getYun(gender === "M" ? 1 : 0);
-    const list = yun.getDaYun(count + 1) as Array<{
-      getStartAge(): number;
-      getStartYear(): number;
-      getGanZhi(): string;
-    }>;
+    const su = Math.max(
+      1,
+      Math.round(yun.getStartYear() + yun.getStartMonth() / 12 + yun.getStartDay() / 365)
+    );
+    const list = yun.getDaYun(count + 1) as Array<{ getGanZhi(): string }>;
     return list
       .filter((d) => d.getGanZhi())
-      .map((d) => ({
-        startAge: d.getStartAge(),
-        startYear: d.getStartYear(),
-        pillar: d.getGanZhi(),
-      }));
+      .map((d, i) => {
+        const startAge = su + 10 * i;
+        return { startAge, startYear: solarUsed.y + startAge - 1, pillar: d.getGanZhi() };
+      });
   } catch {
     return null;
   }
 }
 
-/** 지금 나이에 해당하는 대운. */
-export function currentDaeun(list: DaeunStep[] | null, age: number): DaeunStep | null {
+/** 지금 한국나이에 해당하는 대운. */
+export function currentDaeun(list: DaeunStep[] | null, koreanAge: number): DaeunStep | null {
   if (!list?.length) return null;
   let cur: DaeunStep | null = null;
-  for (const d of list) if (d.startAge <= age) cur = d;
+  for (const d of list) if (d.startAge <= koreanAge) cur = d;
   return cur;
 }
 
@@ -274,13 +275,17 @@ export function factSheet(
   );
   const daeun = computeDaeun(chart.solarUsed, opts.gender);
   if (daeun) {
-    const cur = currentDaeun(daeun, age);
+    const ictY = new Date(now.getTime() + 7 * 3600_000).getUTCFullYear();
+    const koreanAge = ictY - opts.birth.year + 1;
+    const cur = currentDaeun(daeun, koreanAge);
+    lines.push(`한국나이: ${koreanAge}세 (대운은 한국나이 기준, 대운수 ${daeun[0].startAge})`);
     lines.push(
-      `대운(10년 단위, 시작 나이): ${daeun.map((d) => `${d.startAge}세 ${d.pillar}`).join(" → ")}`
+      `대운(10년 단위): ${daeun.map((d) => `${d.pillar} ${d.startYear}~${d.startYear + 9}년(한국나이 ${d.startAge}~${d.startAge + 9}세)`).join(" → ")}`
     );
     lines.push(
-      `현재 대운: ${cur ? `${cur.pillar} (${cur.startAge}세~${cur.startAge + 9}세)` : "대운 시작 전"}`
+      `현재 대운: ${cur ? `${cur.pillar} ${cur.startYear}~${cur.startYear + 9}년 (${ictY - cur.startYear + 1}년째)` : "대운 시작 전"}`
     );
+    lines.push(`대운 서술 규칙: 본문에서 대운 시기는 나이가 아니라 연도(예: 2024~2033년)로만 써라. 나이 계산법이 나라마다 달라 혼동된다.`);
   } else {
     lines.push(`대운: 성별 미입력으로 계산 불가 — 대운 간지·시기를 지어내지 말고 일반적 흐름만 서술`);
   }
