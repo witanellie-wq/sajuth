@@ -217,8 +217,26 @@ const THAI_NAMING =
   `천간은 오행으로 풀어 써라(예: 丙 = ไฟหยาง/ดวงอาทิตย์). 간지 한자는 괄호 안에만 둔다. ` +
   `한국어 문장·한국어 제목을 쓰지 마라(명리 용어는 괄호 안 한글 1~2단어만 허용).`;
 
+// 언어별 표기 규칙: 본문에 한자만 덩그러니 쓰지 않고 각 언어로 풀어 쓴다.
+function scriptRules(lang: Lang): string {
+  if (lang === "th") return THAI_NAMING +
+    ` 십신·신살·12운성도 태국어 뜻으로 풀어 써라(예: 식신 → ดาวแห่งการสร้างสรรค์, 백호살 → ดาวเสือขาว, 천을귀인 → ดาวผู้อุปถัมภ์). ` +
+    `한자(丙戌·食神·白虎殺 등)를 문장 안에 단독으로 쓰지 마라. 꼭 필요하면 태국어 뒤 괄호 안에 섹션당 1회만.`;
+  if (lang === "en") return ` Script rule: write every term in English (e.g. "Byeong-sul day pillar", "Output star (Siksin)", "White Tiger star"). ` +
+    `Never drop bare Chinese characters (丙戌, 食神, 白虎殺) into a sentence; at most once per section in parentheses after the English.`;
+  return ` 한자 표기 규칙: 본문은 한글로 쓴다. 간지·십신·신살은 한글로(병술 일주, 계해 월주, 식신, 일지, 백호살, 화개살, 천을귀인). ` +
+    `한자를 단독으로 쓰지 마라(丙戌 일주 ✗, 食神 ✗, 白虎殺 ✗ → 병술 일주, 식신, 백호살). 꼭 필요하면 한글 뒤 괄호 안에 섹션당 처음 1회만(예: 병술(丙戌)).`;
+}
+
+// 괄호 밖에 한자가 많이 남은 섹션은 재시도시킨다.
+function tooMuchHanja(text: string): boolean {
+  const outside = text.replace(/\([^)]*\)/g, "");
+  return (outside.match(/[\u4E00-\u9FFF]/g) ?? []).length > 6;
+}
+
 // 출력 언어 검사: 다른 언어(특히 한국어)로 써버린 섹션은 버리고 재시도시킨다.
 function wrongLanguage(text: string, lang: Lang): boolean {
+  if (tooMuchHanja(text)) return true;
   const letters = text.replace(/[\s\d\p{P}\p{S}]/gu, "");
   if (!letters) return true;
   const hangul = (letters.match(/[\uAC00-\uD7A3]/g) ?? []).length;
@@ -242,8 +260,8 @@ export async function translateSection(
   if (!c) return null;
   const prompt =
     `다음 사주 해석 섹션을 ${LANG_NAME[lang]}(으)로 번역해줘. ` +
-    `의미와 정보량, 문단 구분(빈 줄), 이모지를 그대로 유지하고, 간지 한자(예: 丙戌, 乙亥)는 그대로 두되 ` +
-    `명리 용어는 ${LANG_NAME[lang]} 독자가 이해할 수 있게 자연스럽게 옮겨라. 요약하거나 줄이지 마라. ` +
+    `의미와 정보량, 문단 구분(빈 줄), 이모지를 그대로 유지하고, ` +
+    `명리 용어는 ${LANG_NAME[lang]} 독자가 이해할 수 있게 자연스럽게 옮겨라. 요약하거나 줄이지 마라.` + scriptRules(lang) + ` ` +
     `출력은 반드시 JSON 하나만: {"title":"...","body":"..."}\n\n` +
     `[제목] ${title}\n[본문]\n${body}`;
   try {
@@ -258,6 +276,7 @@ export async function translateSection(
     if (!p?.title || !p?.body) return null;
     // Reject a degenerate/placeholder translation so the retry loop re-runs it.
     if (String(p.body).trim().length < 120) return null;
+    if (wrongLanguage(String(p.title) + " " + String(p.body), lang)) return null;
     return { title: String(p.title).slice(0, 200), body: String(p.body) };
   } catch (err) {
     console.error("section translation failed:", err);
@@ -294,7 +313,7 @@ function readingPrompt(
     `따뜻하고 다정하며, 명리 용어(상생·조후·용신·억부·합·충 등)를 자연스럽게 녹여 ` +
     `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
     `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.` +
-    (lang === "th" ? THAI_NAMING : "");
+    scriptRules(lang);
   const sinsal = findSinsal(chart);
   const context =
     `사주 풀이 리포트를 작성해줘.\n\n` +
@@ -414,7 +433,7 @@ function compatPrompt(
     `따뜻하고 다정하며, 명리 용어(상생·조후·용신·합·충 등)를 자연스럽게 녹여 ` +
     `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
     `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.` +
-    (lang === "th" ? THAI_NAMING : "");
+    scriptRules(lang);
 
   // Engine findings (배우자성·천을귀인·신살·암합·조후…) — the long report must
   // build on these, not contradict them.
