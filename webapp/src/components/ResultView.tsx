@@ -694,6 +694,12 @@ export default function ResultView({ initial }: { initial: Reading }) {
                 }
                 if (id) window.location.href = `/result/${id}`;
               }}
+            onPending={({ code }) => {
+                if (payKind === "pack" && code) {
+                  setPay(null);
+                  setClaim({ ref: code, isPack: true });
+                }
+              }}
             />
             <div className="mt-1 space-y-2 text-left">
               <label className="block text-xs text-ink/60">

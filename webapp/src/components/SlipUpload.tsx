@@ -20,6 +20,7 @@ const T: Record<Lang, Record<string, string>> = {
     too_old: "สลิปนี้เก่าเกินไป",
     error: "ตรวจอัตโนมัติไม่ได้ตอนนี้ กรุณากรอกชื่อผู้โอนด้านล่างแทน",
     or: "หรือแจ้งโอนแบบเดิม",
+    pending: "📨 ได้รับสลิปแล้ว! กำลังตรวจยอดเข้า หน้านี้จะเปิดเองอัตโนมัติเมื่อยืนยัน (ไม่ต้องปิดหน้า)",
   },
   en: {
     title: "⚡ Instant unlock",
@@ -35,6 +36,7 @@ const T: Record<Lang, Record<string, string>> = {
     too_old: "This slip is too old",
     error: "Auto-check unavailable — please use the form below",
     or: "or report the transfer manually",
+    pending: "📨 Slip received! We're checking the transfer — this page opens by itself once confirmed.",
   },
   ko: {
     title: "⚡ 즉시 열기",
@@ -50,6 +52,7 @@ const T: Record<Lang, Record<string, string>> = {
     too_old: "너무 오래된 슬립이에요",
     error: "지금은 자동 확인이 어려워요. 아래 양식으로 알려주세요",
     or: "또는 기존 방식으로 입금 알림",
+    pending: "📨 슬립 접수 완료! 입금 확인 중이에요. 확인되면 이 페이지가 자동으로 열려요.",
   },
 };
 
@@ -58,11 +61,13 @@ export default function SlipUpload({
   id,
   lang,
   onPaid,
+  onPending,
 }: {
   kind: Kind;
   id?: string;
   lang: string;
   onPaid: (r: { code?: string }) => void;
+  onPending?: (r: { code?: string }) => void;
 }) {
   const t = T[(lang as Lang) in T ? (lang as Lang) : "th"];
   const [enabled, setEnabled] = useState(false);
@@ -93,6 +98,12 @@ export default function SlipUpload({
         setState("ok");
         setMsg(t.ok);
         onPaid({ code: d.code });
+        return;
+      }
+      if (d.reason === "pending") {
+        setState("ok");
+        setMsg(t.pending);
+        onPending?.({ code: d.code });
         return;
       }
       setMsg(t[d.reason] ?? t.error);
