@@ -1,5 +1,6 @@
 "use client";
 
+import AdSlot from "./AdSlot";
 import ReportBody from "./ReportBody";
 import SlipUpload from "./SlipUpload";
 import QrSave from "./QrSave";
@@ -806,6 +807,7 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
         </div>
       )}
 
+      <AdSlot />
       <p className="mt-6 text-center text-xs text-ink/40">{disclaimer}</p>
     </section>
   );
