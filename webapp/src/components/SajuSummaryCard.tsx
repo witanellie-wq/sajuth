@@ -14,6 +14,7 @@ const L: Record<Lang, Record<string, string>> = {
     after: "หลังคำนวณ รวม·ชน (합·충)",
     same: "ไม่เปลี่ยน",
     gyeok: "โครงดวง (격)",
+    sub: "เสริม",
     yong: "ธาตุนำโชค (용신)",
     hee: "ธาตุหนุนโชค (희신)",
     gi: "ธาตุที่ควรเลี่ยง (기신)",
@@ -28,6 +29,7 @@ const L: Record<Lang, Record<string, string>> = {
     after: "After combines & clashes",
     same: "unchanged",
     gyeok: "Chart structure (격)",
+    sub: "sub:",
     yong: "Lucky element (용신)",
     hee: "Supporting element (희신)",
     gi: "Element to avoid (기신)",
@@ -42,6 +44,7 @@ const L: Record<Lang, Record<string, string>> = {
     after: "합·충 반영 후",
     same: "변화 없음",
     gyeok: "격(格)",
+    sub: "보조",
     yong: "용신",
     hee: "희신",
     gi: "기신",
@@ -96,7 +99,7 @@ export default function SajuSummaryCard({ chart, lang }: { chart: unknown; lang:
           k={t.after}
           v={s.afterRel.changed ? `${el(s.afterRel.element)} ${s.afterRel.pct}%` : `${el(s.afterRel.element)} (${t.same})`}
         />
-        <Row k={t.gyeok} v={s.gyeok.name} accent="text-violet-700" />
+        <Row k={t.gyeok} v={s.gyeok.name + (s.gyeok.sub ? ` · ${t.sub} ${s.gyeok.sub.name}` : "")} accent="text-violet-700" />
         <Row k={t.yong} v={el(s.yong)} accent="text-emerald-600" />
         <Row k={t.hee} v={s.hee.map(el).join(" · ")} accent="text-emerald-600" />
         <Row k={t.gi} v={el(s.gi)} accent="text-rose-600" />
