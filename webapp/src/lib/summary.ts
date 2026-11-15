@@ -232,10 +232,11 @@ export function summarize(chart: SajuChart, lang: Lang = "th"): SajuSummary {
     gyeok = "yangin";
     basis = `${mz}`;
   } else {
-    // 월지 지장간 중 천간에 투출한 것을 격으로 잡는다.
+    // 월지 지장간 중 천간에 투출한 것을 격으로 잡는다 (자평진전).
     //  1) 정기가 투출했으면 정기
-    //  2) 아니면 투출 위치가 월령에 가까운 순서: 월간 > 연간 > 시간
-    //     (같은 자리면 중기 > 여기)
+    //  2) 여러 개가 투출했으면 세력이 강한 것 — 지지에 뿌리(통근)가 많은 것.
+    //     뿌리 점수: 같은 오행 지장간이 정기면 1, 중기 0.5, 여기 0.3 (월지 ×2).
+    //     동점이면 월간 > 연간 > 시간 (월령에 가까운 자리).
     //  3) 투출이 없으면 정기
     // 정기의 십신이 주격과 다르면 '보조격'으로 함께 표시한다.
     const hs = [...HIDDEN[mz]].reverse(); // [정기, 중기, 여기]
@@ -243,15 +244,23 @@ export function summarize(chart: SajuChart, lang: Lang = "th"): SajuSummary {
     const posOrder: Array<[string, number]> = [
       [chart.month.gan, 0], [chart.year.gan, 1], ...(chart.hour ? [[chart.hour.gan, 2] as [string, number]] : []),
     ];
-    const cands: Array<{ h: string; pos: number; rank: number }> = [];
-    hs.forEach((h, rank) => {
+    const RANK_W = [1, 0.5, 0.3]; // 정기·중기·여기
+    const rootScore = (stem: string) =>
+      pillars.reduce((sum, p, i) => {
+        const r = [...HIDDEN[p.zhi]].reverse();
+        let w = 0;
+        r.forEach((h, k) => { if (STEM_EL[h] === STEM_EL[stem]) w = Math.max(w, RANK_W[k] ?? 0.3); });
+        return sum + w * (i === MONTH ? 2 : 1);
+      }, 0);
+    const cands: Array<{ h: string; pos: number; root: number }> = [];
+    hs.forEach((h) => {
       if (!TG_TO_GYEOK[tenGodOfStem(dm, h)]) return; // 비겁 투출은 격 아님
       const hit = posOrder.find(([g]) => g === h);
-      if (hit) cands.push({ h, pos: hit[1], rank });
+      if (hit) cands.push({ h, pos: hit[1], root: rootScore(h) });
     });
     let pick: string;
-    if (cands.some((c) => c.rank === 0)) pick = main;
-    else if (cands.length) pick = cands.sort((x, y) => x.pos - y.pos || x.rank - y.rank)[0].h;
+    if (cands.some((c) => c.h === main)) pick = main;
+    else if (cands.length) pick = cands.sort((x, y) => y.root - x.root || x.pos - y.pos)[0].h;
     else pick = main;
     gyeok = TG_TO_GYEOK[tenGodOfStem(dm, pick)] ?? "wolgeop";
     basis = `${mz}→${pick}`;
