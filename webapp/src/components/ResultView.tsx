@@ -2,6 +2,7 @@
 
 import ReportBody from "./ReportBody";
 import SlipUpload from "./SlipUpload";
+import SajuSummaryCard from "./SajuSummaryCard";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -552,6 +553,8 @@ export default function ResultView({ initial }: { initial: Reading }) {
           </button>
         )}
       </div>
+
+      <SajuSummaryCard chart={chart} lang={uiLang} />
 
       {genState && (
         <div className="mt-4 rounded-2xl bg-violet-50 px-5 py-5 text-center ring-1 ring-violet-200">

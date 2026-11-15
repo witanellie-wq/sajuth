@@ -6,6 +6,7 @@
 
 import type { SajuChart, Pillar, Element } from "./saju";
 import type { Lang } from "./i18n";
+import { summaryFact } from "./summary";
 
 // ── 기본 표 ───────────────────────────────────────────────────────────────
 const STEMS = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
@@ -286,5 +287,7 @@ export function factSheet(
   const ict = new Date(now.getTime() + 7 * 3600_000);
   const y = ict.getUTCFullYear();
   lines.push(`세운: 올해 ${y}년 ${yearPillar(y)}, 내년 ${y + 1}년 ${yearPillar(y + 1)}`);
+  // 무료 화면 '한눈에 보기' 카드와 같은 격·용신·희신·기신 — 리포트가 이와 다르게 말하면 안 됨.
+  lines.push(summaryFact(chart));
   return lines.join("\n");
 }
