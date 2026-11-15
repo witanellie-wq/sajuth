@@ -25,9 +25,25 @@ export default async function AdminPage({
         <h1 className="text-xl font-bold text-rosewood">🔒 관리자 전용</h1>
         <p className="mt-2 text-sm text-ink/60">
           {secret
-            ? "잘못된 키입니다. /admin?key=ADMIN_SECRET 형식으로 접속하세요."
+            ? key
+              ? "비밀번호가 맞지 않아요. 다시 입력해 주세요."
+              : "관리자 비밀번호(ADMIN_SECRET)를 입력하세요."
             : "ADMIN_SECRET 환경변수가 설정되지 않아 관리자 기능이 꺼져 있습니다."}
         </p>
+        {secret && (
+          <form method="get" className="mx-auto mt-5 flex max-w-xs gap-2">
+            <input
+              name="key"
+              type="password"
+              autoComplete="current-password"
+              placeholder="비밀번호"
+              className="flex-1 rounded-xl border border-peach px-3 py-2 text-sm"
+            />
+            <button className="rounded-xl bg-rosewood px-4 py-2 text-sm font-semibold text-white">
+              들어가기
+            </button>
+          </form>
+        )}
       </main>
     );
   }
