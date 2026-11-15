@@ -11,7 +11,7 @@ import type { CompatSection, Compatibility } from "./compat";
 import type { ReportSection } from "./interpret";
 import { analyzeStrength } from "./strength";
 import { findSinsal } from "./sinsal";
-import { factSheet, ageOn, crossSpouseFact } from "./myeongri";
+import { factSheet, crossSpouseFact } from "./myeongri";
 import { remedyFactPersonal, remedyFactCouple } from "./remedy";
 import type { Lang } from "./i18n";
 
