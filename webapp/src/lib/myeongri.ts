@@ -219,6 +219,89 @@ export function currentDaeun(list: DaeunStep[] | null, koreanAge: number): Daeun
   return cur;
 }
 
+
+// ── 배우자성(여: 관성 / 남: 재성) ─────────────────────────────────────────
+const HIDDEN_ALL: Record<string, string> = {
+  "子": "壬癸", "丑": "癸辛己", "寅": "戊丙甲", "卯": "甲乙", "辰": "乙癸戊", "巳": "戊庚丙",
+  "午": "丙己丁", "未": "丁乙己", "申": "戊壬庚", "酉": "庚辛", "戌": "辛丁戊", "亥": "戊甲壬",
+};
+const EL_KO: Record<Element, string> = { wood: "목(木)", fire: "화(火)", earth: "토(土)", metal: "금(金)", water: "수(水)" };
+
+export interface SpouseStar {
+  element: Element; // 배우자에 해당하는 오행
+  stems: PosKey[]; // 천간에 드러난 자리
+  mainBranches: PosKey[]; // 지지 정기로 있는 자리
+  hiddenOnly: PosKey[]; // 지장간(여기·중기)에만 숨은 자리
+  kinds: TenGod[]; // 드러난/정기 십신 종류 (정관·편관 혼잡 판단)
+  palace: TenGod; // 일지(배우자궁)의 십신
+  status: "revealed" | "rooted" | "hidden" | "absent";
+}
+
+export function spouseStar(chart: SajuChart, gender: string | undefined): SpouseStar | null {
+  if (gender !== "M" && gender !== "F") return null;
+  const dm = chart.dayMaster;
+  const dmEl = STEM_EL[dm];
+  // 여자: 나를 극하는 오행(관성) / 남자: 내가 극하는 오행(재성)
+  const element = (gender === "F"
+    ? (Object.keys(CTRL) as Element[]).find((e) => CTRL[e] === dmEl)
+    : CTRL[dmEl]) as Element;
+  const pillars: Array<[PosKey, Pillar | null]> = [
+    ["year", chart.year], ["month", chart.month], ["day", chart.day], ["hour", chart.hour],
+  ];
+  const stems: PosKey[] = [], mainBranches: PosKey[] = [], hiddenOnly: PosKey[] = [];
+  const kinds = new Set<TenGod>();
+  for (const [pos, p] of pillars) {
+    if (!p) continue;
+    if (pos !== "day" && STEM_EL[p.gan] === element) {
+      stems.push(pos);
+      kinds.add(tenGodOfStem(dm, p.gan));
+    }
+    if (STEM_EL[MAIN_HIDDEN[p.zhi]] === element) {
+      mainBranches.push(pos);
+      kinds.add(tenGodOfStem(dm, MAIN_HIDDEN[p.zhi]));
+    } else if ([...(HIDDEN_ALL[p.zhi] ?? "")].some((h) => STEM_EL[h] === element)) {
+      hiddenOnly.push(pos);
+    }
+  }
+  const status = stems.length ? "revealed" : mainBranches.length ? "rooted" : hiddenOnly.length ? "hidden" : "absent";
+  return { element, stems, mainBranches, hiddenOnly, kinds: [...kinds], palace: tenGodOfBranch(dm, chart.day.zhi), status };
+}
+
+/** AI용 배우자성 사실 한 줄. */
+export function spouseStarFact(chart: SajuChart, gender: string | undefined): string {
+  const st = spouseStar(chart, gender);
+  if (!st) return "배우자성: 성별 미입력으로 판단 불가 — 배우자 기운을 지어내지 말 것";
+  const who = gender === "F" ? "관성(남자·배우자)" : "재성(여자·배우자)";
+  const pk = (a: PosKey[]) => a.map((p) => POS_KO[p]).join("·");
+  const statusKo = {
+    revealed: `천간에 드러남(${pk(st.stems)}${st.mainBranches.length ? `, 지지 ${pk(st.mainBranches)}에도 뿌리` : ""}) → 인연이 뚜렷하게 보이고 비교적 일찍·분명하게 들어오는 편`,
+    rooted: `천간엔 없고 지지 정기(${pk(st.mainBranches)})에 있음 → 겉으로 티 나지 않지만 실속 있는 인연, 시간이 지나며 드러남`,
+    hidden: `지장간(${pk(st.hiddenOnly)})에만 숨어 있음 → 인연이 늦게 오거나 알아보기 어려움, 대운·세운에서 ${EL_KO[st.element]} 기운이 들어올 때 인연이 열림`,
+    absent: `원국에 없음 → 대운·세운에서 ${EL_KO[st.element]} 기운이 들어올 때 인연이 오고, 그 기운을 가진 사람이 채워 줌`,
+  }[st.status];
+  const mixed = st.kinds.includes(gender === "F" ? "jeonggwan" : "jeongjae") && st.kinds.includes(gender === "F" ? "pyeongwan" : "pyeonjae");
+  return [
+    `배우자성 = ${who} = ${EL_KO[st.element]} 기운. 상태: ${statusKo}.`,
+    `  종류: ${st.kinds.map((k) => TEN_GOD_NAME[k].ko).join("·") || "없음"}${mixed ? (gender === "F" ? " (정관·편관 혼잡: 끌리는 타입이 두 갈래 — 안정형과 자극형)" : " (정재·편재 혼잡)") : ""}`,
+    `  배우자궁(일지 ${chart.day.zhi}) 십신: ${TEN_GOD_NAME[st.palace].ko}`,
+    `  잘 맞는 상대: ${EL_KO[st.element]} 기운이 강한 사람(배우자성) + 내 용신 기운을 가진 사람(보완)`,
+  ].join("\n");
+}
+
+/** 궁합용: 각자의 배우자성 오행이 상대 원국에 얼마나 있는지. */
+export function crossSpouseFact(
+  a: SajuChart, b: SajuChart, ga: string | undefined, gb: string | undefined, nameA: string, nameB: string
+): string {
+  const line = (me: SajuChart, other: SajuChart, g: string | undefined, n1: string, n2: string) => {
+    const st = spouseStar(me, g);
+    if (!st) return `${n1}: 성별 미상 — 배우자성 비교 생략`;
+    const cnt = (other.elementCounts as Record<string, number>)[st.element] ?? 0;
+    const dmMatch = STEM_EL[other.dayMaster] === st.element;
+    return `${n1}의 배우자성은 ${EL_KO[st.element]}. ${n2}의 일간은 ${EL_KO[STEM_EL[other.dayMaster]]}${dmMatch ? "(배우자성 그 자체!)" : ""}, 원국 ${EL_KO[st.element]} 개수 ${cnt}개 → ${dmMatch || cnt >= 3 ? "상대가 내 배우자 기운을 강하게 지님" : cnt >= 1 ? "상대가 내 배우자 기운을 어느 정도 지님" : "상대에게 내 배우자 기운이 적어, 다른 매력(보완 오행)으로 끌림"}`;
+  };
+  return [line(a, b, ga, nameA, nameB), line(b, a, gb, nameB, nameA)].join("\n");
+}
+
 // ── 원국 상세 (화면 표 + AI 사실 목록 공용) ───────────────────────────────
 export interface PillarDetail {
   pos: PosKey;
@@ -292,6 +375,7 @@ export function factSheet(
   const ict = new Date(now.getTime() + 7 * 3600_000);
   const y = ict.getUTCFullYear();
   lines.push(`세운: 올해 ${y}년 ${yearPillar(y)}, 내년 ${y + 1}년 ${yearPillar(y + 1)}`);
+  lines.push(spouseStarFact(chart, opts.gender));
   // 무료 화면 '한눈에 보기' 카드와 같은 격·용신·희신·기신 — 리포트가 이와 다르게 말하면 안 됨.
   lines.push(summaryFact(chart));
   return lines.join("\n");

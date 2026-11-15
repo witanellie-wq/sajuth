@@ -11,7 +11,7 @@ import type { CompatSection, Compatibility } from "./compat";
 import type { ReportSection } from "./interpret";
 import { analyzeStrength } from "./strength";
 import { findSinsal } from "./sinsal";
-import { factSheet, ageOn } from "./myeongri";
+import { factSheet, ageOn, crossSpouseFact } from "./myeongri";
 import { remedyFactPersonal, remedyFactCouple } from "./remedy";
 import type { Lang } from "./i18n";
 
@@ -85,7 +85,7 @@ interface ReportCategory {
 }
 
 const ROMANTIC_CATEGORIES: ReportCategory[] = [
-  { label: "전체 총평", spec: "조후·오행·궁합 점수의 큰 그림만. 세부 주제(성격·속궁합·금전 등)는 뒤 카테고리에서 다루므로 여기선 총론만." },
+  { label: "전체 총평", spec: "조후·오행·궁합 점수의 큰 그림 + [배우자 기운 교차]로 서로가 서로의 배우자 기운을 지녔는지(예: 여자의 배우자성 수(水)를 남자가 얼마나 가졌는지, 남자의 배우자성을 여자가 가졌는지)를 반드시 짚는다. 세부 주제(성격·속궁합·금전 등)는 뒤에서 다루므로 총론만." },
   { label: "각자의 성격", spec: "궁합이 아니라 두 사람 개인 소개. 각자의 일간·오행 기질을 인물 소개하듯 절반씩." },
   { label: "겉궁합", spec: "현실적·사회적 어울림만: 첫인상, 생활 리듬, 데이트 스타일, 남들 눈에 비치는 두 사람. 정서·육체 친밀감은 금지(속궁합 몫)." },
   { label: "속궁합", spec: "정서적·육체적 친밀감의 케미만 — 암합·충·합 근거로 구체적으로." },
@@ -203,7 +203,8 @@ async function callChunk(
   cats: ReportCategory[],
   allCats: ReportCategory[],
   startNo: number,
-  lang: Lang
+  lang: Lang,
+  ignoreNames: string[] = []
 ): Promise<Array<{ title: string; body: string }> | null> {
   const prompt =
     context +
@@ -240,7 +241,8 @@ async function callChunk(
     if (out.some((s) => s.body.trim().length < 120 || s.body.trim() === s.title.trim())) {
       return null;
     }
-    if (out.some((s) => wrongLanguage(s.title + " " + s.body, lang))) {
+    const stripNames = (t: string) => ignoreNames.filter(Boolean).reduce((acc, n) => acc.split(n).join(""), t);
+    if (out.some((s) => wrongLanguage(stripNames(s.title + " " + s.body), lang))) {
       console.warn("report chunk in wrong language — retrying");
       return null;
     }
@@ -367,8 +369,8 @@ export async function translateSection(
 const READING_CATEGORIES: ReportCategory[] = [
   { label: "전체 총평", spec: "이 사람을 한 문장으로 정의(계절+일간 비유, 예: '한겨울의 태양')하고, 타고난 성격의 매력과 이 사주의 가장 큰 복을 좋은 쪽으로 총정리. 뒤 파트 내용은 미리 쓰지 말 것." },
   { label: "인기·매력운", spec: "[검증된 사실]·신살 목록의 인기 신살(도화살·홍염살)이 목록에 있으면 첫 소제목에서 어떤 매력인지 구체적으로 다룬다. 목록에 없으면 '없다'는 말은 하지 말고, 이 사람만의 매력 방식을 좋은 쪽으로 쓴다. 두 번째 소제목은 천을귀인·문창귀인·화개·역마·괴강·백호·양인 등 목록에 있는 나머지 신살을 장점 위주로." },
-  { label: "연애운", spec: "끌리는 상대, 사랑하는 방식, 연애에서 빛나는 순간 + 짧은 주의점 하나." },
-  { label: "결혼운", spec: "잘 맞는 배우자상, 결혼 생활의 모습, 좋은 시기." },
+  { label: "연애운", spec: "[검증된 사실]의 배우자성(여자=관성, 남자=재성)으로 시작: 그 기운이 사주에 드러났는지(천간)·지지에 있는지·지장간에 숨었는지·없는지에 따라 인연이 일찍/뚜렷하게 오는지, 늦게·숨어서 오는지 설명하고, 어떤 오행 기운을 타고난 사람이 들어오는지(예: 수(水) 기운이 강한 사람) 구체적으로. 정관·편관 혼잡이면 끌리는 두 타입을 설명. 두 번째 소제목: 사랑하는 방식과 빛나는 순간, 짧은 주의점 하나." },
+  { label: "결혼운", spec: "배우자궁(일지)의 십신과 배우자성 상태로 잘 맞는 배우자상(배우자성 오행 + 내 용신 오행을 가진 사람 = 채워주는 사람), 결혼 생활의 모습, 배우자성·용신 기운이 들어오는 대운·세운 연도로 좋은 시기." },
   { label: "재물·사업운", spec: "돈이 들어오는 길, 사업·부업 적성, 새는 구멍 하나와 막는 법." },
   { label: "직업운", spec: "빛나는 일과 일하는 스타일, 피하면 좋은 환경 하나." },
   { label: "친구·인간관계운", spec: "나를 돕는 귀인, 친구·동료 관계에서의 모습과 장점." },
@@ -446,7 +448,7 @@ export async function generateReadingPart(
   const chunks = chunk(READING_CATEGORIES, CHUNK_SIZE);
   if (part < 0 || part >= chunks.length) return null;
   const { system, context } = readingPrompt(chart, profile, lang);
-  return callChunk(c, system, context, chunks[part], READING_CATEGORIES, part * CHUNK_SIZE + 1, lang);
+  return callChunk(c, system, context, chunks[part], READING_CATEGORIES, part * CHUNK_SIZE + 1, lang, [profile.name ?? ""]);
 }
 
 /**
@@ -544,6 +546,7 @@ function compatPrompt(
     `\n\n[검증된 사실 — ${nameB}]\n` +
     factSheet(chartB, { gender: profiles.b?.gender, birth: birthOf(chartB) }) +
     `\n${remedyFactCouple(chartA, chartB, nameA, nameB)}` +
+    `\n[배우자 기운 교차 — 궁합 해석의 핵심 근거로 반드시 활용]\n${crossSpouseFact(chartA, chartB, profiles.a?.gender, profiles.b?.gender, nameA, nameB)}` +
     `\n나이 차이: ${Math.abs(ageOn(birthOf(chartA)) - ageOn(birthOf(chartB)))}살 — 관계 해석에 자연스럽게 활용하라.\n\n` +
     `관계: ${relationship} / 궁합 점수: ${result.score}% → 표현 방향: ` +
     band(result.score, "노력으로 완성해가는 인연", "편안하게 맞춰가는 인연", "서로 강하게 끌리는 인연") +
@@ -576,7 +579,7 @@ export async function generateCompatPart(
   const { system, context, cats, lang } = compatPrompt(chartA, chartB, profiles, result);
   const chunks = chunk(cats, CHUNK_SIZE);
   if (part < 0 || part >= chunks.length) return null;
-  return callChunk(c, system, context, chunks[part], cats, part * CHUNK_SIZE + 1, lang);
+  return callChunk(c, system, context, chunks[part], cats, part * CHUNK_SIZE + 1, lang, [profiles.a?.name ?? "", profiles.b?.name ?? ""]);
 }
 
 /**
