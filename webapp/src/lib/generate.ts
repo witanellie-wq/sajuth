@@ -260,7 +260,7 @@ const THAI_NAMING =
 // 언어별 표기 규칙: 본문에 한자만 덩그러니 쓰지 않고 각 언어로 풀어 쓴다.
 function scriptRules(lang: Lang): string {
   if (lang === "th") return THAI_NAMING +
-    ` 십신·신살·12운성도 태국어 뜻으로 풀어 써라(예: 식신 → ดาวแห่งการสร้างสรรค์, 백호살 → ดาวเสือขาว, 천을귀인 → ดาวผู้อุปถัมภ์). ` +
+    ` 십신·신살·12운성도 태국어 뜻으로 풀어 써라(예: 식신 → ดาวแห่งการสร้างสรรค์, 천을귀인 → ดาวผู้อุปถัมภ์). 신살 태국어 이름은 사이트 카드와 똑같이 고정: 도화살 → ดาวเสน่ห์, 홍염살 → ดาวเสน่หายั่วใจ, 화개살 → ดาวศิลปะ, 역마살 → ดาวการเดินทาง, 문창귀인 → ดาวปัญญา, 백호살 → ดาวเสือขาว, 괴강살 → ดาวผู้นำ, 양인살 → พลังนักสู้, 원진살 → ดาวใจละเอียด (한자 음역 금지, 예: โต๊ะฮวย ✗). ` +
     `한자(丙戌·食神·白虎殺 등)를 문장 안에 단독으로 쓰지 마라. 꼭 필요하면 태국어 뒤 괄호 안에 섹션당 1회만.`;
   if (lang === "en") return ` Script rule: write every term in English (e.g. "Byeong-sul day pillar", "Output star (Siksin)", "White Tiger star"). ` +
     `Never drop bare Chinese characters (丙戌, 食神, 白虎殺) into a sentence; at most once per section in parentheses after the English.`;
