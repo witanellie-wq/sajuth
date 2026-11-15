@@ -547,7 +547,7 @@ function compatPrompt(
     factSheet(chartB, { gender: profiles.b?.gender, birth: birthOf(chartB) }) +
     `\n${remedyFactCouple(chartA, chartB, nameA, nameB)}` +
     `\n[배우자 기운 교차 — 궁합 해석의 핵심 근거로 반드시 활용]\n${crossSpouseFact(chartA, chartB, profiles.a?.gender, profiles.b?.gender, nameA, nameB)}` +
-    `\n나이 차이: ${Math.abs(ageOn(birthOf(chartA)) - ageOn(birthOf(chartB)))}살 — 관계 해석에 자연스럽게 활용하라.\n\n` +
+    `\n나이 차이: ${Math.abs(birthOf(chartA).year - birthOf(chartB).year)}살(출생연도 기준, 한국식) — 이 숫자 그대로만 쓰고 관계 해석에 자연스럽게 활용하라.\n\n` +
     `관계: ${relationship} / 궁합 점수: ${result.score}% → 표현 방향: ` +
     band(result.score, "노력으로 완성해가는 인연", "편안하게 맞춰가는 인연", "서로 강하게 끌리는 인연") +
     (romantic && typeof result.intimate === "number"
