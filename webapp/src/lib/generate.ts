@@ -135,7 +135,7 @@ const ACCURACY_RULES =
   `월주-시주, 년주-시주, 년주-일주처럼 건너뛰어 떨어진 기둥끼리의 합/암합/우합은 존재하지 않으니 절대 지어내지 마라. ` +
   `어느 두 기둥인지 확신이 없으면 위치를 지목하지 말고 기운의 작용으로만 설명하라.\n` +
   `2) 흩어져 떨어진 암합은 언급하지 마라. 같은 자리 혹은 바로 옆자리 지지끼리의 암합만 다뤄라.\n` +
-  `3) 도화살·화개살은 일지(또는 시지)에 자리한 '진도화·진화개'만 언급하라. 그 외 자리의 도화/화개는 없는 것으로 취급하고, 억지로 세게 가졌다고 하지 마라.\n` +
+  `3) 도화살은 신살 목록에 있을 때만(원국에 子·午·卯·酉가 있으면 도화) 쓰고, 일지·시지에 있으면 더 강하다고 말해도 된다. 화개살은 일지(또는 시지)의 진화개만 언급하라.\n` +
   `4) 사주에 '미상'(시주 등)으로 표시된 기둥은 그 기둥·지지에 관한 어떤 해석도 하지 마라.\n` +
   `5) 십신·12운성·신살·대운·세운은 [검증된 사실] 블록에 적힌 것만 인용하라. 블록에 없는 신살(예: 백호·괴강·원진)이나 대운 간지를 지어내면 안 된다.\n` +
   `6) 점수·신강약·용신 판정과 본문이 절대 모순되면 안 된다. 예: 끌림 점수가 낮은데 "첫눈에 강렬한 끌림"이라고 쓰지 마라. 낮은 점수는 단점으로 몰지 말고 그 사람(커플)만의 다른 강점(안정감·오래 가는 힘 등)으로 풀어라. 신약 판정인데 "기운이 넘친다"고 쓰지 마라. 격국·용신·희신·기신은 [검증된 사실]의 값만 쓰고, 기신 오행을 추천하거나 용신과 다른 오행을 "용신"이라 부르지 마라.\n` +
@@ -191,8 +191,8 @@ async function callChunk(
     const parsed = JSON.parse(json) as Array<{ title: string; body: string }>;
     if (!Array.isArray(parsed) || parsed.length === 0) return null;
     const out = parsed.map((sec) => ({
-      title: String(sec.title ?? "").slice(0, 120),
-      body: String(sec.body ?? ""),
+      title: normalizeHanja(String(sec.title ?? ""), lang).slice(0, 120),
+      body: normalizeHanja(String(sec.body ?? ""), lang),
     }));
     // Reject degenerate output — a rare "placeholder" stub, an empty body, or a
     // section far shorter than the length rule asks for. Returning null lets the
@@ -228,10 +228,47 @@ function scriptRules(lang: Lang): string {
     `한자를 단독으로 쓰지 마라(丙戌 일주 ✗, 食神 ✗, 白虎殺 ✗ → 병술 일주, 식신, 백호살). 꼭 필요하면 한글 뒤 괄호 안에 섹션당 처음 1회만(예: 병술(丙戌)).`;
 }
 
-// 괄호 밖에 한자가 많이 남은 섹션은 재시도시킨다.
+// 괄호 밖에 한자가 많이 남은 섹션은 재시도시킨다 (정리 후에도 남은 경우만).
 function tooMuchHanja(text: string): boolean {
   const outside = text.replace(/\([^)]*\)/g, "");
-  return (outside.match(/[\u4E00-\u9FFF]/g) ?? []).length > 6;
+  return (outside.match(/[\u4E00-\u9FFF]/g) ?? []).length > 12;
+}
+
+// 한자 → 한글 독음 (명리 용어에 쓰이는 글자).
+const HANJA_KO: Record<string, string> = {
+  甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
+  子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해",
+  木: "목", 火: "화", 土: "토", 金: "금", 水: "수",
+  食: "식", 神: "신", 傷: "상", 官: "관", 正: "정", 偏: "편", 印: "인", 財: "재", 劫: "겁", 比: "비", 肩: "견",
+  殺: "살", 煞: "살", 墓: "묘", 合: "합", 化: "화", 沖: "충", 冲: "충", 刑: "형", 破: "파", 害: "해",
+  天: "천", 貴: "귀", 人: "인", 華: "화", 蓋: "개", 白: "백", 虎: "호", 桃: "도", 花: "화", 紅: "홍", 艶: "염",
+  驛: "역", 馬: "마", 魁: "괴", 罡: "강", 羊: "양", 刃: "인", 怨: "원", 嗔: "진", 文: "문", 昌: "창",
+  日: "일", 月: "월", 時: "시", 年: "년", 柱: "주", 支: "지", 干: "간", 大: "대", 運: "운", 歲: "세",
+  身: "신", 強: "강", 弱: "약", 用: "용", 喜: "희", 忌: "기", 格: "격", 調: "조", 候: "후", 生: "생", 旺: "왕",
+  帝: "제", 冠: "관", 帶: "대", 長: "장", 浴: "욕", 衰: "쇠", 病: "병", 死: "사", 絶: "절", 胎: "태", 養: "양",
+};
+
+/**
+ * 괄호 밖의 한자를 언어에 맞게 정리한다.
+ * ko: 한글 독음으로 바꾼다(丙戌 → 병술). th·en: 괄호로 감싸 보조 표기로 돌린다(丙戌 → (丙戌)).
+ */
+function normalizeHanja(text: string, lang: Lang): string {
+  return text
+    .split(/(\([^)]*\))/g)
+    .map((seg) => {
+      if (seg.startsWith("(")) return seg;
+      return seg.replace(/[\u4E00-\u9FFF]+/g, (run) => {
+        if (lang === "ko") {
+          const ko = [...run].map((ch) => HANJA_KO[ch] ?? ch).join("");
+          return /[\u4E00-\u9FFF]/.test(ko) ? `(${run})` : ko;
+        }
+        return ` (${run}) `;
+      });
+    })
+    .join("")
+    .replace(/ {2,}/g, " ")
+    .replace(/ \)/g, ")")
+    .replace(/\( /g, "(");
 }
 
 // 출력 언어 검사: 다른 언어(특히 한국어)로 써버린 섹션은 버리고 재시도시킨다.
@@ -276,8 +313,10 @@ export async function translateSection(
     if (!p?.title || !p?.body) return null;
     // Reject a degenerate/placeholder translation so the retry loop re-runs it.
     if (String(p.body).trim().length < 120) return null;
-    if (wrongLanguage(String(p.title) + " " + String(p.body), lang)) return null;
-    return { title: String(p.title).slice(0, 200), body: String(p.body) };
+    const tt = normalizeHanja(String(p.title), lang);
+    const tb = normalizeHanja(String(p.body), lang);
+    if (wrongLanguage(tt + " " + tb, lang)) return null;
+    return { title: tt.slice(0, 200), body: tb };
   } catch (err) {
     console.error("section translation failed:", err);
     return null;
@@ -286,7 +325,7 @@ export async function translateSection(
 
 const READING_CATEGORIES: ReportCategory[] = [
   { label: "전체 총평", spec: "이 사람을 한 문장으로 정의(계절+일간 비유, 예: '한겨울의 태양')하고, 타고난 성격의 매력과 이 사주의 가장 큰 복을 좋은 쪽으로 총정리. 뒤 파트 내용은 미리 쓰지 말 것." },
-  { label: "인기·매력운", spec: "[검증된 사실]·신살 목록의 인기 신살(도화살·홍염살)을 반드시 첫 소제목에서 다룬다: 있으면 어떤 매력인지 구체적으로, 없으면 '없음'을 분명히 말하고 대신 이 사람만의 매력 방식을 좋은 쪽으로. 두 번째 소제목은 천을귀인·문창귀인·화개·역마·괴강·백호·양인 등 목록에 있는 나머지 신살을 장점 위주로." },
+  { label: "인기·매력운", spec: "[검증된 사실]·신살 목록의 인기 신살(도화살·홍염살)이 목록에 있으면 첫 소제목에서 어떤 매력인지 구체적으로 다룬다. 목록에 없으면 '없다'는 말은 하지 말고, 이 사람만의 매력 방식을 좋은 쪽으로 쓴다. 두 번째 소제목은 천을귀인·문창귀인·화개·역마·괴강·백호·양인 등 목록에 있는 나머지 신살을 장점 위주로." },
   { label: "연애운", spec: "끌리는 상대, 사랑하는 방식, 연애에서 빛나는 순간 + 짧은 주의점 하나." },
   { label: "결혼운", spec: "잘 맞는 배우자상, 결혼 생활의 모습, 좋은 시기." },
   { label: "재물·사업운", spec: "돈이 들어오는 길, 사업·부업 적성, 새는 구멍 하나와 막는 법." },
@@ -329,7 +368,7 @@ function readingPrompt(
     `사주: ${pillarsOf(chart)}\n` +
     `일간: ${chart.dayMaster} / 오행 분포: ${JSON.stringify(chart.elementCounts)}\n` +
     `신강약: ${s.bandLabel} (숫자·비율은 본문에 절대 쓰지 말 것) / 용신: ${s.favorable.join(", ")}\n` +
-    `신살: ${sinsal.length ? sinsal.join(", ") : "없음"} (dohwa=도화살 매력, hongyeom=홍염살 달콤한 유혹, hwagae=화개살 예술·영성, yeokma=역마살 이동·해외, cheoneul=천을귀인 귀인 복, munchang=문창귀인 총명·글솜씨, baekho=백호살 추진력, goegang=괴강살 리더십, yangin=양인살 승부욕, wonjin=원진살 섬세함 — 목록에 있는 것만, 장점 중심으로 반드시 반영. 도화살·홍염살이 목록에 없으면 '없다'고 정확히 말할 것)\n` +
+    `신살: ${sinsal.length ? sinsal.join(", ") : "없음"} (dohwa=도화살 매력, hongyeom=홍염살 달콤한 유혹, hwagae=화개살 예술·영성, yeokma=역마살 이동·해외, cheoneul=천을귀인 귀인 복, munchang=문창귀인 총명·글솜씨, baekho=백호살 추진력, goegang=괴강살 리더십, yangin=양인살 승부욕, wonjin=원진살 섬세함 — 목록에 있는 것만, 장점 중심으로 반드시 반영. 목록에 없는 신살은 언급하지 말 것)\n` +
     `분석 노트: ${s.notes.join(" | ") || "없음"}\n\n` +
     `[검증된 사실 — 엔진 계산값. 십신·12운성·신살·대운·세운은 여기 있는 것만 인용]\n` +
     factSheet(chart, {
