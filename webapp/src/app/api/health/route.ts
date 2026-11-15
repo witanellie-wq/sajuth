@@ -77,5 +77,19 @@ export async function GET() {
   // fallback would otherwise hide.
   const claude = await generationHealth();
 
-  return NextResponse.json({ env, tables, writeTest, claude });
+  // EasySlip key check (quota / plan) — never prints the key.
+  let easyslip: unknown = "skipped (no EASYSLIP_API_KEY)";
+  if (process.env.EASYSLIP_API_KEY) {
+    try {
+      const r = await fetch("https://developer.easyslip.com/api/v1/me", {
+        headers: { Authorization: `Bearer ${process.env.EASYSLIP_API_KEY}` },
+      });
+      const j = await r.json().catch(() => ({}));
+      easyslip = r.ok ? { ok: true, ...(j?.data ?? {}) } : { ok: false, status: r.status, message: j?.message };
+    } catch (e) {
+      easyslip = { ok: false, error: String(e) };
+    }
+  }
+
+  return NextResponse.json({ env, tables, writeTest, claude, easyslip });
 }
