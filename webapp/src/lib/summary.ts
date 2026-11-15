@@ -303,7 +303,12 @@ export function summaryFact(chart: SajuChart): string {
       return `${r.chars} ${n}${r.element ? `(${s.elName[r.element]})` : ""}`;
     })
     .join(", ");
+  const monthBranch = chart.month?.zhi ?? "";
+  const season = "寅卯辰".includes(monthBranch) && monthBranch ? "봄" : "巳午未".includes(monthBranch) && monthBranch ? "여름" : "申酉戌".includes(monthBranch) && monthBranch ? "가을" : "亥子丑".includes(monthBranch) && monthBranch ? "겨울" : "";
+  const yinYang = "甲丙戊庚壬".includes(s.dm.stem) ? "양" : "음";
   return [
+    `- 일간 상징(고정): ${s.dm.stem} = ${DM_IMAGE[s.dm.stem]?.ko ?? s.dm.stem} (${yinYang}${s.elName[s.dm.element]})` +
+      (season ? ` · ${season} 출생 → 비유는 반드시 '${season}의 ${DM_IMAGE[s.dm.stem]?.ko ?? s.dm.stem}'으로` : ""),
     `- 격국: ${s.gyeok.name}${s.gyeok.sub ? ` (보조격 ${s.gyeok.sub.name})` : ""} (근거 월지 ${s.gyeok.basis})`,
     `- 용신: ${s.elName[s.yong]} / 희신: ${s.hee.map((e) => s.elName[e]).join("·")} / 기신: ${s.elName[s.gi]}`,
     `- 가장 강한 오행(지장간·월령 가중): ${s.elName[s.strongest.element]} ${s.strongest.pct}%` +

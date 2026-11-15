@@ -123,7 +123,7 @@ const LENGTH_RULE =
   `말투는 친구처럼 다정하고 친근하게(태국어는 ค่ะ 체). 뻔한 덕담과 하나마나한 문장은 빼고, 이 사주에서만 나올 수 있는 ` +
   `구체적인 이야기만 써라. 실제 간지 글자와 일주 이름(예: 을해일주)을 인용하고 명리 근거(합·충·조후·용신·십신)를 짚되, ` +
   `용어 나열보다 생활 속 장면 하나를 생생하게 그려줘라. 매 카테고리를 같은 패턴(예: "두 분은...")으로 시작하지 마라. ` +
-  `각 카테고리에 바로 해볼 수 있는 생활 개운 행동 1개(색·소품·습관·차 등)를 자연스럽게 넣어라.`;
+  `팔찌·원석(아벤추린·옥 등)·차·블렌드 티 같은 상품 추천은 '개운법'(궁합은 '관계 지침') 카테고리에만 모아서 한 번 쓴다. 그 외 카테고리에서는 상품·원석·차 이름을 절대 꺼내지 말고, 필요하면 색·습관 같은 생활 팁만 짧게 써라(매 문단 끝에 붙이지 말 것). '마무리'에도 상품을 다시 언급하지 마라.`;
 
 // Accuracy guardrails shared by the reading and compat prompts. The model
 // tends to invent specific pillar-to-pillar 합/암합 (e.g. "월주와 시주 사이
@@ -140,7 +140,10 @@ const ACCURACY_RULES =
   `5) 십신·12운성·신살·대운·세운은 [검증된 사실] 블록에 적힌 것만 인용하라. 블록에 없는 신살(예: 백호·괴강·원진)이나 대운 간지를 지어내면 안 된다.\n` +
   `6) 점수·신강약·용신 판정과 본문이 절대 모순되면 안 된다. 예: 끌림 점수가 낮은데 "첫눈에 강렬한 끌림"이라고 쓰지 마라. 낮은 점수는 단점으로 몰지 말고 그 사람(커플)만의 다른 강점(안정감·오래 가는 힘 등)으로 풀어라. 신약 판정인데 "기운이 넘친다"고 쓰지 마라. 격국·용신·희신·기신은 [검증된 사실]의 값만 쓰고, 기신 오행을 추천하거나 용신과 다른 오행을 "용신"이라 부르지 마라.\n` +
   `7) 이름은 입력된 철자 그대로만 쓴다. 한 글자도 바꾸거나 비슷한 이름으로 부르지 마라.\n` +
-  `8) 단점도 솔직하게 쓰되(예: "냉정하게 말하면…"), 겁주는 단정은 금지하고 반드시 실천 가능한 해결책을 붙여라.`;
+  `8) 단점도 솔직하게 쓰되(예: "냉정하게 말하면…"), 겁주는 단정은 금지하고 반드시 실천 가능한 해결책을 붙여라.\n` +
+  `9) 일간 비유는 [검증된 사실]의 '일간 상징'만 쓴다. 甲=큰 나무, 乙=꽃·풀, 丙=태양(양화), 丁=촛불·등불(음화), 戊=산, 己=밭, 庚=강철·바위, 辛=보석, 壬=바다·큰 강, 癸=비·이슬. ` +
+  `丙과 丁을 절대 섞지 마라: 丙 일간을 '작은 불꽃·촛불·불씨·꺼질 듯한 불'로 쓰면 안 되고, 丁 일간을 '태양'이라 부르면 안 된다. ` +
+  `신약이어도 丙은 '힘이 약해진 태양(구름에 가린 해, 짧은 겨울 해)'으로 표현하라. 태어난 계절을 붙여 '겨울의 태양'처럼 비유하라.`;
 
 // 점수 → 표현 구간. AI는 이 구간 표현과 같은 방향으로만 서술한다.
 function band(score: number, low: string, mid: string, high: string): string {
@@ -197,11 +200,50 @@ async function callChunk(
     if (out.some((s) => s.body.trim().length < 120 || s.body.trim() === s.title.trim())) {
       return null;
     }
+    if (out.some((s) => wrongLanguage(s.title + " " + s.body, lang))) {
+      console.warn("report chunk in wrong language — retrying");
+      return null;
+    }
     return out;
   } catch (err) {
     console.error("report chunk generation failed:", err);
     return null;
   }
+}
+
+const THAI_NAMING =
+  ` 태국어 표기 규칙: 지지는 한자 음역(เจี๊ยะ·ฮว่าย·แก้ 등)을 쓰지 말고 태국 12지 이름으로 ` +
+  `(子ชวด 丑ฉลู 寅ขาล 卯เถาะ 辰มะโรง 巳มะเส็ง 午มะเมีย 未มะแม 申วอก 酉ระกา 戌จอ 亥กุน), ` +
+  `천간은 오행으로 풀어 써라(예: 丙 = ไฟหยาง/ดวงอาทิตย์). 간지 한자는 괄호 안에만 둔다. ` +
+  `한국어 문장·한국어 제목을 쓰지 마라(명리 용어는 괄호 안 한글 1~2단어만 허용).`;
+
+// 언어별 표기 규칙: 본문에 한자만 덩그러니 쓰지 않고 각 언어로 풀어 쓴다.
+function scriptRules(lang: Lang): string {
+  if (lang === "th") return THAI_NAMING +
+    ` 십신·신살·12운성도 태국어 뜻으로 풀어 써라(예: 식신 → ดาวแห่งการสร้างสรรค์, 백호살 → ดาวเสือขาว, 천을귀인 → ดาวผู้อุปถัมภ์). ` +
+    `한자(丙戌·食神·白虎殺 등)를 문장 안에 단독으로 쓰지 마라. 꼭 필요하면 태국어 뒤 괄호 안에 섹션당 1회만.`;
+  if (lang === "en") return ` Script rule: write every term in English (e.g. "Byeong-sul day pillar", "Output star (Siksin)", "White Tiger star"). ` +
+    `Never drop bare Chinese characters (丙戌, 食神, 白虎殺) into a sentence; at most once per section in parentheses after the English.`;
+  return ` 한자 표기 규칙: 본문은 한글로 쓴다. 간지·십신·신살은 한글로(병술 일주, 계해 월주, 식신, 일지, 백호살, 화개살, 천을귀인). ` +
+    `한자를 단독으로 쓰지 마라(丙戌 일주 ✗, 食神 ✗, 白虎殺 ✗ → 병술 일주, 식신, 백호살). 꼭 필요하면 한글 뒤 괄호 안에 섹션당 처음 1회만(예: 병술(丙戌)).`;
+}
+
+// 괄호 밖에 한자가 많이 남은 섹션은 재시도시킨다.
+function tooMuchHanja(text: string): boolean {
+  const outside = text.replace(/\([^)]*\)/g, "");
+  return (outside.match(/[\u4E00-\u9FFF]/g) ?? []).length > 6;
+}
+
+// 출력 언어 검사: 다른 언어(특히 한국어)로 써버린 섹션은 버리고 재시도시킨다.
+function wrongLanguage(text: string, lang: Lang): boolean {
+  if (tooMuchHanja(text)) return true;
+  const letters = text.replace(/[\s\d\p{P}\p{S}]/gu, "");
+  if (!letters) return true;
+  const hangul = (letters.match(/[\uAC00-\uD7A3]/g) ?? []).length;
+  const thai = (letters.match(/[\u0E00-\u0E7F]/g) ?? []).length;
+  if (lang === "th") return thai / letters.length < 0.5 || hangul / letters.length > 0.12;
+  if (lang === "en") return hangul / letters.length > 0.12 || thai / letters.length > 0.12;
+  return hangul / letters.length < 0.3; // ko
 }
 
 /**
@@ -218,8 +260,8 @@ export async function translateSection(
   if (!c) return null;
   const prompt =
     `다음 사주 해석 섹션을 ${LANG_NAME[lang]}(으)로 번역해줘. ` +
-    `의미와 정보량, 문단 구분(빈 줄), 이모지를 그대로 유지하고, 간지 한자(예: 丙戌, 乙亥)는 그대로 두되 ` +
-    `명리 용어는 ${LANG_NAME[lang]} 독자가 이해할 수 있게 자연스럽게 옮겨라. 요약하거나 줄이지 마라. ` +
+    `의미와 정보량, 문단 구분(빈 줄), 이모지를 그대로 유지하고, ` +
+    `명리 용어는 ${LANG_NAME[lang]} 독자가 이해할 수 있게 자연스럽게 옮겨라. 요약하거나 줄이지 마라.` + scriptRules(lang) + ` ` +
     `출력은 반드시 JSON 하나만: {"title":"...","body":"..."}\n\n` +
     `[제목] ${title}\n[본문]\n${body}`;
   try {
@@ -234,6 +276,7 @@ export async function translateSection(
     if (!p?.title || !p?.body) return null;
     // Reject a degenerate/placeholder translation so the retry loop re-runs it.
     if (String(p.body).trim().length < 120) return null;
+    if (wrongLanguage(String(p.title) + " " + String(p.body), lang)) return null;
     return { title: String(p.title).slice(0, 200), body: String(p.body) };
   } catch (err) {
     console.error("section translation failed:", err);
@@ -269,7 +312,8 @@ function readingPrompt(
     `너는 20년 경력의 명리학(사주) 상담가이자 감성 카피라이터다. ` +
     `따뜻하고 다정하며, 명리 용어(상생·조후·용신·억부·합·충 등)를 자연스럽게 녹여 ` +
     `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
-    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
+    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.` +
+    scriptRules(lang);
   const sinsal = findSinsal(chart);
   const context =
     `사주 풀이 리포트를 작성해줘.\n\n` +
@@ -388,7 +432,8 @@ function compatPrompt(
     `너는 20년 경력의 명리학(사주) 상담가이자 감성 카피라이터다. ` +
     `따뜻하고 다정하며, 명리 용어(상생·조후·용신·합·충 등)를 자연스럽게 녹여 ` +
     `근거 있는 해석을 쓴다. 단정적 협박은 금지, 실용적 조언 포함. ` +
-    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.`;
+    `반드시 ${LANG_NAME[lang]}(으)로만 작성한다.` +
+    scriptRules(lang);
 
   // Engine findings (배우자성·천을귀인·신살·암합·조후…) — the long report must
   // build on these, not contradict them.
