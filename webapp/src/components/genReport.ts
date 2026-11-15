@@ -52,7 +52,7 @@ export async function runReportGeneration(
   // Low-tier API keys have tight per-minute token limits — firing all parts
   // at once gets most of them rate-limited. Run a small worker pool (3
   // concurrent) and retry missing parts across rounds with backoff.
-  const MAX_ROUNDS = 5;
+  const MAX_ROUNDS = 8;
   for (let round = 0; round < MAX_ROUNDS; round++) {
     const missing = [...Array(total).keys()].filter((p) => !parts[p]);
     if (!missing.length || alreadyFinished) break;

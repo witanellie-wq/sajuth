@@ -156,6 +156,44 @@ function chunk<T>(arr: T[], size: number): T[][] {
   return out;
 }
 
+// 모델 출력에서 [{title, body}] 를 최대한 살려낸다: 코드펜스, 배열 대신 객체 하나,
+// max_tokens 로 끝이 잘린 JSON 까지 처리.
+function parseSections(raw: string): Array<{ title: string; body: string }> | null {
+  const text = raw.replace(/```(?:json)?/g, "").trim();
+  const tryParse = (s: string): unknown => {
+    try {
+      return JSON.parse(s);
+    } catch {
+      return undefined;
+    }
+  };
+  const a = text.indexOf("["), b = text.lastIndexOf("]");
+  if (a >= 0 && b > a) {
+    const v = tryParse(text.slice(a, b + 1));
+    if (Array.isArray(v)) return v as Array<{ title: string; body: string }>;
+  }
+  const o = text.indexOf("{"), oe = text.lastIndexOf("}");
+  if (o >= 0 && oe > o) {
+    const v = tryParse(text.slice(o, oe + 1)) as { title?: string; body?: string } | undefined;
+    if (v && typeof v.title === "string" && typeof v.body === "string") return [{ title: v.title, body: v.body }];
+  }
+  // 잘린 JSON: "title":"…" 와 "body":"… (닫는 따옴표 없을 수 있음)
+  const t = text.match(/"title"\s*:\s*"((?:[^"\\]|\\.)*)"/);
+  const bm = text.match(/"body"\s*:\s*"((?:[^"\\]|\\.)*)/);
+  if (t && bm) {
+    const unesc = (s: string) => tryParse(`"${s.replace(/\\$/, "")}"`) as string | undefined;
+    const title = unesc(t[1]);
+    let body = unesc(bm[1]) ?? bm[1].replace(/\\n/g, "\n");
+    if (title && body) {
+      // 문장 중간에서 잘렸으면 마지막 완결 문단/문장까지만.
+      const cut = Math.max(body.lastIndexOf("\n\n"), body.lastIndexOf("ค่ะ"), body.lastIndexOf(". "), body.lastIndexOf("요."));
+      if (cut > body.length * 0.6) body = body.slice(0, cut + (body.startsWith("ค่ะ", cut) ? 3 : 2)).trim();
+      return [{ title, body }];
+    }
+  }
+  return null;
+}
+
 // One generation call for a slice of categories. Chunked + parallel so the
 // full 12-13 category long-form report fits serverless time limits.
 async function callChunk(
@@ -182,14 +220,16 @@ async function callChunk(
   try {
     const res = await c.messages.create({
       model: MODEL,
-      max_tokens: 4096,
+      max_tokens: 6000,
       system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
       messages: [{ role: "user", content: prompt }],
     });
     const text = res.content.find((b) => b.type === "text")?.text ?? "";
-    const json = text.slice(text.indexOf("["), text.lastIndexOf("]") + 1);
-    const parsed = JSON.parse(json) as Array<{ title: string; body: string }>;
-    if (!Array.isArray(parsed) || parsed.length === 0) return null;
+    const parsed = parseSections(text);
+    if (!parsed || parsed.length === 0) {
+      console.warn("report chunk unparseable", { stop: (res as { stop_reason?: string }).stop_reason, len: text.length });
+      return null;
+    }
     const out = parsed.map((sec) => ({
       title: normalizeHanja(String(sec.title ?? ""), lang).slice(0, 120),
       body: normalizeHanja(String(sec.body ?? ""), lang),
@@ -274,7 +314,8 @@ function normalizeHanja(text: string, lang: Lang): string {
 // 출력 언어 검사: 다른 언어(특히 한국어)로 써버린 섹션은 버리고 재시도시킨다.
 function wrongLanguage(text: string, lang: Lang): boolean {
   if (tooMuchHanja(text)) return true;
-  const letters = text.replace(/[\s\d\p{P}\p{S}]/gu, "");
+  // 괄호 안 보조 표기(한자·한글 용어)는 비율 계산에서 뺀다.
+  const letters = text.replace(/\([^)]*\)/g, "").replace(/[\s\d\p{P}\p{S}]/gu, "");
   if (!letters) return true;
   const hangul = (letters.match(/[\uAC00-\uD7A3]/g) ?? []).length;
   const thai = (letters.match(/[\u0E00-\u0E7F]/g) ?? []).length;
