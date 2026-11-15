@@ -82,8 +82,21 @@ export async function POST(req: NextRequest) {
       console.warn("ocr slip rejected:", kind, id, reason, JSON.stringify(o));
       return NextResponse.json({ ok: false, reason });
     }
-    ref = `ocr:${String(o!.transactionNo).replace(/\s+/g, "")}`;
-    if (await refUsed(ref)) return NextResponse.json({ ok: false, reason: "duplicate" });
+    // 글자 인식 슬립은 자동으로 열지 않는다 — 입금 확인 대기(관리자 승인)로 등록.
+    const txn = String(o!.transactionNo).replace(/\s+/g, "");
+    if (await refUsed(`ocr:${txn}`)) return NextResponse.json({ ok: false, reason: "duplicate" });
+    const pending = {
+      payerName: `ocr:${txn}`,
+      contact: `슬립 글자확인 · ${o!.amount}฿ · 받는계좌 ${o!.receiverAccount ?? "?"} · ${o!.datetime ?? ""} · 보낸사람 확인필요`,
+      claimedAt: new Date().toISOString(),
+    };
+    if (kind === "pack") {
+      const pack = await amuletStore.create(pending.payerName, pending.contact);
+      return NextResponse.json({ ok: false, reason: "pending", code: pack.code });
+    }
+    if (kind === "compat") await compatStore.saveClaim(id, pending).catch(() => {});
+    else await store.saveClaim(id, pending).catch(() => {});
+    return NextResponse.json({ ok: false, reason: "pending" });
   } else {
     console.warn("slip rejected:", kind, id, r.reason, r.detail ?? "");
     return NextResponse.json({ ok: false, reason: r.reason });
