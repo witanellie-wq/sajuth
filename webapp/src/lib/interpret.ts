@@ -8,7 +8,7 @@
 import type { SajuChart, Element } from "./saju";
 import { analyzeStrength } from "./strength";
 import { todayFortune, TODAY_PREFIX } from "./today";
-import { findSinsal, SINSAL_NAME, SINSAL_BODY, SINSAL_TITLE } from "./sinsal";
+import { findSinsal, SINSAL_NAME, SINSAL_BODY, SINSAL_TITLE, CHARM_ABSENT } from "./sinsal";
 import type { Lang } from "./i18n";
 import { personalRemedy } from "./remedy";
 
@@ -191,18 +191,20 @@ export function interpret(chart: SajuChart, lang: Lang = "th"): ReportSection[] 
           : ` Your five elements are well balanced — a smooth, rounded chart.`);
   sections.push({ key: "elements", title: t.elements, body: balanceBody, locked: false });
 
-  // 2.5 신살 (도화·홍염·화개·역마) — FREE, only when present
+  // 2.5 신살 — FREE. 인기 신살(도화·홍염)은 있든 없든 항상 표시(콘텐츠 연결), 나머지는 있을 때만.
   const sinsal = findSinsal(chart);
-  if (sinsal.length > 0) {
-    sections.push({
-      key: "sinsal",
-      title: SINSAL_TITLE[lang],
-      body: sinsal
-        .map((k) => `${SINSAL_NAME[k][lang]}\n${SINSAL_BODY[k][lang]}`)
-        .join("\n\n"),
-      locked: false,
-    });
-  }
+  const charmLines = (["dohwa", "hongyeom"] as const)
+    .filter((k) => !sinsal.includes(k))
+    .map((k) => CHARM_ABSENT[k][lang]);
+  sections.push({
+    key: "sinsal",
+    title: SINSAL_TITLE[lang],
+    body: [
+      ...sinsal.map((k) => `${SINSAL_NAME[k][lang]}\n${SINSAL_BODY[k][lang]}`),
+      ...charmLines,
+    ].join("\n\n"),
+    locked: false,
+  });
 
   // 3. Day Master strength (신강/신약) + 용신 — FREE, the depth layer
   const strength = analyzeStrength(chart, lang);
