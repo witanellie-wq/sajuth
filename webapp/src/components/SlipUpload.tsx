@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 
 type Lang = "th" | "en" | "ko";
-type Kind = "reading" | "compat" | "pack";
+type Kind = "reading" | "compat" | "pack" | "chat3" | "chat10";
 
 const T: Record<Lang, Record<string, string>> = {
   th: {

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { store, compatStore, amuletStore } from "@/lib/store";
 import { verifySlip, slipEnabled } from "@/lib/slip";
 import { readSlip } from "@/lib/slipOcr";
+import { PACKS, addCredits, recordPurchase, type TargetKind } from "@/lib/chat";
 
 // 이미 쓴 거래번호인지 (QR 없는 슬립용 중복 방지).
 async function refUsed(ref: string): Promise<boolean> {
@@ -14,7 +15,8 @@ async function refUsed(ref: string): Promise<boolean> {
     const a = await sb.from("readings").select("id").eq("input->claim->>payerName", ref).limit(1);
     const b = await sb.from("compat_readings").select("id").eq("charts->claim->>payerName", ref).limit(1);
     const c = await sb.from("amulets").select("code").eq("payer_name", ref).limit(1);
-    return [a, b, c].some((r: { data?: unknown[] }) => (r.data ?? []).length > 0);
+    const d = await sb.from("chat_purchases").select("id").eq("ref", ref).limit(1);
+    return [a, b, c, d].some((r: { data?: unknown[] }) => (r.data ?? []).length > 0);
   } catch {
     return false;
   }
@@ -26,6 +28,8 @@ const PRICE: Record<string, number> = {
   reading: Number(process.env.UNLOCK_PRICE_THB ?? 49),
   compat: Number(process.env.UNLOCK_COMPAT_PRICE_THB ?? 89),
   pack: Number(process.env.AMULET_PACK_PRICE_THB ?? 129),
+  chat3: PACKS.chat3.price,
+  chat10: PACKS.chat10.price,
 };
 
 // GET /api/pay/slip → { enabled } (lets the UI show the upload button)
@@ -51,7 +55,17 @@ export async function POST(req: NextRequest) {
   if (file.size > 6 * 1024 * 1024) {
     return NextResponse.json({ ok: false, reason: "too_big" }, { status: 400 });
   }
-  if (kind !== "pack") {
+  // 상담 추가권: id = "reading:<uuid>" | "compat:<uuid>"
+  const isChat = !!PACKS[kind];
+  let chatT: { kind: TargetKind; id: string } | null = null;
+  if (isChat) {
+    const [tk, tid] = id.split(":");
+    if ((tk !== "reading" && tk !== "compat") || !/^[0-9a-f-]{36}$/i.test(tid ?? "")) {
+      return NextResponse.json({ ok: false, reason: "bad_request" }, { status: 400 });
+    }
+    chatT = { kind: tk, id: tid };
+  }
+  if (kind !== "pack" && !isChat) {
     const rec = kind === "compat" ? await compatStore.get(id) : await store.get(id);
     if (!rec) return NextResponse.json({ ok: false, reason: "not_found_record" }, { status: 404 });
     if (rec.paid) return NextResponse.json({ ok: true, alreadyPaid: true });
@@ -94,6 +108,10 @@ export async function POST(req: NextRequest) {
       const pack = await amuletStore.create(pending.payerName, pending.contact);
       return NextResponse.json({ ok: false, reason: "pending", code: pack.code });
     }
+    if (chatT) {
+      await recordPurchase(chatT.kind, chatT.id, kind, pending.payerName, "pending", pending.contact);
+      return NextResponse.json({ ok: false, reason: "pending" });
+    }
     if (kind === "compat") await compatStore.saveClaim(id, pending).catch(() => {});
     else await store.saveClaim(id, pending).catch(() => {});
     return NextResponse.json({ ok: false, reason: "pending" });
@@ -107,6 +125,12 @@ export async function POST(req: NextRequest) {
     contact: "",
     claimedAt: new Date().toISOString(),
   };
+  if (chatT) {
+    const fresh = await recordPurchase(chatT.kind, chatT.id, kind, ref, "paid");
+    if (!fresh) return NextResponse.json({ ok: false, reason: "duplicate" });
+    await addCredits(chatT.kind, chatT.id, PACKS[kind].questions);
+    return NextResponse.json({ ok: true, added: PACKS[kind].questions });
+  }
   if (kind === "pack") {
     const pack = await amuletStore.create(claim.payerName, "");
     await amuletStore.markPaid(pack.code);

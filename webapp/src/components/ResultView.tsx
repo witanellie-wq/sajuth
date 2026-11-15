@@ -5,6 +5,8 @@ import SlipUpload from "./SlipUpload";
 import SajuSummaryCard from "./SajuSummaryCard";
 import QrSave from "./QrSave";
 import AdSlot from "./AdSlot";
+import ChatBox from "./ChatBox";
+import { LoginModal, canPay, useLinkMe } from "./auth";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -195,11 +197,14 @@ export default function ResultView({ initial }: { initial: Reading }) {
   const [amuletInput, setAmuletInput] = useState("");
   const [amuletMsg, setAmuletMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [refCopied, setRefCopied] = useState(false);
   const [copied, setCopied] = useState(false);
 
   const { chart, sections, disclaimer, id } = reading;
   const uiLang: L3 = reading.lang === "en" ? "en" : reading.lang === "ko" ? "ko" : "th";
+  const linkLabel = reading.name || "ดวงของฉัน";
+  useLinkMe("reading", id, linkLabel);
   const tt = TXT[uiLang];
 
   // Language switch: re-render the whole report in the selected language.
@@ -336,6 +341,10 @@ export default function ResultView({ initial }: { initial: Reading }) {
   ];
 
   async function openPayment(kind: "reading" | "pack" = "reading") {
+    if (!(await canPay())) {
+      setShowLogin(true);
+      return;
+    }
     setBusy(true);
     setPayKind(kind);
     try {
@@ -787,6 +796,8 @@ export default function ResultView({ initial }: { initial: Reading }) {
         </div>
       )}
 
+      {id && <ChatBox kind="reading" id={id} lang={uiLang} />}
+      {showLogin && <LoginModal lang={uiLang} onClose={() => setShowLogin(false)} />}
       <AdSlot />
       <p className="mt-6 text-center text-xs text-ink/40">{disclaimer}</p>
     </section>

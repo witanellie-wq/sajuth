@@ -1,6 +1,8 @@
 "use client";
 
 import AdSlot from "./AdSlot";
+import ChatBox from "./ChatBox";
+import { LoginModal, canPay, useLinkMe } from "./auth";
 import ReportBody from "./ReportBody";
 import SlipUpload from "./SlipUpload";
 import QrSave from "./QrSave";
@@ -278,10 +280,13 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
   const [amuletInput, setAmuletInput] = useState("");
   const [amuletMsg, setAmuletMsg] = useState("");
   const [busy, setBusy] = useState(false);
+  const [showLogin, setShowLogin] = useState(false);
   const [copied, setCopied] = useState(false);
   const [refCopied, setRefCopied] = useState(false);
   const { score, intimate, bandTh, headline } = data.result;
   const uiLang: L3 = data.result.lang === "en" ? "en" : data.result.lang === "ko" ? "ko" : "th";
+  const linkLabel = `${profiles?.a?.name ?? "A"} × ${profiles?.b?.name ?? "B"}`;
+  useLinkMe("compat", id, linkLabel);
   const tt = CTXT[uiLang];
 
   // Language switch: re-render the whole result in the selected language.
@@ -441,6 +446,10 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
   }
 
   async function openPayment(kind: "compat" | "pack" = "compat") {
+    if (!(await canPay())) {
+      setShowLogin(true);
+      return;
+    }
     setBusy(true);
     setPayKind(kind);
     try {
@@ -808,6 +817,8 @@ export default function CompatView({ data: initialData }: { data: CompatData }) 
         </div>
       )}
 
+      {id && <ChatBox kind="compat" id={id} lang={uiLang} />}
+      {showLogin && <LoginModal lang={uiLang} onClose={() => setShowLogin(false)} />}
       <AdSlot />
       <p className="mt-6 text-center text-xs text-ink/40">{disclaimer}</p>
     </section>
