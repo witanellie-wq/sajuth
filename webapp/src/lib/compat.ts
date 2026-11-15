@@ -33,8 +33,13 @@ export interface Compatibility {
   // replaced with real names in the report prompt; the AI may only cite
   // combinations from this list, never invent its own.
   combos?: string[];
+  // 속궁합 근거(한국어 사실, {A}/{B} 토큰) — 리포트가 '왜 좋은지'를 설명할 재료.
+  intimateFacts?: string[];
 }
 
+const EL_KO_X: Record<string, string> = { wood: "목(木)", fire: "화(火)", earth: "토(土)", metal: "금(金)", water: "수(水)" };
+const CTRL_OF: Record<string, string> = { wood: "earth", earth: "water", water: "fire", fire: "metal", metal: "wood" };
+const GEN_OF: Record<string, string> = { wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood" };
 // 六合 harmony pairs.
 const LIU_HE = new Set(["子丑", "寅亥", "卯戌", "辰酉", "巳申", "午未"]);
 // 六沖 clash pairs.
@@ -60,6 +65,16 @@ const AMHAP_COMBOS: Record<string, number> = {
   "卯申": 1, "申卯": 1,
   "戌亥": 1, "亥戌": 1,
 };
+// 충이면서 지장간끼리 합이 숨은 쌍 — 子午(丁壬)·卯酉(乙庚)·辰戌(戊癸).
+// 끌림(속궁합)은 강하지만 부딪힘도 함께 오는 '애증' 구조.
+const CHONG_WITH_AMHAP = new Set(["子午", "午子", "卯酉", "酉卯", "辰戌", "戌辰"]);
+// 충이 일어나는 자리별 다툼 주제 (AI 서술용).
+const CHONG_TOPIC = [
+  "집안 배경·가치관·윗세대 문제", // 년지
+  "생활 환경·일 방식·부모형제 문제", // 월지
+  "부부 사이 직접적인 감정 충돌·일상 밀착 영역", // 일지
+  "생활 리듬·말투·자녀·노후 계획", // 시지
+];
 // Pairs whose hidden combo is 丁壬 (정임) — feeds the intimate boost.
 const AMHAP_JEONGIM = new Set(["子午", "午子", "子戌", "戌子", "午亥", "亥午", "戌亥", "亥戌"]);
 // 우합/隅合 (corner combinations, 모서리합) — adjacent "corner" pairs of the
@@ -558,8 +573,16 @@ export function computeCompatibility(
   const notes: Array<{ k: string; text: string }> = [];
 
   // 1. Day master element relation.
+  const intimateFacts: string[] = [];
   const rel = relationTo(a.dayMasterElement, b.dayMasterElement);
   const relBack = relationTo(b.dayMasterElement, a.dayMasterElement);
+  {
+    const ea = a.dayMasterElement, eb = b.dayMasterElement;
+    if (CTRL_OF[ea] === eb) intimateFacts.push(`일간 극: {A}의 ${EL_KO_X[ea]}이 {B}의 ${EL_KO_X[eb]}을 극함 → 한쪽이 이끌고 한쪽이 끌려가는 긴장감 있는 끌림`);
+    else if (CTRL_OF[eb] === ea) intimateFacts.push(`일간 극: {B}의 ${EL_KO_X[eb]}이 {A}의 ${EL_KO_X[ea]}을 극함 → 한쪽이 이끌고 한쪽이 끌려가는 긴장감 있는 끌림`);
+    else if (GEN_OF[ea] === eb) intimateFacts.push(`일간 상생: {A}의 ${EL_KO_X[ea]}이 {B}의 ${EL_KO_X[eb]}을 살림 → 주고 싶은 마음과 받는 기쁨이 자연스럽게 오감`);
+    else if (GEN_OF[eb] === ea) intimateFacts.push(`일간 상생: {B}의 ${EL_KO_X[eb]}이 {A}의 ${EL_KO_X[ea]}을 살림 → 주고 싶은 마음과 받는 기쁨이 자연스럽게 오감`);
+  }
   if (rel === "resource" || relBack === "resource") {
     score += 12;
     notes.push({ k: "dmResource", text: NOTES.dmResource[lang] });
@@ -631,8 +654,14 @@ export function computeCompatibility(
   const hotB = b.elementCounts.fire >= 3 || SUMMER.has(b.month.zhi);
   const wetA = a.elementCounts.water >= 2 || a.dayMasterElement === "water";
   const wetB = b.elementCounts.water >= 2 || b.dayMasterElement === "water";
+  // 같은 원인(한쪽의 물/불 과다)에서 나오는 조후·과다제어·배우자성 풍부 점수는
+  // 따로 세면 중복이므로 climateGroup 에 모아 상한을 둔다.
+  let climateGroup = 0;
   if ((coldA && warmB) || (coldB && warmA) || (hotA && wetB) || (hotB && wetA)) {
-    score += 6;
+    climateGroup += 6;
+    if (coldA && warmB) intimateFacts.push("조후: {A}의 차가운 사주(겨울생·물 많음)를 {B}의 불기운이 데워 줌 → 곁에 있으면 몸과 마음이 풀리는 온기");
+    else if (coldB && warmA) intimateFacts.push("조후: {B}의 차가운 사주(겨울생·물 많음)를 {A}의 불기운이 데워 줌 → 곁에 있으면 몸과 마음이 풀리는 온기");
+    else intimateFacts.push("조후: 뜨거운 사주를 상대의 물기운이 식혀 줌 → 함께 있으면 열이 가라앉고 편안해짐");
     notes.push({ k: "climate", text: NOTES.climate[lang] });
   }
 
@@ -644,11 +673,14 @@ export function computeCompatibility(
     (y.elementCounts as Record<string, number>)[CONTROLLER[el]] >= 2;
   if (excessControlled(a, b, "water") || excessControlled(b, a, "water")) {
     // 토극수 — the dam-and-water pairing, extra favorable.
-    score += 7;
+    climateGroup += 7;
+    const [w, e] = excessControlled(a, b, "water") ? ["{A}", "{B}"] : ["{B}", "{A}"];
+    intimateFacts.push(`토극수: ${w}의 넘치는 물을 ${e}의 흙이 둑처럼 막아 줌 → 붙잡아 주고 붙잡히는 관계, 서로에게 묶이는 강한 결속감`);
     notes.push({ k: "control", text: NOTES.control[lang] });
   } else if (excessControlled(a, b, "fire") || excessControlled(b, a, "fire")) {
-    score += 5;
+    climateGroup += 5;
     notes.push({ k: "control", text: NOTES.control[lang] });
+    intimateFacts.push("수극화: 한쪽의 타오르는 불을 상대의 물이 다스려 줌 → 뜨거움과 진정이 오가는 케미");
   }
 
   // 6. 상생 자리 — distinct element pairs where one partner's present element
@@ -679,7 +711,12 @@ export function computeCompatibility(
     const P = zhi ? POS_ZHI : POS_GAN;
     combos.push(`{A}의 ${P[i]} ${x} ↔ {B}의 ${P[j]} ${y} — ${kind}`);
   };
-  if (dayChong) comboAt(2, 2, dayChong.x, dayChong.y, "충(沖)");
+  if (dayChong)
+    comboAt(
+      2, 2, dayChong.x, dayChong.y,
+      `충(沖) — 다툼 주제: ${CHONG_TOPIC[2]}` +
+        (CHONG_WITH_AMHAP.has(dayChong.x + dayChong.y) ? " · 지장간 합이 숨어 있어 끌림이 강하고 금방 화해하지만 감정 기복이 큼(애증)" : "")
+    );
 
   // 7. 암합 — hidden combinations across the two charts' branches.
   const branchesOf = (c: SajuChart): string[] => [
@@ -767,16 +804,28 @@ export function computeCompatibility(
     }
   if (sanheCross) score += 1;
 
-  // 충 sweep (record only — scoring stays day-day + the intimate crossChong).
-  // Same/adjacent positions, e.g. 내 시지 午 ↔ 상대 시지 子 = 자오충.
+  // 충 sweep — 같은/이웃 자리의 충. 자리별로 다툼 주제를 기록하고 감점.
+  // 지장간 합이 숨은 충(子午·卯酉·辰戌)은 끌림도 강해 '애증'으로 기록.
+  let chongPenalty = 0;
   for (let i = 0; i < bA.length; i++)
     for (let j = 0; j < bB.length; j++)
       if (
         nearPos(i, j) &&
-        !(i === 2 && j === 2) && // day-day 충 already recorded above
+        !(i === 2 && j === 2) && // day-day 충 already scored above
         (LIU_CHONG.has(bA[i] + bB[j]) || LIU_CHONG.has(bB[j] + bA[i]))
-      )
-        comboAt(i, j, bA[i], bB[j], "충(沖)");
+      ) {
+        const withAmhap = CHONG_WITH_AMHAP.has(bA[i] + bB[j]);
+        const topic = i === j ? CHONG_TOPIC[i] : `${CHONG_TOPIC[i]} / ${CHONG_TOPIC[j]}`;
+        comboAt(
+          i, j, bA[i], bB[j],
+          `충(沖) — 다툼 주제: ${topic}` +
+            (withAmhap ? " · 지장간 합이 숨어 있어 끌림이 강하고 금방 화해하지만 감정 기복이 큼(애증)" : "")
+        );
+        // 일지가 끼면 더 아프고, 년지는 가볍다. 숨은 합이 있으면 조금 덜 아프다.
+        const base = i === 2 || j === 2 ? 5 : i === 0 && j === 0 ? 2 : 4;
+        chongPenalty += withAmhap ? Math.max(1, base - 3) : base; // 숨은 합 있는 충 = 애증, 가볍게
+      }
+  score -= Math.min(9, chongPenalty);
 
   // 9. 오누이 궁합 — same month branch (월지) reads sibling-like: cozy but
   // low on romantic spark. Docked hard (-30, per classical practice).
@@ -818,15 +867,19 @@ export function computeCompatibility(
       const officerInHim = rawElemCount(m, CONTROLLER[f.dayMasterElement]);
       const wealthInHer = rawElemCount(f, CONTROLS[m.dayMasterElement]);
       if (officerInHim >= 2) {
-        score += officerInHim >= 3 ? 5 : 3;
+        climateGroup += officerInHim >= 3 ? 5 : 3;
+        intimateFacts.push(`배우자성: 남자 원국의 ${EL_KO_X[CONTROLLER[f.dayMasterElement]]} ${officerInHim}개가 여자의 관성(남자 기운) → 여자가 남자에게서 '내 사람' 기운을 강하게 느낌`);
         notes.push({ k: "officerPull", text: NOTES.officerPull[lang] });
       }
       if (wealthInHer >= 2) {
-        score += wealthInHer >= 3 ? 5 : 3;
+        climateGroup += wealthInHer >= 3 ? 5 : 3;
+        intimateFacts.push(`배우자성: 여자 원국의 ${EL_KO_X[CONTROLS[m.dayMasterElement]]} ${wealthInHer}개가 남자의 재성(여자 기운) → 남자가 여자에게서 '내 여자' 기운을 강하게 느낌`);
         notes.push({ k: "wealthPull", text: NOTES.wealthPull[lang] });
       }
     }
   }
+  // 조후·과다제어·배우자성 풍부는 대부분 같은 원인(한쪽의 물/불 과다) → 상한 18.
+  score += Math.min(18, climateGroup);
 
   // 11. 천을귀인 — the partner's branches carry MY noble star → the partner
   // becomes my benefactor (and treats me with care).
@@ -871,15 +924,23 @@ export function computeCompatibility(
   const crossChong = dhA.some((x) =>
     dhB.some((y) => LIU_CHONG.has(x + y) || LIU_CHONG.has(y + x))
   );
+  const chongAmhap = dhA.some((x) => dhB.some((y) => CHONG_WITH_AMHAP.has(x + y)));
   if (crossChong) {
-    intimate += 15;
+    // 숨은 합이 있는 충(자오충 등)은 강한 끌림, 그냥 충은 긴장감 정도.
+    intimate += chongAmhap ? 15 : 6;
     intimateReasons.push(INTIMATE_TEXT.chong[lang]);
+    intimateFacts.push(
+      chongAmhap
+        ? "충+암합: 일지·시지끼리 충이지만 그 안에 합이 숨어 있음 → 부딪히는 만큼 불꽃이 튀고, 다투고 나면 더 끌리는 애증의 자극"
+        : "충: 일지·시지끼리 부딪힘 → 긴장감이 자극이 되는 관계"
+    );
   }
 
   // 암합 abundance → secret chemistry (weighted by hidden-combo count).
   if (amhapSum > 0) {
     intimate += Math.min(12, amhapSum * 2);
     intimateReasons.push(INTIMATE_TEXT.amhap[lang]);
+    intimateFacts.push(`암합: 지지 속 숨은 합 ${amhapSum}개 → 겉으로 드러나지 않는 은밀한 끌림, 둘만 아는 케미`);
   }
 
   // 정임합 (丁壬) across the charts — the classic irresistible-attraction pair.
@@ -893,10 +954,12 @@ export function computeCompatibility(
   if (visibleJeongim) {
     intimate += 15;
     intimateReasons.push(INTIMATE_TEXT.jeongim[lang]);
+    intimateFacts.push("정임합(丁壬): 천간에 드러난 丁壬 합 — '거부할 수 없는 끌림'의 대표 조합");
   } else if (hiddenJeongim) {
     // 자오충 등 지장간 속 丁壬 — 드러난 정임보다는 약하게
     intimate += 8;
     intimateReasons.push(INTIMATE_TEXT.jeongim[lang]);
+    intimateFacts.push("숨은 정임합(丁壬): 지장간 속 丁과 壬이 합 — 명리에서 말하는 '거부할 수 없는 끌림'이 속에 숨어 있음");
   }
 
   // 일지/년지 합이 水로 화하는 경우 (巳申합수, 申子辰 수국) → intimacy UP.
@@ -911,6 +974,7 @@ export function computeCompatibility(
   if (waterCombo) {
     intimate += 12;
     intimateReasons.push(INTIMATE_TEXT.water[lang]);
+    intimateFacts.push("수(水)로 합: 일지 또는 년지끼리 합해 물기운이 됨 → 촉촉하고 깊어지는 친밀감");
   }
 
   // 오누이/비견 dampen physical spark too.
@@ -994,6 +1058,7 @@ export function computeCompatibility(
     lang,
     sections,
     combos,
+    intimateFacts,
   };
 }
 

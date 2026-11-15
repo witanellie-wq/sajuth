@@ -598,8 +598,8 @@ export default function ResultView({ initial }: { initial: Reading }) {
       {/* Sections — hidden while the in-depth analysis is being generated */}
       {!genState && (
       <div className="mt-4 space-y-3">
-        {sections.map((s, i) => {
-          const firstLocked = s.locked && !sections.slice(0, i).some((x) => x.locked);
+        {[...sections.filter((x) => x.key !== "remedy"), ...sections.filter((x) => x.key === "remedy")].map((s, i, arr) => {
+          const firstLocked = s.locked && !arr.slice(0, i).some((x) => x.locked);
           return (
             <div key={s.key}>
               {firstLocked && (
