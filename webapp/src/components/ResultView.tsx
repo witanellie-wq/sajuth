@@ -2,6 +2,7 @@
 
 import ReportBody from "./ReportBody";
 import SlipUpload from "./SlipUpload";
+import QrSave from "./QrSave";
 
 import { useEffect, useRef, useState } from "react";
 
@@ -676,6 +677,7 @@ export default function ResultView({ initial }: { initial: Reading }) {
             <p className="mt-1 text-sm text-ink/70">PromptPay · {pay.amount} THB</p>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={pay.qr} alt="PromptPay QR" className="mx-auto my-3 w-56" />
+            <QrSave qr={pay.qr} amount={pay.amount} lang={uiLang} />
             <SlipUpload
               kind={payKind === "pack" ? "pack" : "reading"}
               id={id ?? undefined}
