@@ -11,7 +11,7 @@ import type { CompatSection, Compatibility } from "./compat";
 import type { ReportSection } from "./interpret";
 import { analyzeStrength } from "./strength";
 import { findSinsal } from "./sinsal";
-import { factSheet, ageOn, crossSpouseFact } from "./myeongri";
+import { factSheet, crossSpouseFact } from "./myeongri";
 import { remedyFactPersonal, remedyFactCouple } from "./remedy";
 import type { Lang } from "./i18n";
 
@@ -547,7 +547,7 @@ function compatPrompt(
     factSheet(chartB, { gender: profiles.b?.gender, birth: birthOf(chartB) }) +
     `\n${remedyFactCouple(chartA, chartB, nameA, nameB)}` +
     `\n[배우자 기운 교차 — 궁합 해석의 핵심 근거로 반드시 활용]\n${crossSpouseFact(chartA, chartB, profiles.a?.gender, profiles.b?.gender, nameA, nameB)}` +
-    `\n나이 차이: ${Math.abs(ageOn(birthOf(chartA)) - ageOn(birthOf(chartB)))}살 — 관계 해석에 자연스럽게 활용하라.\n\n` +
+    `\n나이 차이: ${Math.abs(birthOf(chartA).year - birthOf(chartB).year)}살(출생연도 기준, 한국식) — 이 숫자 그대로만 쓰고 관계 해석에 자연스럽게 활용하라.\n\n` +
     `관계: ${relationship} / 궁합 점수: ${result.score}% → 표현 방향: ` +
     band(result.score, "노력으로 완성해가는 인연", "편안하게 맞춰가는 인연", "서로 강하게 끌리는 인연") +
     (romantic && typeof result.intimate === "number"
@@ -618,4 +618,42 @@ export async function generateCompatReport(
     body: sec.body,
     locked: false,
   }));
+}
+
+
+// ── 상담 채팅 (결과 화면 아래 "내 사주에게 물어보기") ──────────────────────
+export async function askChat(
+  facts: string,
+  history: Array<{ role: "user" | "assistant"; content: string }>,
+  question: string,
+  lang: Lang
+): Promise<string | null> {
+  const c = getClient();
+  if (!c) return null;
+  const system =
+    `너는 '덩사주(ดวงซาจู)'의 한국 명리학 상담가다. 아래 [사주 사실]과 [리포트]만 근거로 사용자의 질문에 답한다.\n` +
+    `규칙:\n` +
+    `1) 반드시 ${LANG_NAME[lang]}(으)로만 답한다. 사람 이름은 원래 표기 그대로 쓴다.\n` +
+    `2) 질문에 바로 답하는 한 문장으로 시작하고, 이어서 사주 근거(일간·십성·오행·합충·신살·대운 등 [사주 사실]에 있는 것만)를 쉬운 말로 2~4문장 설명한 뒤, 현실적인 조언 1~2문장으로 끝낸다. 전체 400~700자.\n` +
+    `3) [사주 사실]에 없는 합·충·신살을 지어내지 않는다. 점수(%)나 내부 수치는 말하지 않는다.\n` +
+    `4) 따뜻하고 긍정적인 톤(좋은 점 70%, 주의점 30%). 단정적인 예언·공포 조장 금지. 건강·법률·투자 질문은 사주 관점만 말하고 전문가 상담을 권한다.\n` +
+    `5) 팔찌·차 같은 상품은 사용자가 먼저 묻지 않으면 언급하지 않는다.\n` +
+    `6) 사주와 무관한 요청(코딩, 숙제 등)은 정중히 사주 상담만 가능하다고 말한다.\n\n` +
+    `[사주 사실]\n${facts.slice(0, 14000)}`;
+  try {
+    const res = await c.messages.create({
+      model: MODEL,
+      max_tokens: 1200,
+      system: [{ type: "text", text: system, cache_control: { type: "ephemeral" } }],
+      messages: [
+        ...history.slice(-8).map((m) => ({ role: m.role, content: m.content })),
+        { role: "user", content: question.slice(0, 600) },
+      ],
+    });
+    const text = res.content.find((b) => b.type === "text")?.text ?? "";
+    return text ? normalizeHanja(text.trim(), lang) : null;
+  } catch (err) {
+    console.error("askChat failed:", String(err).slice(0, 300));
+    return null;
+  }
 }

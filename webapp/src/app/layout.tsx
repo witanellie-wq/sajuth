@@ -33,6 +33,8 @@ export default function RootLayout({
       <body className="font-thai bg-gradient-to-b from-pink-50 via-cream to-purple-50 text-ink antialiased min-h-screen">
         {children}
         <footer className="relative z-10 pb-8 text-center text-xs text-white/50">
+          <a href="/me" className="underline">ดวงของฉัน · My readings</a>
+          {" · "}
           <a href="/privacy" className="underline">นโยบายความเป็นส่วนตัว · Privacy</a>
         </footer>
       </body>

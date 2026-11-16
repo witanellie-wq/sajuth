@@ -14,6 +14,7 @@ export default function Privacy() {
         <p>ดวงซาจู (ดูดวงสไตล์เกาหลี) ให้บริการโดย Witan Thailand เราให้ความสำคัญกับข้อมูลส่วนบุคคลของคุณ</p>
         <h2 className="font-semibold text-ink">ข้อมูลที่เราเก็บ</h2>
         <p>วัน เดือน ปี เวลาเกิด เพศ ชื่อเล่น และประเทศที่เกิด ที่คุณกรอกเพื่อคำนวณดวง รวมถึงหลักฐานการโอนเงินเมื่อซื้อรายงานแบบเต็ม ข้อมูลเหล่านี้ใช้เพื่อแสดงผลดวงของคุณเท่านั้น และไม่ขายให้บุคคลอื่น</p>
+        <p>เมื่อเข้าสู่ระบบด้วย LINE หรือ Google เราเก็บเพียงรหัสผู้ใช้ ชื่อที่แสดง รูปโปรไฟล์ และอีเมล (ถ้ามี) เพื่อเก็บผลดวงที่คุณซื้อไว้ในบัญชี รวมถึงคำถามและคำตอบในแชทถามดวง</p>
         <h2 className="font-semibold text-ink">คุกกี้และโฆษณา</h2>
         <p>เว็บไซต์นี้แสดงโฆษณาจาก Google AdSense ผู้ให้บริการภายนอก รวมถึง Google ใช้คุกกี้เพื่อแสดงโฆษณาตามการเข้าชมเว็บไซต์นี้และเว็บไซต์อื่นของคุณ คุณสามารถปิดโฆษณาแบบปรับตามความสนใจได้ที่ <a className="text-rose-500 underline" href="https://adssettings.google.com" target="_blank" rel="noreferrer">Google Ads Settings</a> หรือ <a className="text-rose-500 underline" href="https://www.aboutads.info" target="_blank" rel="noreferrer">aboutads.info</a></p>
         <h2 className="font-semibold text-ink">การลบข้อมูลและติดต่อเรา</h2>

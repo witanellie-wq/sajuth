@@ -369,6 +369,7 @@ export function factSheet(
       `현재 대운: ${cur ? `${cur.pillar} ${cur.startYear}~${cur.startYear + 9}년 (${ictY - cur.startYear + 1}년째)` : "대운 시작 전"}`
     );
     lines.push(`대운 서술 규칙: 본문에서 대운 시기는 나이가 아니라 연도(예: 2024~2033년)로만 써라. 나이 계산법이 나라마다 달라 혼동된다.`);
+    lines.push(`나이 표기 규칙: 본문에서 나이를 말할 땐 한국어(ko) 리포트는 한국나이, 태국어·영어 리포트는 만 나이를 쓴다.`);
   } else {
     lines.push(`대운: 성별 미입력으로 계산 불가 — 대운 간지·시기를 지어내지 말고 일반적 흐름만 서술`);
   }

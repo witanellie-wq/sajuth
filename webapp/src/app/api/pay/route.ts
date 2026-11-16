@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import QRCode from "qrcode";
 import { promptPayPayload } from "@/lib/promptpay";
 import { store, compatStore } from "@/lib/store";
+import { PACKS } from "@/lib/chat";
 
 export const dynamic = "force-dynamic";
 
@@ -10,9 +11,10 @@ const PRICE_COMPAT_THB = Number(process.env.UNLOCK_COMPAT_PRICE_THB ?? 89);
 const PRICE_PACK_THB = Number(process.env.AMULET_PACK_PRICE_THB ?? 129);
 const PROMPTPAY_TARGET = process.env.PROMPTPAY_TARGET ?? "0000000000";
 
-type Kind = "reading" | "compat" | "pack";
+type Kind = "reading" | "compat" | "pack" | "chat3" | "chat10";
 
 function priceFor(kind: Kind): number {
+  if (PACKS[kind]) return PACKS[kind].price;
   if (kind === "pack") return PRICE_PACK_THB;
   return kind === "compat" ? PRICE_COMPAT_THB : PRICE_READING_THB;
 }
@@ -25,7 +27,7 @@ export async function GET(req: NextRequest) {
   const kind = (req.nextUrl.searchParams.get("kind") ?? "reading") as Kind;
 
   let paid = false;
-  if (id) {
+  if (id && !PACKS[kind]) {
     const rec = kind === "compat" ? await compatStore.get(id) : await store.get(id);
     if (!rec) return NextResponse.json({ error: "not_found" }, { status: 404 });
     paid = rec.paid;
