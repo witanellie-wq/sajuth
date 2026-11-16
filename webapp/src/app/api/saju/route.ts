@@ -62,6 +62,8 @@ export async function POST(req: NextRequest) {
         month: input.month,
         day: input.day,
         hour: typeof input.hour === "number" ? input.hour : null,
+        ...(typeof input.minute === "number" ? { minute: input.minute } : {}),
+        ...(typeof input.place === "string" ? { place: input.place.slice(0, 20) } : {}),
         ...(input.sijin !== undefined ? { sijin: input.sijin } : {}),
         lang,
         ...(name ? { name } : {}),
