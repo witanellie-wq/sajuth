@@ -67,7 +67,8 @@ export async function listItems(uid: string): Promise<Array<{ kind: ItemKind; it
     console.error("listItems:", error.message);
     return [];
   }
-  const rows = data ?? [];
+  type Row = { kind: ItemKind; item_id: string; label: string; created_at: string };
+  const rows: Row[] = (data ?? []) as Row[];
   // Mark which results were paid for (unlocked) so they show first in ดวงของฉัน.
   const paid = new Set<string>();
   for (const [kind, table] of [["reading", "readings"], ["compat", "compat_readings"]] as const) {
@@ -77,6 +78,7 @@ export async function listItems(uid: string): Promise<Array<{ kind: ItemKind; it
     (p ?? []).forEach((x: { id: string; paid: boolean }) => x.paid && paid.add(kind + x.id));
   }
   return rows
-    .map((r) => ({ ...r, paid: paid.has(r.kind + r.item_id) }))
-    .sort((a, b) => Number(b.paid) - Number(a.paid));
+    
+    .map((r: Row) => ({ ...r, paid: paid.has(r.kind + r.item_id) }))
+    .sort((a: Row & { paid: boolean }, b: Row & { paid: boolean }) => Number(b.paid) - Number(a.paid));
 }
