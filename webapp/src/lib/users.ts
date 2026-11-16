@@ -54,7 +54,7 @@ export async function linkItem(uid: string, kind: ItemKind, itemId: string, labe
   if (error) console.error("linkItem:", error.message);
 }
 
-export async function listItems(uid: string): Promise<Array<{ kind: ItemKind; item_id: string; label: string; created_at: string }>> {
+export async function listItems(uid: string): Promise<Array<{ kind: ItemKind; item_id: string; label: string; created_at: string; paid: boolean }>> {
   const c = db();
   if (!c) return [];
   const { data, error } = await c
@@ -67,5 +67,16 @@ export async function listItems(uid: string): Promise<Array<{ kind: ItemKind; it
     console.error("listItems:", error.message);
     return [];
   }
-  return data ?? [];
+  const rows = data ?? [];
+  // Mark which results were paid for (unlocked) so they show first in ดวงของฉัน.
+  const paid = new Set<string>();
+  for (const [kind, table] of [["reading", "readings"], ["compat", "compat_readings"]] as const) {
+    const ids = rows.filter((r) => r.kind === kind).map((r) => r.item_id);
+    if (!ids.length) continue;
+    const { data: p } = await c.from(table).select("id, paid").in("id", ids);
+    (p ?? []).forEach((x: { id: string; paid: boolean }) => x.paid && paid.add(kind + x.id));
+  }
+  return rows
+    .map((r) => ({ ...r, paid: paid.has(r.kind + r.item_id) }))
+    .sort((a, b) => Number(b.paid) - Number(a.paid));
 }

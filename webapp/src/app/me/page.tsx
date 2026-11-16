@@ -8,6 +8,7 @@ interface Item {
   item_id: string;
   label: string;
   created_at: string;
+  paid?: boolean;
 }
 
 // ดวงของฉัน — saved results for the logged-in user (Thai first, EN below).
@@ -86,7 +87,14 @@ export default function MyPage() {
                 {it.kind === "compat" ? "💑 ดวงคู่ · " : "🔮 ดวงส่วนตัว · "}
                 {it.label}
               </span>
-              <span className="block text-[11px] text-ink/40">{new Date(it.created_at).toLocaleDateString("th-TH")}</span>
+              <span className="mt-0.5 flex items-center gap-2 text-[11px] text-ink/40">
+                {it.paid ? (
+                  <span className="rounded-full bg-emerald-50 px-2 py-0.5 font-semibold text-emerald-600">✅ ปลดล็อกแล้ว · Unlocked</span>
+                ) : (
+                  <span className="rounded-full bg-ink/5 px-2 py-0.5">ฟรี · Free</span>
+                )}
+                {new Date(it.created_at).toLocaleDateString("th-TH")}
+              </span>
             </Link>
           ))}
         </div>

@@ -31,6 +31,12 @@ export default function RootLayout({
         />
       </head>
       <body className="font-thai bg-gradient-to-b from-pink-50 via-cream to-purple-50 text-ink antialiased min-h-screen">
+        <a
+          href="/me"
+          className="fixed left-3 top-3 z-30 rounded-full border border-white/25 bg-black/30 px-3 py-1 text-xs font-semibold text-white/90 backdrop-blur"
+        >
+          👤 ดวงของฉัน
+        </a>
         {children}
         <footer className="relative z-10 pb-8 text-center text-xs text-white/50">
           <a href="/me" className="underline">ดวงของฉัน · My readings</a>
