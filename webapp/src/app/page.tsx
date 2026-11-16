@@ -4,7 +4,7 @@ import { PLACES, PLACE_OTHER } from "@/lib/places";
 import ModeTabs from "@/components/ModeTabs";
 import { SIJIN } from "@/lib/sijin";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import ResultView, { type Reading } from "@/components/ResultView";
 import { saveHistory } from "@/components/history";
 
@@ -105,6 +105,32 @@ export default function Home() {
     unknownTime: false,
   });
   const [result, setResult] = useState<Reading | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
+  const [editing, setEditing] = useState(false);
+
+  // "✏️ 생년월일 정보 수정" from a result page → /?edit=1&y=..&m=.. prefills the form.
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("edit") !== "1") return;
+    const ql = q.get("lang");
+    if (ql === "th" || ql === "en" || ql === "ko") setLang(ql);
+    const sj = q.get("sj") ?? "";
+    setForm((f) => ({
+      ...f,
+      name: q.get("n") ?? "",
+      gender: q.get("g") ?? "",
+      place: q.get("p") ?? f.place,
+      year: q.get("y") ?? "",
+      month: q.get("m") ?? "",
+      day: q.get("d") ?? "",
+      hour: sj ? "" : q.get("h") ?? "",
+      minute: sj ? "" : q.get("mi") ?? "",
+      sijin: sj,
+      unknownTime: !sj && !q.get("h"),
+    }));
+    setEditing(true);
+    setTimeout(() => formRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }), 50);
+  }, []);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -181,7 +207,17 @@ export default function Home() {
         <ModeTabs active="saju" lang={lang} />
       </header>
 
+      {editing && (
+        <p className="mb-3 rounded-xl bg-white/80 px-4 py-2 text-center text-xs text-rosewood">
+          {lang === "th"
+            ? "✏️ แก้ข้อมูลด้านล่างแล้วกด “ดูดวงของฉัน” อีกครั้ง"
+            : lang === "ko"
+            ? "✏️ 아래 정보를 고친 뒤 ‘내 사주 보기’를 다시 눌러 주세요"
+            : "✏️ Fix your info below and tap “Read my saju” again"}
+        </p>
+      )}
       <form
+        ref={formRef}
         onSubmit={onSubmit}
         className="overflow-hidden rounded-2xl border-2 border-ink/80 bg-white shadow-[5px_5px_0_0_rgba(58,42,51,0.85)]"
       >
